@@ -93,7 +93,8 @@ function fineLine(r, s) {
   const sz = r.sizing || '', amt = sz.match(/\$[\d,]+/)?.[0];
   const unit = sz.match(/(?:per|a|each) (trade|call|setup)/i)?.[1] || 'trade';
   const bits = [];
-  if (amt) bits.push(/scal/i.test(sz) ? `Scaled to ${amt} per ${unit}` : `${amt} per ${unit}`);
+  // Wording comes from `sizing`: whose size, scaled or not, and the amount.
+  if (amt) bits.push(/scal/i.test(sz) ? `${/^his\b/i.test(sz) ? 'His trades' : 'Their trades'}, scaled to ${amt} each` : `${amt} per ${unit}`);
   if (s.couldnt_copy > 0) bits.push(`${s.couldnt_copy.toLocaleString('en-US')} couldn’t be copied`);
   if (s.sized_down > 0) bits.push(`${s.sized_down.toLocaleString('en-US')} sized down`);
   if (s.not_triggered > 0) bits.push(`${s.not_triggered.toLocaleString('en-US')} never triggered`);
@@ -275,6 +276,8 @@ const moved = (before, after, where) => { const d = after - before; return (d > 
 function renderBotMix(c) {
   const sb = c.r?.suggestion, m = Array.isArray(c.r?.combos) ? c.r.combos[0] : null;
   $('#cBot').hidden = !sb;
+  if (!sb) $('#cBot').innerHTML = '';
+  if (!m) $('#cMix').innerHTML = '';
   if (sb) {
     const url = sb.prism_url || (sb.trajectory_id ? `https://prism.blockconvey.com/trajectories/${encodeURIComponent(sb.trajectory_id)}` : null);
     const past = sb.dev ? moved(sb.dev.before_pct, sb.dev.after_pct, 'past months') : '';
