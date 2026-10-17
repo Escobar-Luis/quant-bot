@@ -1,10 +1,11 @@
 // Every number on screen comes from these files, bundled at build time:
 // results/<course>/<version>.json (story 1) and proofs/prism.json (story 2).
 // results/_sample.json stands in for a course until its real file exists.
+// Two places: the repo root (normal build) or inside web/ (the Ninoo ZIP).
 
-const RESULTS = import.meta.glob('../../results/*/*.json', { eager: true, import: 'default' });
-const SAMPLE = import.meta.glob('../../results/_sample.json', { eager: true, import: 'default' });
-const PROOFS = import.meta.glob('../../proofs/prism.json', { eager: true, import: 'default' });
+const RESULTS = import.meta.glob(['../../results/*/*.json', '../results/*/*.json'], { eager: true, import: 'default' });
+const SAMPLE = import.meta.glob(['../../results/_sample.json', '../results/_sample.json'], { eager: true, import: 'default' });
+const PROOFS = import.meta.glob(['../../proofs/prism.json', '../proofs/prism.json'], { eager: true, import: 'default' });
 
 export const COURSE_META = [
   { key: 'lpp', name: 'Learn Plan Profit', kind: 'Stocks & options', hold: 'SPY' },

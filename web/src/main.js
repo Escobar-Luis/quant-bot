@@ -328,6 +328,7 @@ deck.innerHTML = COURSES.map((c, i) => `<article class="slide" data-i="${i}" ari
           <div class="v-left">
             <p class="v-line num"></p>
             ${delayHTML('dl-' + c.key)}
+            <p class="v-note cap">Fake money · not advice</p>
           </div>
           <button class="see press-fb" type="button" data-why>See the proof</button>
         </div>
@@ -343,8 +344,9 @@ function fillSlide(el, c, animateNums) {
   const st = $('.stamp.xl', el);
   st.textContent = v.word;
   const line = $('.v-line', el), stub = $('.stub', el), see = $('[data-why]', el), dl = $('[data-delay]', el);
+  el.classList.toggle('untested', !v.tested);
   if (!v.tested) {
-    line.innerHTML = `<span>No results file yet.</span> <span>Copying every trade now.</span>`;
+    line.innerHTML = `<span>Not tested yet.</span> <span>Copying every trade now.</span>`;
     stub.hidden = true; see.hidden = true; dl.hidden = true;
     return v;
   }

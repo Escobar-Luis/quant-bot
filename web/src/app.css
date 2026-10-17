@@ -26,6 +26,7 @@ body[data-screen=signin] .bar-right,body[data-screen=boot] .bar-right,body[data-
 .dl-range:focus-visible::-webkit-slider-thumb{outline:3px solid var(--on);outline-offset:2px}
 .dl-ticks{display:flex;justify-content:space-between;margin-top:-6px;padding:0 6px;color:var(--on2)}
 .dl-ticks span{min-width:14px;text-align:center}
+.v-note{color:var(--on2);margin-top:-4px}
 .v-foot{width:100%;padding-bottom:4px}
 .l-top{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px 16px;color:var(--d-on)}
 .l-top .l-head{padding:8px 0 0}
@@ -88,6 +89,7 @@ body[data-screen=signin] .bar-right,body[data-screen=boot] .bar-right,body[data-
   .t-list{max-height:420px}
 }
 @media (max-width:959px){
+  .slide.untested .v-main{padding-bottom:100px}
   /* phone: the stamp yields room so the stub fits above the fold */
   .v-main{padding-top:8px}
   .stub{margin:12px 16px 92px}
