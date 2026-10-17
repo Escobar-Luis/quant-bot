@@ -2,7 +2,7 @@
 
 | File | What | Status |
 |---|---|---|
-| `script.md` | ~2:50 live demo, words on top of story 5's click path (`tests/flow/demo-run.md`) | Ready; only PRISM's own evaluator pass rates pending |
+| `script.md` | ~2:50 live demo, words on top of story 5's click path (`tests/flow/demo-run.md`) | Ready (28 → 18 failed runs, PRISM judge 50% → 47% with its caveat) |
 | `narration.md` | ~55 s voice-over text and captions | Ready |
 | `narration.mp3` | 57 s voice-over, made by `python3 demo/narrate.py` (Nicrron `openai/tts-1-hd`, voice onyx; ElevenLabs when its key works) | Ready |
 | `submission.md` | Devpost answers, ready to paste | Draft; **[fill]** marks PRISM values and the video link |

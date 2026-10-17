@@ -31,9 +31,9 @@ git -C ~/dev/quant-bot fetch -q origin && python3 demo/check_numbers.py
 | **1:10** | **What was traded** → tap **Short the overbought run** (95 trades, −1.6%, No). Tap again to close. | "Each kind of trade is its own portfolio, so you learn which part worked. Here's the rule, in his own words." |
 | **1:20** | Course tab **Crypto Wizard**: "$10k became **$9,221**. It beat holding Bitcoin." chip **Yes**. | "Crypto Wizard: yes, but read the line. It lost money, just less than holding Bitcoin. ZipTrader: not enough trades. It says so instead of guessing." |
 | **1:30** | Course tab **Learn Plan Profit** → **See the proof**. **Knowledge Base** card. | "So how do you trust an AI that read a year of videos? Every verdict starts by looking up the course's own rules, from notes we put in PRISM's Knowledge Base." |
-| **1:40** | **The failure.** Scroll to **Root Cause** (25 failed runs, our sentence). Optional: Tab 2. | "An AI, through Nicrron, reads each session and writes down the trades. Code checks every one. Version 1 failed our checks in 29 of 30 runs. PRISM grouped 25 of them into one cluster. Our reading: it quoted long stretches of captions and lost track of open trades." |
-| **2:00** | **The fix.** Stay on the sheet. | "Version 2: each quote must carry its number, code trims it to twelve words, and open trades carry across days." |
-| **2:10** | **The score.** Scroll to **Evaluator** ("our code" 52% → 66%). | "Our evaluator, 'numbers grounded', scored both versions on the same 29 sessions. Runs passing: **52%**, now **66%**. Failed runs: **29 down to 18**. The money barely moved: the fix made the evidence cleaner, not the answer rosier." |
+| **1:40** | **The failure.** Scroll to **Root Cause** (25 failed runs, our sentence). Optional: Tab 2. | "An AI, through Nicrron, reads each session and writes down the trades. Code checks every one. Version 1 failed our checks in 28 of 30 runs, as PRISM's Agent Runs page counts them. PRISM grouped 25 of them into one cluster. Our reading: it quoted long stretches of captions and lost track of open trades." |
+| **2:00** | **The fix.** Stay on the sheet. | "Version 2: each quote must carry its number. And part of the fix is code, not the prompt: code trims each quote to twelve words, and a ledger rule carries open trades across days." |
+| **2:10** | **The score.** Scroll to **Evaluator** ("our code" 52% → 66%). | "Our code check, 'numbers grounded', reads every run in full. Runs passing: **52%**, now **66%**. Failed runs: **28 down to 18**. PRISM's own judge scored them 50 and 47, but it saw cut-off output in 24 of 30 runs, so it can't tell them apart. And the money barely moved: the fix made the evidence cleaner, not the answer rosier." |
 | **2:30** | Tab 3: PRISM verdict run, Steps tab, first step `kb_search`. | "In PRISM, the verdict agent's first step is that search. It found the course's own rule: you don't have to trade every opportunity. So the verdict says that copying every post isn't how the course says to trade." |
 | **2:45** | Tab 1, close the sheet (**×**). Back on LPP, **No**. | "The model proposes. The code decides. Not advice. Thank you." |
 
@@ -42,7 +42,7 @@ git -C ~/dev/quant-bot fetch -q origin && python3 demo/check_numbers.py
 1. Real Google sign-in on the projector.
 2. ZipTrader's "By kind of trade": one trade. Say "not enough trades" and move on.
 3. A PRISM card that says "pending": go to the PRISM tab for that beat.
-4. "29 of 30" vs "25": 29 runs failed a code check; PRISM's cluster holds 25 of them. Say both, as above.
+4. "28 of 30" vs "25": 28 runs failed a code check, as PRISM's Agent Runs page counts them; PRISM's cluster holds 25 of them. Say both, as above.
 5. The bot suggestion card: its change didn't hold on the newest months (kept: no). Say so, or skip it.
 
 ## If something breaks
@@ -65,14 +65,14 @@ git -C ~/dev/quant-bot fetch -q origin && python3 demo/check_numbers.py
 | Short the overbought run | 95 trades, −1.6%, No | same, `strategies` |
 | Crypto Wizard, 5 min | $9,221 vs $7,543, Yes | `results/cryptowizard/v1.json` `all` |
 | ZipTrader | 1 trade, Not enough trades | `results/ziptrader/v1.json` |
-| Failed runs, v1 → v2 | 29 → 18 of the same 30 sessions | `proofs/prism.json` `evaluator.failed_runs` |
+| Failed runs, v1 → v2 | 28 → 18 of the same 30 sessions (PRISM Agent Runs) | `proofs/prism.json` `evaluator.failed_runs` |
 | Root Cause cluster | 25 failed runs, tier "Needs review" | `proofs/prism.json` `root_cause` |
-| Numbers grounded, runs passing | 52% → 66% (our code); PRISM's own: pending | `proofs/prism.json` `evaluator.code_mirror` |
+| Numbers grounded, runs passing | 52% → 66% (our code, full output); PRISM's judge 50% → 47% (saw cut-off output in 24 of 30 runs) | `proofs/prism.json` `evaluator.code_mirror`, `.v1`, `.v2`, `.caveat` |
 | Money, same 30 sessions, 5 min | v1 $10,291 vs v2 $10,303 | `proofs/prism.json` `evaluator.money_same_sessions` |
 | Knowledge Base | query "Learn Plan Profit entry, exit and sizing rules", card LPP-AVOID-2 | `proofs/prism.json` `knowledge_base` |
 | FTC quote | Warrior Trading, 2022 | `notes/research/us-evidence.md` §2 |
 
-Why 29 and 30: failed runs count all 30 proof-set sessions; the evaluator scores the 29 that both versions extracted.
+Why 28, not 29: failed runs now come from PRISM's Agent Runs page (PR #35); our earlier count was 29. Part of v2's gain is code (quote trimming, a ledger rule), not only the prompt (`evaluator.framing`).
 
 ## If a judge asks
 
