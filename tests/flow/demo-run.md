@@ -2,7 +2,7 @@
 
 The exact clicks for the live demo, walked by story 5 so no click lands on a broken screen. The words to say are in `demo/script.md` (story 4); this file is the path under them.
 
-**Walked on:** story 3's build 7a2f242 (local, phone 390 and desktop 1440, 153/153 numbers match main). Re-walked on the public URL after each redeploy: see `report.md`.
+**Walked on:** story 3's build c4408eb (local, phone 390 and desktop 1440, 153/153 numbers match main 28e3f2e). Re-walked on the public URL after each redeploy: see `report.md`.
 
 ## Before you walk up (2 minutes)
 
@@ -31,8 +31,8 @@ The exact clicks for the live demo, walked by story 5 so no click lands on a bro
 | 0:55 | **What was traded** → tap **Short the overbought run** | 95 trades, −1.6%, **No**; opens BUY / SELL / STOP / SIZE / TIME and two short quotes. Tap again to close |
 | 1:05 | Course tab **Crypto Wizard** | "$10k became **$9,221**. It beat holding Bitcoin." · chip **Yes** |
 | 1:12 | Course tab **Learn Plan Profit** → **See the proof** | Proof sheet: −2.3% $9,766 vs +19.6% $11,964 |
-| 1:18 | Scroll the sheet: **Knowledge Base** → **Root Cause** → **Evaluator** | KB rules with sources; Root Cause 25 failed runs + our sentence; Evaluator "our code" 52% → 66% |
-| 1:35 | Tab 3 (PRISM run, Steps) | First step `kb_search`; it found LPP-AVOID-2 ("you don't have to trade every opportunity") |
+| 1:18 | Scroll the sheet: **Knowledge Base** → **Root Cause** → **Evaluator** | KB: searched "Learn Plan Profit entry, exit and sizing rules", 3 hits, **See the run**. Root Cause: 25 failed runs, **See the cluster**. Evaluator (our code): **52% → 66%**; runs failing a code check **29 of 30 → 18 of 30** |
+| 1:35 | **See the run** (or Tab 3, PRISM run, Steps) | First step `kb_search`; it found LPP-AVOID-2 ("you don't have to trade every opportunity") |
 | 1:50 | Tab 1, close the sheet (**×**) | Back on the LPP verdict, **No**. End: "The model proposes. The code decides. Not advice." |
 
 ## Never on stage
@@ -40,7 +40,7 @@ The exact clicks for the live demo, walked by story 5 so no click lands on a bro
 1. Real Google sign-in: shows Luis's account picker. If the button opens Google, start signed in on LPP instead.
 2. ZipTrader's "By kind of trade": one trade; say "Not enough trades" and move on.
 3. A PRISM card that says "pending": skip to the PRISM tab for that beat.
-4. "28 of 30" vs "25": our sentence counts runs that failed a code check (28 of 30); PRISM's cluster holds 25 of them. Say "25 failed runs in one cluster".
+4. Counts: say "29 of 30 runs failed a check; v2: 18" and "PRISM grouped 25 of them". The Root Cause sentence may still say 28 (story 2 fixing); don't read it aloud.
 5. The bot suggestion (if its card shows): its change didn't hold on the sealed months (kept: no). Say so, or skip it.
 
 ## If something breaks
