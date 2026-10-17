@@ -6,7 +6,7 @@ Python agent. Model calls go through the Nicrron API (OpenAI-compatible); every 
 
 1. NicrronNinoo account: open `nicrron.ai/redeem?code=FINTECH-LPBMK`, create the account, confirm the email. Create a key at `nicrron.ai/dashboard/keys`.
 2. PRISM: sign up at `prism.blockconvey.com/signup`, redeem `MONEYTALKS#2` at Settings → Billing (one workspace per team). Create a key at Settings → API Keys and copy the project id.
-3. `cp .env.example .env` and paste the values into `app/.env`.
+3. Paste the values into `~/dev/quant-bot/.env` (the main checkout, gitignored). Every worktree's app reads that one file; an `app/.env` in a worktree overrides it.
 
 ## Sync and check
 

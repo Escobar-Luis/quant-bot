@@ -4,21 +4,34 @@ Run: uv run python smoke.py
 Then: uv run python -m prismtrace.verify
 """
 import os
+import subprocess
 import sys
 import time
+from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from prismtrace import PRISMtrace
 
-load_dotenv()
+
+def load_env():
+    """Keys live once in the main checkout's .env (~/dev/quant-bot/.env), so every worktree shares them."""
+    here = Path(__file__).resolve().parent
+    load_dotenv(here / ".env")  # a local override, if any
+    common = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=here,
+                            capture_output=True, text=True).stdout.strip()
+    if common:
+        load_dotenv((here / common).resolve().parent / ".env")
+
+
+load_env()
 
 REQUIRED = ["NICRRON_API_KEY", "PRISMTRACE_API_KEY", "PRISMTRACE_PROJECT_ID"]
 missing = [k for k in REQUIRED if not os.getenv(k)]
 for k in REQUIRED:
     print(f"{k}: {'set' if os.getenv(k) else 'MISSING'}")
 if missing:
-    sys.exit("Fill app/.env first (see .env.example).")
+    sys.exit("Fill ~/dev/quant-bot/.env first (see app/.env.example).")
 
 model = os.getenv("NICRRON_MODEL", "nicrron/auto")
 llm = OpenAI(base_url=os.getenv("NICRRON_BASE_URL", "https://api.nicrron.ai/v1"),
