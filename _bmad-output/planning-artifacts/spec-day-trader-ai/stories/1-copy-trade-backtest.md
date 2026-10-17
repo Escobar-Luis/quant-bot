@@ -2,7 +2,7 @@
 title: 'story/1-copy-trade-backtest: copy every posted trade, per delay'
 type: 'feature'
 created: '2026-10-17'
-status: 'in-progress'
+status: 'done'
 route: 'oneshot'
 review_loop_iteration: 0
 context:
@@ -53,3 +53,40 @@ Blind Hunter, 19 findings:
 17. Test gaps: medium, partly patched (results contract test, too-late, scaled, exposure cap); rest deferred.
 18. handcheck crashes and checks entry only: low, rejected (dev tool; MATCH output is the acceptance check).
 19. Citation label past an hour: low, patched (h:mm:ss).
+
+### Review Findings (bmad-code-review, 2026-10-17)
+
+Layers: Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor (all reported). 1 decision-needed, 16 patched, 9 deferred, 4 rejected.
+
+- [ ] [Review][Decision] LPP sizing departs from contracts.md rule 6: his share counts are scaled so each trade is $1,000 (`--literal` keeps raw counts); the orchestrator agreed, Luis has not, and the contract text still says "the host's share counts". Needs Luis's yes and an AGENTS.md/contracts.md PR.
+- [x] [Review][Patch] `peak_invested_usd` was overwritten by the account high [app/backtest/engine.py:portfolio_stats]
+- [x] [Review][Patch] Scaled trades grew with his adds past $1,000 (one SOFI trade ~$111k) [app/backtest/engine.py:_simulate]
+- [x] [Review][Patch] A full trim ended the copy; later adds were dropped [app/backtest/engine.py:_simulate]
+- [x] [Review][Patch] Day-trade legs after 15:55 rolled to the next morning [app/backtest/engine.py:_simulate]
+- [x] [Review][Patch] Word gap float error at exactly 2.00 points [app/backtest/engine.py:word]
+- [x] [Review][Patch] Network errors aborted the whole run [app/backtest/bars.py]
+- [x] [Review][Patch] Alpaca daily request reached today (403 on the free plan) [app/backtest/bars.py:daily_closes]
+- [x] [Review][Patch] same_sessions ran for courses without versions [app/backtest/run.py]
+- [x] [Review][Patch] `days` published ~1,600 course quotes; now time, ticker, action only [app/backtest/lpp.py]
+- [x] [Review][Patch] LPP calls (watched levels) not copied and not disclosed [app/backtest/lpp.py:unknown]
+- [x] [Review][Patch] Crypto Wizard side not normalized; inferred sides undisclosed [app/backtest/cryptowizard.py]
+- [x] [Review][Patch] ZipTrader price source, briefing count and swing test hard-coded [app/backtest/ziptrader.py]
+- [x] [Review][Patch] Hold symbol shown as BTCUSDT [app/backtest/cryptowizard.py]
+- [x] [Review][Patch] Results files carried a git_sha older than their code (regenerated after commit 8fd8d78)
+- [x] [Review][Patch] Contract test missed required keys, word consistency, headline [app/backtest/tests/test_results_contract.py]
+- [x] [Review][Patch] No tests for target ladder, break-even, re-entry, 15:55 cutoff, portfolio_stats [app/backtest/tests/test_engine.py]
+- [x] [Review][Defer] Trade-row `pnl` is not scaled by the cash-fit factor [app/backtest/run.py:trade_row] — deferred: no trade is sized down in today's files (couldnt_copy and sized_down are 0)
+- [x] [Review][Defer] Exits that reach today's unclosed bars make the setup no_bars (4 HYPEUSDT setups) [app/backtest/bars.py] — deferred: disclosed in unknown
+- [x] [Review][Defer] v2's word compares 52 sessions with a full year of holding [app/backtest/run.py] — deferred: same_sessions holds the like-for-like v1 numbers; how the UI shows it is story 3's call
+- [x] [Review][Defer] Every version tried is not appended to notes/research/backtesting.md — deferred: file outside this lane
+- [x] [Review][Defer] Worst drop counts closed trades only — deferred: disclosed in unknown
+- [x] [Review][Defer] No window filter on positions — deferred: maybe-false, today's data fits
+- [x] [Review][Defer] Trigger-fill and lpp.build ledger tests — deferred: no committed result uses triggers
+- [x] [Review][Defer] Cache robustness: empty weekday answers cached, non-atomic writes — deferred: no failure seen
+- [x] [Review][Defer] handcheck checks entry only and crashes on no match — deferred: dev tool; MATCH is the acceptance check
+
+Rejected:
+- Crypto Wizard trim posts ignored: false as a pricing bug; the setup's targets fill the same shares by standing orders, disclosed in unknown.
+- sealed_from before the model cutoff: false for this story; contracts.md rule 10 defines the sealed window as the last 3 months.
+- Dead helpers (`sessions`, `last_close_on`, an unreachable cash check, copied `words()`): low, no user harm.
+- `--limit 0` prices everything: low, never used.
