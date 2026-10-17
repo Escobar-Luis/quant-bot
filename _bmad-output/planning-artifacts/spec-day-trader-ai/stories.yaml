@@ -1,0 +1,46 @@
+- id: "1"
+  title: "story/1-copy-trade-backtest: copy every posted trade, per delay"
+  description: >-
+    Prices every event the collectors extracted, per portfolio and per delay, after costs, against just
+    holding, and writes results/<course>/<version>.json (SPEC CAP-1, CAP-5, CAP-6; contracts.md). Owned
+    files, reads and acceptance in lanes.md.
+  invoke_dev_with: >-
+    Lane: Data & strategy. Owns app/backtest/** and results/**. LPP first: results/lpp/v1.json by 15:00,
+    even partial. Needs Alpaca keys in ~/dev/quant-bot/.env for minute bars. The improver (CAP-9) is a
+    stretch only after all verdict files exist.
+- id: "2"
+  title: "story/2-prism-proofs: Knowledge Base, Root Cause, Evaluator"
+  description: >-
+    Builds the three required PRISM proofs and the verdict agent, and summarizes them in
+    proofs/prism.json (SPEC CAP-8; contracts.md). Owned files, reads and acceptance in lanes.md.
+  invoke_dev_with: >-
+    Lane: PRISM proofs. Owns app/prism/**, kb/**, proofs/**. Does not re-run extraction; reads the
+    extract-lpp-v1/v2 runs. Stay under 150 of 200 PRISM credits.
+- id: "3"
+  title: "story/3-web-app: stamp-v2 app, Google sign-in, on Ninoo"
+  description: >-
+    Turns stamp-v2 into the real web app that reads results/ and proofs/, with Clerk Google sign-in,
+    deployed on Ninoo (SPEC CAP-1 to CAP-8; architecture.md Deploy). Owned files, reads and acceptance
+    in lanes.md.
+  done_checkpoint: true
+  invoke_dev_with: >-
+    Lane: UI & deploy. Owns web/**. Hello world on the Ninoo URL first, reading results/_sample.json;
+    Vercel fallback by 15:00. Luis creates the Clerk and Ninoo accounts.
+- id: "4"
+  title: "story/4-demo-story: script, narration, recording"
+  description: >-
+    Writes the under-3-minute demo (failure, fix, score), narrates it with ElevenLabs and records the
+    real deployed app (SPEC success signal; event.md hand-in). Owned files, reads and acceptance in
+    lanes.md.
+  invoke_dev_with: >-
+    Lane: Demo story. Owns demo/**. Draft on sample data by 15:15; final recording after the 15:30
+    full-flow test.
+- id: "5"
+  title: "story/5-full-flow-test: end to end on the public URL"
+  description: >-
+    From 15:30, tests the whole flow on phone and desktop and checks every shown number against the
+    files (SPEC success signal). Owned files, reads and acceptance in lanes.md.
+  done_checkpoint: true
+  invoke_dev_with: >-
+    Lane: Full-flow test. Owns tests/flow/**. Reports bugs to the owning lane via the orchestrator;
+    pass/fail call by 15:55.
