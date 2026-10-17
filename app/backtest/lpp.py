@@ -9,6 +9,7 @@ is an add, trim or close; otherwise it leaves at 15:55 ET (assumed).
 import datetime as dt
 import json
 from collections import Counter
+from functools import lru_cache
 
 from . import bars
 from .common import DATA
@@ -43,10 +44,22 @@ def words(text: str | None, n: int) -> str | None:
     return " ".join(w[:n]) + ("…" if len(w) > n else "")
 
 
+@lru_cache(maxsize=1)
+def _session_keys() -> dict[str, str]:
+    """video_id -> public session key "lpp:<date>" (data/lpp/session_keys.json, gitignored; PR #43)."""
+    p = DATA / "lpp" / "session_keys.json"
+    return {v["video_id"]: k for k, v in json.loads(p.read_text()).items()} if p.exists() else {}
+
+
+def public_key(e: dict) -> str:
+    """The session key public files use instead of the unlisted video ID."""
+    return _session_keys().get(e["source_id"].split(":", 1)[-1]) or f"lpp:{e['session_date']}"
+
+
 def cite(e: dict) -> dict:
     t = int(e.get("t_s") or 0)
     at = f"{t // 3600}:{t % 3600 // 60:02d}:{t % 60:02d}" if t >= 3600 else f"{t // 60}:{t % 60:02d}"
-    return {"source_id": e["source_id"], "locator": f"t={t}s", "label": f"Live session, {e['session_date']}, {at}"}
+    return {"source_id": public_key(e), "locator": f"t={t}s", "label": f"Live session, {e['session_date']}, {at}"}
 
 
 def usable(e: dict) -> bool:
@@ -73,7 +86,7 @@ def build(version: str, only: set[str] | None = None) -> dict:
         legs, first = open_pos.pop(key)
         days = {bars.et_date(lg.posted_ts) for lg in legs}
         swing = len(days) > 1
-        p = Position(pid=f"lpp-{first['source_id'][3:]}-{first['event_id'].rsplit(':', 1)[-1]}", course=COURSE,
+        p = Position(pid=f"lpp-{public_key(first)[4:]}-{first['event_id'].rsplit(':', 1)[-1]}", course=COURSE,
                      market=MARKET, ticker=key[0], side=key[1], portfolio="swing" if swing else "day", legs=legs,
                      default_exit="sessions:5" if swing else "day_close", quote=words(first["quote"], 12),
                      cite=cite(first), why=next((by_id[lg.event_id].get("why") for lg in legs

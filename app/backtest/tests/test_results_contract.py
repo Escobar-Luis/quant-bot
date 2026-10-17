@@ -89,3 +89,14 @@ def test_suggestion_is_the_improver_picked_on_dev(path):
                              and s["sealed"]["after_pct"] > s["sealed"]["before_pct"]) and s["kept_reason"]
         if s.get("trajectory_id"):
             assert s["prism_url"] == f"https://prism.blockconvey.com/trajectories/{s['trajectory_id']}"
+
+
+@pytest.mark.parametrize("path", FILES, ids=[f"{p.parent.name}/{p.name}" for p in FILES])
+def test_no_private_video_ids_in_results(path):
+    """Luis's security rule: unlisted video IDs and YouTube links never reach tracked files."""
+    import re
+    from backtest.common import private_video_ids
+    text = path.read_text()
+    assert not re.search(r"yt:[A-Za-z0-9_-]{11}", text)
+    assert "youtube.com" not in text and "youtu.be" not in text
+    assert not [v for v in private_video_ids() if v in text]

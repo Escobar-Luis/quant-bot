@@ -1,5 +1,7 @@
 """Shared paths and settings for the copy-trade backtester. Never prints key values."""
+import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -39,3 +41,22 @@ def has_alpaca() -> bool:
 def git_sha() -> str | None:
     out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=HERE, capture_output=True, text=True).stdout.strip()
     return out or None
+
+
+# ---- public files never carry unlisted video IDs (Luis's security rule, PR #43) ---------------------------------
+
+PRIVATE_URL = re.compile(r"yt:[A-Za-z0-9_-]{11}|youtube\.com|youtu\.be")
+
+
+def private_video_ids() -> set[str]:
+    """The LPP video IDs behind the public session keys; the mapping stays in gitignored data/."""
+    p = DATA / "lpp" / "session_keys.json"
+    return {v["video_id"] for v in json.loads(p.read_text()).values()} if p.exists() else set()
+
+
+def public_json(obj) -> str:
+    """JSON for a tracked file, or SystemExit if a private video ID or YouTube link would leak into it."""
+    text = json.dumps(obj, indent=1, ensure_ascii=False)
+    if PRIVATE_URL.search(text) or any(v in text for v in private_video_ids()):
+        raise SystemExit("refusing to write: a private video ID or YouTube link is in the output")
+    return text

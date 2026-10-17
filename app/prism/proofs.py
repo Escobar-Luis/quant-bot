@@ -13,9 +13,10 @@ A value we don't have yet stays null; nothing is made up.
 """
 import argparse
 import json
+import re
 import sys
 
-from .common import APP_URL, KB, PROOFS, RESULTS, now, read_jsonl, words
+from .common import APP_URL, KB, PROOFS, RESULTS, append_public, leaks, now, read_jsonl, words, write_public
 
 PARTS = PROOFS / "parts"
 OUT = PROOFS / "prism.json"
@@ -29,8 +30,7 @@ def _load(name: str, default):
 
 
 def _save(name: str, value) -> None:
-    PARTS.mkdir(parents=True, exist_ok=True)
-    (PARTS / name).write_text(json.dumps(value, indent=1))
+    write_public(PARTS / name, json.dumps(value, indent=1))
 
 
 def run_url(trajectory_id: str | None) -> str | None:
@@ -206,7 +206,7 @@ def build() -> dict:
         "bonus": _load("bonus.json", {"alert": None, "guardrail": None}),
         "credits": credits(),
     }
-    OUT.write_text(json.dumps(doc, indent=1) + "\n")
+    write_public(OUT, json.dumps(doc, indent=1) + "\n")
     write_readme_spend()
     return doc
 
@@ -242,6 +242,11 @@ def check(doc: dict) -> list[str]:
             errs.append(f"bonus.{k} missing")
     if (doc.get("credits") or {}).get("spent", 0) > CAP:
         errs.append(f"credits over the {CAP} cap")
+    for p in sorted(list(KB.glob("*")) + list(PROOFS.rglob("*"))):  # unlisted video IDs never go in git
+        if p.is_file() and (found := leaks(p.read_text(errors="ignore"))):
+            errs.append(f"{p.relative_to(PROOFS.parent)} has {len(found)} unlisted video id(s)")
+        elif p.is_file() and re.search(r"\byt:[A-Za-z0-9_-]{11}\b", p.read_text(errors="ignore")):
+            errs.append(f"{p.relative_to(PROOFS.parent)} has a yt: video locator")
     return errs
 
 
@@ -258,7 +263,7 @@ def write_readme_spend() -> None:
     a, b = "<!-- spend:start -->", "<!-- spend:end -->"
     if a in text and b in text:
         text = text.split(a)[0] + a + "\n" + "\n".join(rows) + "\n" + b + text.split(b)[1]
-        p.write_text(text)
+        write_public(p, text)
 
 
 def main():
@@ -299,9 +304,7 @@ def main():
         links[f"{a.kind}:{a.id}"] = a.url
         _save("links.json", links)
     elif a.cmd == "spend":
-        PARTS.mkdir(parents=True, exist_ok=True)
-        with open(PARTS / "credits.jsonl", "a") as f:
-            f.write(json.dumps({"at": now(), "what": a.what, "credits": a.credits}) + "\n")
+        append_public(PARTS / "credits.jsonl", json.dumps({"at": now(), "what": a.what, "credits": a.credits}))
     if a.cmd == "check":
         errs = check(json.loads(OUT.read_text()))
         print("\n".join(errs) or "proofs/prism.json OK")

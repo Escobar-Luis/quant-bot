@@ -17,7 +17,7 @@ import re
 import sys
 import time
 
-from .common import COURSES, KB, PROOFS, RESULTS, clip, git_sha, now, numbers_in
+from .common import COURSES, KB, PROOFS, RESULTS, append_public, clip, git_sha, now, numbers_in
 
 PROMPT_VERSION = {"v1": "verdict-v1", "v2": "verdict-v2"}
 MODELS = ["anthropic/claude-sonnet-5-5", "anthropic/claude-haiku-5-5"]
@@ -220,9 +220,7 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
     pt.flush(timeout=30)
     pt.close()
     row["trajectory_id"] = (r or {}).get("id")
-    (PROOFS / "parts").mkdir(parents=True, exist_ok=True)
-    with open(PROOFS / "parts" / "verdict_runs.jsonl", "a") as f:
-        f.write(json.dumps(row) + "\n")
+    append_public(PROOFS / "parts" / "verdict_runs.jsonl", json.dumps(row))
     print(json.dumps({k: row[k] for k in ("agent_id", "course", "final_status", "checks", "not_in_results", "cites",
                                           "trajectory_id")}))
     print(answer)
