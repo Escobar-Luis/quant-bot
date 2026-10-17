@@ -515,7 +515,7 @@ function renderProof() {
   const rulesHTML = rules.length ? `<ol class="rules">${rules.map((x, k) => `
       <li class="${x.testable === false ? 'vague' : ''}"><span class="r-n num">${k + 1}</span><div><p class="r-q">${esc(x.text)}</p>
       ${x.quote ? `<p class="r-quote cap">“${esc(x.quote)}”</p>` : ''}
-      <p class="r-c cap num">${icon(/^yt:/.test(x.cite?.source_id || '') ? 'play' : 'chat')}${esc(x.cite?.label || '')}${x.testable === false ? '<span class="tag">Can’t test</span>' : ''}</p></div></li>`).join('')}</ol>` : '';
+      <p class="r-c cap num">${icon(/^(yt|lpp):/.test(x.cite?.source_id || '') ? 'play' : 'chat')}${esc(x.cite?.label || '')}${x.testable === false ? '<span class="tag">Can’t test</span>' : ''}</p></div></li>`).join('')}</ol>` : '';
   const hits = (kb?.hits || []).filter(h => has(h?.snippet));
   $('#pKB').innerHTML = `<h3 class="p-h">Knowledge Base<span class="by">PRISM</span></h3>
     <p class="p-s cap">The course rules the agent looked up</p>
@@ -620,7 +620,7 @@ function renderTrades() {
   $('#tLegend').textContent = me
     ? `In at ${fmt.price(me.entry)} (${etTime(me.entry_at)}), out at ${fmt.price(me.exit)} (${etTime(me.exit_at)})${me.assumed_exit ? ', exit assumed' : ''}. ${x.bars ? 'Minute bars.' : 'Line joins the prices at each delay.'}`
     : 'Not entered at this delay.';
-  $('#tQuote').innerHTML = x.quote ? `<p>“${esc(x.quote)}”</p><footer class="cap">${icon(/^yt:/.test(x.cite?.source_id || '') ? 'play' : 'chat')}${esc(x.cite?.label || '')}</footer>` : '';
+  $('#tQuote').innerHTML = x.quote ? `<p>“${esc(x.quote)}”</p><footer class="cap">${icon(/^(yt|lpp):/.test(x.cite?.source_id || '') ? 'play' : 'chat')}${esc(x.cite?.label || '')}</footer>` : '';
   requestAnimationFrame(() => drawTrade($('#tChart'), x, +dkey(x.by_delay), PAPER[wcls(v.word)], fmt.price));
 }
 $('#tList').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; tSel = +b.dataset.t; renderTrades(); });

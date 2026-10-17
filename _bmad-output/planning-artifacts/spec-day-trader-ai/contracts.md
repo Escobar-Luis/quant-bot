@@ -55,12 +55,12 @@ The short version lives in `AGENTS.md` (every agent reads it). This file holds t
   "rules": [
     {"id": "R1", "text": "Buy the first break of the morning high", "quote": "first candle to break the high",
      "testable": true,
-     "cite": {"source_id": "yt:A4929OT4Jls", "locator": "t=754s", "label": "Live session, 2024-08-15, 12:34"}}
+     "cite": {"source_id": "lpp:2024-08-15", "locator": "t=754s", "label": "Live session, 2024-08-15, 12:34"}}
   ],
   "trades": [
-    {"trade_id": "lpp-A4929OT4Jls-3", "portfolio": "day", "ticker": "NVDA", "side": "long",
+    {"trade_id": "lpp-2024-08-15-3", "portfolio": "day", "ticker": "NVDA", "side": "long",
      "posted_at": "2024-08-15T13:41:12Z", "quote": "I'm in NVDA here at one twenty",
-     "cite": {"source_id": "yt:A4929OT4Jls", "locator": "t=702s", "label": "Live session, 2024-08-15, 11:42"},
+     "cite": {"source_id": "lpp:2024-08-15", "locator": "t=702s", "label": "Live session, 2024-08-15, 11:42"},
      "by_delay": {"5": {"entry_at": "2024-08-15T13:47:00Z", "entry": 120.4, "exit_at": "2024-08-15T14:20:00Z",
                         "exit": 121.9, "ret_pct": 1.15}}}
   ],

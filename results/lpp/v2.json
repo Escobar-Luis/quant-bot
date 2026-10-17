@@ -7971,7 +7971,7 @@
    "quote": "confirmation just yet which means that no reason to enter the trade",
    "testable": false,
    "cite": {
-    "source_id": "yt:A4929OT4Jls",
+    "source_id": "lpp:2024-08-15",
     "locator": "t=642s",
     "label": "Live session, 2024-08-15, 10:42"
    }
@@ -7982,7 +7982,7 @@
    "quote": "I had too much size too early on and I paid the",
    "testable": false,
    "cite": {
-    "source_id": "yt:lPhT0CwBFfs",
+    "source_id": "lpp:2024-09-17",
     "locator": "t=1168s",
     "label": "Live session, 2024-09-17, 19:28"
    }
@@ -7993,7 +7993,7 @@
    "quote": "now we just need to wait for progress progress below",
    "testable": false,
    "cite": {
-    "source_id": "yt:_CDLe_xymXI",
+    "source_id": "lpp:2024-10-21",
     "locator": "t=1153s",
     "label": "Live session, 2024-10-21, 19:13"
    }
@@ -8004,7 +8004,7 @@
    "quote": "makes more sense to wait for this thing to rip up",
    "testable": false,
    "cite": {
-    "source_id": "yt:V8Hedo8avRw",
+    "source_id": "lpp:2024-11-29",
     "locator": "t=746s",
     "label": "Live session, 2024-11-29, 12:26"
    }
@@ -8015,7 +8015,7 @@
    "quote": "buy the rumors sell the news so you buy the rumor",
    "testable": false,
    "cite": {
-    "source_id": "yt:73uzVNLB5rg",
+    "source_id": "lpp:2024-12-16",
     "locator": "t=2497s",
     "label": "Live session, 2024-12-16, 41:37"
    }
@@ -8026,7 +8026,7 @@
    "quote": "anything that has this low volume I would not trade myself",
    "testable": false,
    "cite": {
-    "source_id": "yt:wavVrUl3IL4",
+    "source_id": "lpp:2024-12-30",
     "locator": "t=2997s",
     "label": "Live session, 2024-12-30, 49:57"
    }
@@ -8037,7 +8037,7 @@
    "quote": "I don't care to trade it with small margins",
    "testable": false,
    "cite": {
-    "source_id": "yt:pSALKx-kWuA",
+    "source_id": "lpp:2025-01-31",
     "locator": "t=2193s",
     "label": "Live session, 2025-01-31, 36:33"
    }
@@ -8048,7 +8048,7 @@
    "quote": "bearish would be that it breaks the support here and then",
    "testable": false,
    "cite": {
-    "source_id": "yt:XQ8DS0EnyXY",
+    "source_id": "lpp:2025-02-18",
     "locator": "t=745s",
     "label": "Live session, 2025-02-18, 12:25"
    }
@@ -8059,7 +8059,7 @@
    "quote": "don't enter a trade so early that you end up just",
    "testable": false,
    "cite": {
-    "source_id": "yt:h7qumTF3ImI",
+    "source_id": "lpp:2025-03-27",
     "locator": "t=3100s",
     "label": "Live session, 2025-03-27, 51:40"
    }
@@ -8070,7 +8070,7 @@
    "quote": "I don't like to necessarily trade more than one stock at the",
    "testable": false,
    "cite": {
-    "source_id": "yt:USz4bs8Q7eI",
+    "source_id": "lpp:2025-05-12",
     "locator": "t=843s",
     "label": "Live session, 2025-05-12, 14:03"
    }
@@ -8081,7 +8081,7 @@
    "quote": "If progress is made, I will add more to the short.",
    "testable": false,
    "cite": {
-    "source_id": "yt:orHocpjx3Z8",
+    "source_id": "lpp:2025-06-16",
     "locator": "t=2001s",
     "label": "Live session, 2025-06-16, 33:21"
    }
@@ -8092,7 +8092,7 @@
    "quote": "I should be waiting for confirmation of a reversal.",
    "testable": false,
    "cite": {
-    "source_id": "yt:8bG7TPrnj5E",
+    "source_id": "lpp:2025-07-29",
     "locator": "t=1442s",
     "label": "Live session, 2025-07-29, 24:02"
    }
@@ -8100,14 +8100,14 @@
  ],
  "trades": [
   {
-   "trade_id": "lpp-Bj-MhZD4O2Y-007",
+   "trade_id": "lpp-2025-04-10-007",
    "portfolio": "day",
    "ticker": "DJT",
    "side": "short",
    "posted_at": "2025-04-10T13:46:24Z",
    "quote": "Yep. I'll short it again. Nice.",
    "cite": {
-    "source_id": "yt:Bj-MhZD4O2Y",
+    "source_id": "lpp:2025-04-10",
     "locator": "t=1029s",
     "label": "Live session, 2025-04-10, 17:09"
    },
@@ -8192,14 +8192,14 @@
    }
   },
   {
-   "trade_id": "lpp-ysnSNg2xMf0-015",
+   "trade_id": "lpp-2025-07-31-015",
    "portfolio": "day",
    "ticker": "HIMS",
    "side": "short",
    "posted_at": "2025-07-31T13:43:51Z",
    "quote": "Small short. 50 shares. 100 shares.",
    "cite": {
-    "source_id": "yt:ysnSNg2xMf0",
+    "source_id": "lpp:2025-07-31",
     "locator": "t=806s",
     "label": "Live session, 2025-07-31, 13:26"
    },
@@ -8284,14 +8284,14 @@
    }
   },
   {
-   "trade_id": "lpp-_8ipOkrMiHo-002",
+   "trade_id": "lpp-2024-11-04-002",
    "portfolio": "day",
    "ticker": "SMCI",
    "side": "short",
    "posted_at": "2024-11-04T15:01:25Z",
    "quote": "opening small short 200 shares keeping it life",
    "cite": {
-    "source_id": "yt:_8ipOkrMiHo",
+    "source_id": "lpp:2024-11-04",
     "locator": "t=1571s",
     "label": "Live session, 2024-11-04, 26:11"
    },
@@ -8376,14 +8376,14 @@
    }
   },
   {
-   "trade_id": "lpp-E_sa74f6Ctw-009",
+   "trade_id": "lpp-2024-09-24-009",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "long",
    "posted_at": "2024-09-24T14:18:50Z",
    "quote": "I'll take a small position 250 shares long",
    "cite": {
-    "source_id": "yt:E_sa74f6Ctw",
+    "source_id": "lpp:2024-09-24",
     "locator": "t=2813s",
     "label": "Live session, 2024-09-24, 46:53"
    },
@@ -8468,14 +8468,14 @@
    }
   },
   {
-   "trade_id": "lpp-5xvxykJ1W7Y-008",
+   "trade_id": "lpp-2025-05-13-008",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-05-13T13:47:20Z",
    "quote": "31940. 50 shares opened.",
    "cite": {
-    "source_id": "yt:5xvxykJ1W7Y",
+    "source_id": "lpp:2025-05-13",
     "locator": "t=1100s",
     "label": "Live session, 2025-05-13, 18:20"
    },
@@ -8560,14 +8560,14 @@
    }
   },
   {
-   "trade_id": "lpp-8bG7TPrnj5E-007",
+   "trade_id": "lpp-2025-07-29-007",
    "portfolio": "swing",
    "ticker": "SOFI",
    "side": "short",
    "posted_at": "2025-07-29T13:41:15Z",
    "quote": "What do you guys think? Yeah, 500 shares. That's pretty small.",
    "cite": {
-    "source_id": "yt:8bG7TPrnj5E",
+    "source_id": "lpp:2025-07-29",
     "locator": "t=646s",
     "label": "Live session, 2025-07-29, 10:46"
    },
@@ -8652,14 +8652,14 @@
    }
   },
   {
-   "trade_id": "lpp-7hETukUoqWI-000",
+   "trade_id": "lpp-2025-08-29-000",
    "portfolio": "day",
    "ticker": "AFRM",
    "side": "short",
    "posted_at": "2025-08-29T13:38:05Z",
    "quote": "adding more to short. Touch the lows.",
    "cite": {
-    "source_id": "yt:7hETukUoqWI",
+    "source_id": "lpp:2025-08-29",
     "locator": "t=378s",
     "label": "Live session, 2025-08-29, 6:18"
    },
@@ -8744,14 +8744,14 @@
    }
   },
   {
-   "trade_id": "lpp-ysnSNg2xMf0-004",
+   "trade_id": "lpp-2025-07-31-004",
    "portfolio": "day",
    "ticker": "SOFI",
    "side": "short",
    "posted_at": "2025-07-31T13:34:01Z",
    "quote": "Okay, 500 shares so far. Again, this thing is still pushing up",
    "cite": {
-    "source_id": "yt:ysnSNg2xMf0",
+    "source_id": "lpp:2025-07-31",
     "locator": "t=216s",
     "label": "Live session, 2025-07-31, 3:36"
    },
@@ -8836,14 +8836,14 @@
    }
   },
   {
-   "trade_id": "lpp-RHCJnvb9YhY-015",
+   "trade_id": "lpp-2025-02-13-015",
    "portfolio": "day",
    "ticker": "SMCI",
    "side": "short",
    "posted_at": "2025-02-13T15:36:39Z",
    "quote": "I went in with a light position at nearly $41 per share",
    "cite": {
-    "source_id": "yt:RHCJnvb9YhY",
+    "source_id": "lpp:2025-02-13",
     "locator": "t=4037s",
     "label": "Live session, 2025-02-13, 1:07:17"
    },
@@ -8928,14 +8928,14 @@
    }
   },
   {
-   "trade_id": "lpp-orHocpjx3Z8-000",
+   "trade_id": "lpp-2025-06-16-000",
    "portfolio": "day",
    "ticker": "HIMS",
    "side": "short",
    "posted_at": "2025-06-16T13:46:56Z",
    "quote": "Yeah. Opening up short 500 shares.",
    "cite": {
-    "source_id": "yt:orHocpjx3Z8",
+    "source_id": "lpp:2025-06-16",
     "locator": "t=867s",
     "label": "Live session, 2025-06-16, 14:27"
    },
@@ -9020,14 +9020,14 @@
    }
   },
   {
-   "trade_id": "lpp-R6Ut-VkHOD4-003",
+   "trade_id": "lpp-2025-06-30-003",
    "portfolio": "day",
    "ticker": "HOOD",
    "side": "short",
    "posted_at": "2025-06-30T13:56:59Z",
    "quote": "Do a small short 500 shares. Opening",
    "cite": {
-    "source_id": "yt:R6Ut-VkHOD4",
+    "source_id": "lpp:2025-06-30",
     "locator": "t=1611s",
     "label": "Live session, 2025-06-30, 26:51"
    },
@@ -9112,14 +9112,14 @@
    }
   },
   {
-   "trade_id": "lpp-ObT5nOcb574-005",
+   "trade_id": "lpp-2025-01-16-005",
    "portfolio": "day",
    "ticker": "SOUN",
    "side": "short",
    "posted_at": "2025-01-16T14:51:46Z",
    "quote": "I'm going to do 1,000 shares as we get to 1440 so",
    "cite": {
-    "source_id": "yt:ObT5nOcb574",
+    "source_id": "lpp:2025-01-16",
     "locator": "t=1440s",
     "label": "Live session, 2025-01-16, 24:00"
    },
@@ -9204,14 +9204,14 @@
    }
   },
   {
-   "trade_id": "lpp-A4929OT4Jls-002",
+   "trade_id": "lpp-2024-08-15-002",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "short",
    "posted_at": "2024-08-15T13:54:47Z",
    "quote": "shorting 1,000 shares of Nvidia",
    "cite": {
-    "source_id": "yt:A4929OT4Jls",
+    "source_id": "lpp:2024-08-15",
     "locator": "t=1492s",
     "label": "Live session, 2024-08-15, 24:52"
    },
@@ -9296,14 +9296,14 @@
    }
   },
   {
-   "trade_id": "lpp-_CDLe_xymXI-000",
+   "trade_id": "lpp-2024-10-21-000",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "short",
    "posted_at": "2024-10-21T13:37:01Z",
    "quote": "well I'm going to open up that short over here 14050",
    "cite": {
-    "source_id": "yt:_CDLe_xymXI",
+    "source_id": "lpp:2024-10-21",
     "locator": "t=440s",
     "label": "Live session, 2024-10-21, 7:20"
    },
@@ -9388,14 +9388,14 @@
    }
   },
   {
-   "trade_id": "lpp-euYcAcGKIgU-001",
+   "trade_id": "lpp-2025-07-15-001",
    "portfolio": "day",
    "ticker": "MSTR",
    "side": "short",
    "posted_at": "2025-07-15T13:35:00Z",
    "quote": "I'll do 50 shares. 50 shares short opened. It's $22,000.",
    "cite": {
-    "source_id": "yt:euYcAcGKIgU",
+    "source_id": "lpp:2025-07-15",
     "locator": "t=326s",
     "label": "Live session, 2025-07-15, 5:26"
    },
@@ -9480,14 +9480,14 @@
    }
   },
   {
-   "trade_id": "lpp-3akuq5hWrHk-017",
+   "trade_id": "lpp-2025-03-13-017",
    "portfolio": "day",
    "ticker": "MSTR",
    "side": "short",
    "posted_at": "2025-03-13T14:20:06Z",
    "quote": "oh heck yeah short just 100 shares there",
    "cite": {
-    "source_id": "yt:3akuq5hWrHk",
+    "source_id": "lpp:2025-03-13",
     "locator": "t=3016s",
     "label": "Live session, 2025-03-13, 50:16"
    },
@@ -9572,14 +9572,14 @@
    }
   },
   {
-   "trade_id": "lpp-lPhT0CwBFfs-005",
+   "trade_id": "lpp-2024-09-17-005",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "short",
    "posted_at": "2024-09-17T14:09:58Z",
    "quote": "time to enter short want to enter light 150",
    "cite": {
-    "source_id": "yt:lPhT0CwBFfs",
+    "source_id": "lpp:2024-09-17",
     "locator": "t=2252s",
     "label": "Live session, 2024-09-17, 37:32"
    },
@@ -9664,14 +9664,14 @@
    }
   },
   {
-   "trade_id": "lpp-euYcAcGKIgU-010",
+   "trade_id": "lpp-2025-07-15-010",
    "portfolio": "day",
    "ticker": "SOFI",
    "side": "short",
    "posted_at": "2025-07-15T13:51:51Z",
    "quote": "adding 10% SoFi 1,000 shares at 2130 2133.",
    "cite": {
-    "source_id": "yt:euYcAcGKIgU",
+    "source_id": "lpp:2025-07-15",
     "locator": "t=1337s",
     "label": "Live session, 2025-07-15, 22:17"
    },
@@ -9756,14 +9756,14 @@
    }
   },
   {
-   "trade_id": "lpp-E_sa74f6Ctw-010",
+   "trade_id": "lpp-2024-09-24-010",
    "portfolio": "day",
    "ticker": "DJT",
    "side": "short",
    "posted_at": "2024-09-24T14:23:48Z",
    "quote": "so actively shorting this oh totally forgot I have a position",
    "cite": {
-    "source_id": "yt:E_sa74f6Ctw",
+    "source_id": "lpp:2024-09-24",
     "locator": "t=3111s",
     "label": "Live session, 2024-09-24, 51:51"
    },
@@ -9848,14 +9848,14 @@
    }
   },
   {
-   "trade_id": "lpp-ysnSNg2xMf0-011",
+   "trade_id": "lpp-2025-07-31-011",
    "portfolio": "day",
    "ticker": "META",
    "side": "short",
    "posted_at": "2025-07-31T13:37:25Z",
    "quote": "adding 25 shares short to this, which isn't very much.",
    "cite": {
-    "source_id": "yt:ysnSNg2xMf0",
+    "source_id": "lpp:2025-07-31",
     "locator": "t=420s",
     "label": "Live session, 2025-07-31, 7:00"
    },
@@ -9940,14 +9940,14 @@
    }
   },
   {
-   "trade_id": "lpp-wavVrUl3IL4-001",
+   "trade_id": "lpp-2024-12-30-001",
    "portfolio": "day",
    "ticker": "SOUN",
    "side": "short",
    "posted_at": "2024-12-30T14:31:36Z",
    "quote": "going in pretty light 500 shares 500 shares is equivalent to right",
    "cite": {
-    "source_id": "yt:wavVrUl3IL4",
+    "source_id": "lpp:2024-12-30",
     "locator": "t=133s",
     "label": "Live session, 2024-12-30, 2:13"
    },
@@ -10032,14 +10032,14 @@
    }
   },
   {
-   "trade_id": "lpp-8bG7TPrnj5E-017",
+   "trade_id": "lpp-2025-07-29-017",
    "portfolio": "day",
    "ticker": "HIMS",
    "side": "long",
    "posted_at": "2025-07-29T13:54:46Z",
    "quote": "I'll do a 100 shares long on on him",
    "cite": {
-    "source_id": "yt:8bG7TPrnj5E",
+    "source_id": "lpp:2025-07-29",
     "locator": "t=1457s",
     "label": "Live session, 2025-07-29, 24:17"
    },
@@ -10124,14 +10124,14 @@
    }
   },
   {
-   "trade_id": "lpp-4BBRXqBYIfg-002",
+   "trade_id": "lpp-2024-11-15-002",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2024-11-15T14:30:43Z",
    "quote": "yep added to my short here we go Nvidia dropping",
    "cite": {
-    "source_id": "yt:4BBRXqBYIfg",
+    "source_id": "lpp:2024-11-15",
     "locator": "t=129s",
     "label": "Live session, 2024-11-15, 2:09"
    },
@@ -10216,14 +10216,14 @@
    }
   },
   {
-   "trade_id": "lpp-3akuq5hWrHk-001",
+   "trade_id": "lpp-2025-03-13-001",
    "portfolio": "day",
    "ticker": "MSTR",
    "side": "short",
    "posted_at": "2025-03-13T13:34:16Z",
    "quote": "dropping right now I'm just doing it with 100 uh 100 shares",
    "cite": {
-    "source_id": "yt:3akuq5hWrHk",
+    "source_id": "lpp:2025-03-13",
     "locator": "t=266s",
     "label": "Live session, 2025-03-13, 4:26"
    },
@@ -10308,14 +10308,14 @@
    }
   },
   {
-   "trade_id": "lpp-pDa6rq_UW2M-026",
+   "trade_id": "lpp-2025-05-28-026",
    "portfolio": "day",
    "ticker": "PLTR",
    "side": "short",
    "posted_at": "2025-05-28T14:13:41Z",
    "quote": "500 shares uh for PLTR right around 12480.",
    "cite": {
-    "source_id": "yt:pDa6rq_UW2M",
+    "source_id": "lpp:2025-05-28",
     "locator": "t=2601s",
     "label": "Live session, 2025-05-28, 43:21"
    },
@@ -10400,14 +10400,14 @@
    }
   },
   {
-   "trade_id": "lpp-73uzVNLB5rg-000",
+   "trade_id": "lpp-2024-12-16-000",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2024-12-16T14:30:43Z",
    "quote": "440 adding to short what else do we have",
    "cite": {
-    "source_id": "yt:73uzVNLB5rg",
+    "source_id": "lpp:2024-12-16",
     "locator": "t=28s",
     "label": "Live session, 2024-12-16, 0:28"
    },
@@ -10492,14 +10492,14 @@
    }
   },
   {
-   "trade_id": "lpp-73uzVNLB5rg-002",
+   "trade_id": "lpp-2024-12-16-002",
    "portfolio": "day",
    "ticker": "AVGO",
    "side": "short",
    "posted_at": "2024-12-16T14:35:24Z",
    "quote": "I'll take a a small position I'll go uh I'll do it",
    "cite": {
-    "source_id": "yt:73uzVNLB5rg",
+    "source_id": "lpp:2024-12-16",
     "locator": "t=309s",
     "label": "Live session, 2024-12-16, 5:09"
    },
@@ -10584,14 +10584,14 @@
    }
   },
   {
-   "trade_id": "lpp-Bj-MhZD4O2Y-002",
+   "trade_id": "lpp-2025-04-10-002",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-04-10T13:33:38Z",
    "quote": "opening up blow light shorting 50 shares testing same resistance range",
    "cite": {
-    "source_id": "yt:Bj-MhZD4O2Y",
+    "source_id": "lpp:2025-04-10",
     "locator": "t=263s",
     "label": "Live session, 2025-04-10, 4:23"
    },
@@ -10676,14 +10676,14 @@
    }
   },
   {
-   "trade_id": "lpp-pDa6rq_UW2M-021",
+   "trade_id": "lpp-2025-05-28-021",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-05-28T14:01:01Z",
    "quote": "That was 100 shares entered right around 36179",
    "cite": {
-    "source_id": "yt:pDa6rq_UW2M",
+    "source_id": "lpp:2025-05-28",
     "locator": "t=1841s",
     "label": "Live session, 2025-05-28, 30:41"
    },
@@ -10768,14 +10768,14 @@
    }
   },
   {
-   "trade_id": "lpp-USz4bs8Q7eI-011",
+   "trade_id": "lpp-2025-05-12-011",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-05-12T13:54:49Z",
    "quote": "100 shares short just opened 31640.",
    "cite": {
-    "source_id": "yt:USz4bs8Q7eI",
+    "source_id": "lpp:2025-05-12",
     "locator": "t=1496s",
     "label": "Live session, 2025-05-12, 24:56"
    },
@@ -10860,14 +10860,14 @@
    }
   },
   {
-   "trade_id": "lpp-euYcAcGKIgU-009",
+   "trade_id": "lpp-2025-07-15-009",
    "portfolio": "day",
    "ticker": "HOOD",
    "side": "short",
    "posted_at": "2025-07-15T13:49:21Z",
    "quote": "I'm going to do 100 shares, which is 10K, which is 5%.",
    "cite": {
-    "source_id": "yt:euYcAcGKIgU",
+    "source_id": "lpp:2025-07-15",
     "locator": "t=1187s",
     "label": "Live session, 2025-07-15, 19:47"
    },
@@ -10952,14 +10952,14 @@
    }
   },
   {
-   "trade_id": "lpp-3akuq5hWrHk-002",
+   "trade_id": "lpp-2025-03-13-002",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "long",
    "posted_at": "2025-03-13T13:39:43Z",
    "quote": "bearish right now so I just did 100 shares bought into Tesla",
    "cite": {
-    "source_id": "yt:3akuq5hWrHk",
+    "source_id": "lpp:2025-03-13",
     "locator": "t=593s",
     "label": "Live session, 2025-03-13, 9:53"
    },
@@ -11044,14 +11044,14 @@
    }
   },
   {
-   "trade_id": "lpp-8KBf9GxBdpU-021",
+   "trade_id": "lpp-2024-08-28-021",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "short",
    "posted_at": "2024-08-28T14:27:57Z",
    "quote": "now I'm going to enter short okay all right I'm going to",
    "cite": {
-    "source_id": "yt:8KBf9GxBdpU",
+    "source_id": "lpp:2024-08-28",
     "locator": "t=3130s",
     "label": "Live session, 2024-08-28, 52:10"
    },
@@ -11136,14 +11136,14 @@
    }
   },
   {
-   "trade_id": "lpp-RHCJnvb9YhY-001",
+   "trade_id": "lpp-2025-02-13-001",
    "portfolio": "day",
    "ticker": "RDDT",
    "side": "short",
    "posted_at": "2025-02-13T14:33:00Z",
    "quote": "I'll take a short on this about 100 shares just to warm",
    "cite": {
-    "source_id": "yt:RHCJnvb9YhY",
+    "source_id": "lpp:2025-02-13",
     "locator": "t=218s",
     "label": "Live session, 2025-02-13, 3:38"
    },
@@ -11228,14 +11228,14 @@
    }
   },
   {
-   "trade_id": "lpp-5xvxykJ1W7Y-000",
+   "trade_id": "lpp-2025-05-13-000",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-05-13T13:33:57Z",
    "quote": "I'm going to do a small short here. 50 shares short.",
    "cite": {
-    "source_id": "yt:5xvxykJ1W7Y",
+    "source_id": "lpp:2025-05-13",
     "locator": "t=297s",
     "label": "Live session, 2025-05-13, 4:57"
    },
@@ -11320,14 +11320,14 @@
    }
   },
   {
-   "trade_id": "lpp-Bj-MhZD4O2Y-009",
+   "trade_id": "lpp-2025-04-10-009",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-04-10T13:47:53Z",
    "quote": "I'm going to do 50 shares at a time.",
    "cite": {
-    "source_id": "yt:Bj-MhZD4O2Y",
+    "source_id": "lpp:2025-04-10",
     "locator": "t=1118s",
     "label": "Live session, 2025-04-10, 18:38"
    },
@@ -11412,14 +11412,14 @@
    }
   },
   {
-   "trade_id": "lpp-h7qumTF3ImI-005",
+   "trade_id": "lpp-2025-03-27-005",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-03-27T14:14:10Z",
    "quote": "there goes opening 100 share short",
    "cite": {
-    "source_id": "yt:h7qumTF3ImI",
+    "source_id": "lpp:2025-03-27",
     "locator": "t=2666s",
     "label": "Live session, 2025-03-27, 44:26"
    },
@@ -11504,14 +11504,14 @@
    }
   },
   {
-   "trade_id": "lpp-pDa6rq_UW2M-014",
+   "trade_id": "lpp-2025-05-28-014",
    "portfolio": "day",
    "ticker": "PLTR",
    "side": "short",
    "posted_at": "2025-05-28T13:53:25Z",
    "quote": "What's the setup here? 500 shares short on PLTR.",
    "cite": {
-    "source_id": "yt:pDa6rq_UW2M",
+    "source_id": "lpp:2025-05-28",
     "locator": "t=1384s",
     "label": "Live session, 2025-05-28, 23:04"
    },
@@ -11596,14 +11596,14 @@
    }
   },
   {
-   "trade_id": "lpp-lPhT0CwBFfs-000",
+   "trade_id": "lpp-2024-09-17-000",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "long",
    "posted_at": "2024-09-17T13:44:15Z",
    "quote": "150 shares on Nvidia going long",
    "cite": {
-    "source_id": "yt:lPhT0CwBFfs",
+    "source_id": "lpp:2024-09-17",
     "locator": "t=709s",
     "label": "Live session, 2024-09-17, 11:49"
    },
@@ -11688,14 +11688,14 @@
    }
   },
   {
-   "trade_id": "lpp-pDa6rq_UW2M-009",
+   "trade_id": "lpp-2025-05-28-009",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "short",
    "posted_at": "2025-05-28T13:43:50Z",
    "quote": "All right, 500 shares short on Invidia.",
    "cite": {
-    "source_id": "yt:pDa6rq_UW2M",
+    "source_id": "lpp:2025-05-28",
     "locator": "t=809s",
     "label": "Live session, 2025-05-28, 13:29"
    },
@@ -11780,14 +11780,14 @@
    }
   },
   {
-   "trade_id": "lpp-RHCJnvb9YhY-024",
+   "trade_id": "lpp-2025-02-13-024",
    "portfolio": "day",
    "ticker": "PLTR",
    "side": "short",
    "posted_at": "2025-02-13T15:55:31Z",
    "quote": "another 500 shares okay easy peasy we good",
    "cite": {
-    "source_id": "yt:RHCJnvb9YhY",
+    "source_id": "lpp:2025-02-13",
     "locator": "t=5169s",
     "label": "Live session, 2025-02-13, 1:26:09"
    },
@@ -11872,14 +11872,14 @@
    }
   },
   {
-   "trade_id": "lpp-pDa6rq_UW2M-003",
+   "trade_id": "lpp-2025-05-28-003",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "long",
    "posted_at": "2025-05-28T13:38:50Z",
    "quote": "I'm going to go long here. I bought 100 shares to go",
    "cite": {
-    "source_id": "yt:pDa6rq_UW2M",
+    "source_id": "lpp:2025-05-28",
     "locator": "t=509s",
     "label": "Live session, 2025-05-28, 8:29"
    },
@@ -11964,14 +11964,14 @@
    }
   },
   {
-   "trade_id": "lpp-USz4bs8Q7eI-001",
+   "trade_id": "lpp-2025-05-12-001",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "long",
    "posted_at": "2025-05-12T13:32:04Z",
    "quote": "I'm going to buy 50 shares to go long.",
    "cite": {
-    "source_id": "yt:USz4bs8Q7eI",
+    "source_id": "lpp:2025-05-12",
     "locator": "t=131s",
     "label": "Live session, 2025-05-12, 2:11"
    },
@@ -12056,14 +12056,14 @@
    }
   },
   {
-   "trade_id": "lpp-wavVrUl3IL4-012",
+   "trade_id": "lpp-2024-12-30-012",
    "portfolio": "day",
    "ticker": "SOUN",
    "side": "short",
    "posted_at": "2024-12-30T15:00:46Z",
    "quote": "going to add another 31,000 to the short 31k yeah",
    "cite": {
-    "source_id": "yt:wavVrUl3IL4",
+    "source_id": "lpp:2024-12-30",
     "locator": "t=1883s",
     "label": "Live session, 2024-12-30, 31:23"
    },
@@ -12148,14 +12148,14 @@
    }
   },
   {
-   "trade_id": "lpp-Snc5oy9rrn4-008",
+   "trade_id": "lpp-2025-08-13-008",
    "portfolio": "day",
    "ticker": "HOOD",
    "side": "long",
    "posted_at": "2025-08-13T13:58:21Z",
    "quote": "100 shares is 11K going long. >> 500 shares.",
    "cite": {
-    "source_id": "yt:Snc5oy9rrn4",
+    "source_id": "lpp:2025-08-13",
     "locator": "t=1727s",
     "label": "Live session, 2025-08-13, 28:47"
    },
@@ -12240,14 +12240,14 @@
    }
   },
   {
-   "trade_id": "lpp-8bG7TPrnj5E-000",
+   "trade_id": "lpp-2025-07-29-000",
    "portfolio": "day",
    "ticker": "HIMS",
    "side": "short",
    "posted_at": "2025-07-29T13:31:16Z",
    "quote": "500 shares short here. 5874. Beautiful.",
    "cite": {
-    "source_id": "yt:8bG7TPrnj5E",
+    "source_id": "lpp:2025-07-29",
     "locator": "t=47s",
     "label": "Live session, 2025-07-29, 0:47"
    },
@@ -12332,14 +12332,14 @@
    }
   },
   {
-   "trade_id": "lpp-8KBf9GxBdpU-000",
+   "trade_id": "lpp-2024-08-28-000",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "short",
    "posted_at": "2024-08-28T13:41:21Z",
    "quote": "so stay in light 100 chairs still trying to push 100 shares",
    "cite": {
-    "source_id": "yt:8KBf9GxBdpU",
+    "source_id": "lpp:2024-08-28",
     "locator": "t=334s",
     "label": "Live session, 2024-08-28, 5:34"
    },
@@ -12424,14 +12424,14 @@
    }
   },
   {
-   "trade_id": "lpp-3akuq5hWrHk-022",
+   "trade_id": "lpp-2025-03-13-022",
    "portfolio": "day",
    "ticker": "TSLA",
    "side": "short",
    "posted_at": "2025-03-13T14:26:29Z",
    "quote": "50 share short keeping it light see if Direction goes in our",
    "cite": {
-    "source_id": "yt:3akuq5hWrHk",
+    "source_id": "lpp:2025-03-13",
     "locator": "t=3399s",
     "label": "Live session, 2025-03-13, 56:39"
    },
@@ -12516,14 +12516,14 @@
    }
   },
   {
-   "trade_id": "lpp-Snc5oy9rrn4-005",
+   "trade_id": "lpp-2025-08-13-005",
    "portfolio": "day",
    "ticker": "PLTR",
    "side": "short",
    "posted_at": "2025-08-13T13:53:37Z",
    "quote": "Here we go. 250 shares short. It's about 46 47K.",
    "cite": {
-    "source_id": "yt:Snc5oy9rrn4",
+    "source_id": "lpp:2025-08-13",
     "locator": "t=1442s",
     "label": "Live session, 2025-08-13, 24:02"
    },
@@ -12608,14 +12608,14 @@
    }
   },
   {
-   "trade_id": "lpp-Snc5oy9rrn4-011",
+   "trade_id": "lpp-2025-08-13-011",
    "portfolio": "day",
    "ticker": "AMD",
    "side": "short",
    "posted_at": "2025-08-13T14:00:13Z",
    "quote": "I like this setup. Let's short. Let's short it. 500 shares.",
    "cite": {
-    "source_id": "yt:Snc5oy9rrn4",
+    "source_id": "lpp:2025-08-13",
     "locator": "t=1838s",
     "label": "Live session, 2025-08-13, 30:38"
    },
@@ -12700,14 +12700,14 @@
    }
   },
   {
-   "trade_id": "lpp-8KBf9GxBdpU-006",
+   "trade_id": "lpp-2024-08-28-006",
    "portfolio": "day",
    "ticker": "NVDA",
    "side": "long",
    "posted_at": "2024-08-28T13:56:37Z",
    "quote": "so I'm going to take a small position here 100 shares",
    "cite": {
-    "source_id": "yt:8KBf9GxBdpU",
+    "source_id": "lpp:2024-08-28",
     "locator": "t=1250s",
     "label": "Live session, 2024-08-28, 20:50"
    },
@@ -14140,7 +14140,7 @@
     {
      "text": "shorting 1,000 shares of Nvidia",
      "cite": {
-      "source_id": "yt:A4929OT4Jls",
+      "source_id": "lpp:2024-08-15",
       "locator": "t=1492s",
       "label": "Live session, 2024-08-15, 24:52"
      }
@@ -14148,7 +14148,7 @@
     {
      "text": "opening small short 200 shares keeping it life",
      "cite": {
-      "source_id": "yt:_8ipOkrMiHo",
+      "source_id": "lpp:2024-11-04",
       "locator": "t=1571s",
       "label": "Live session, 2024-11-04, 26:11"
      }
@@ -14156,7 +14156,7 @@
     {
      "text": "50 share short keeping it light see if Direction goes in our",
      "cite": {
-      "source_id": "yt:3akuq5hWrHk",
+      "source_id": "lpp:2025-03-13",
       "locator": "t=3399s",
       "label": "Live session, 2025-03-13, 56:39"
      }
@@ -16227,7 +16227,7 @@
     {
      "text": "now I'm going to enter short okay all right I'm going to",
      "cite": {
-      "source_id": "yt:8KBf9GxBdpU",
+      "source_id": "lpp:2024-08-28",
       "locator": "t=3130s",
       "label": "Live session, 2024-08-28, 52:10"
      }
@@ -16235,7 +16235,7 @@
     {
      "text": "going in pretty light 500 shares 500 shares is equivalent to right",
      "cite": {
-      "source_id": "yt:wavVrUl3IL4",
+      "source_id": "lpp:2024-12-30",
       "locator": "t=133s",
       "label": "Live session, 2024-12-30, 2:13"
      }
@@ -16243,7 +16243,7 @@
     {
      "text": "440 adding to short what else do we have",
      "cite": {
-      "source_id": "yt:73uzVNLB5rg",
+      "source_id": "lpp:2024-12-16",
       "locator": "t=28s",
       "label": "Live session, 2024-12-16, 0:28"
      }
@@ -18314,7 +18314,7 @@
     {
      "text": "time to enter short want to enter light 150",
      "cite": {
-      "source_id": "yt:lPhT0CwBFfs",
+      "source_id": "lpp:2024-09-17",
       "locator": "t=2252s",
       "label": "Live session, 2024-09-17, 37:32"
      }
@@ -18322,7 +18322,7 @@
     {
      "text": "dropping right now I'm just doing it with 100 uh 100 shares",
      "cite": {
-      "source_id": "yt:3akuq5hWrHk",
+      "source_id": "lpp:2025-03-13",
       "locator": "t=266s",
       "label": "Live session, 2025-03-13, 4:26"
      }
@@ -18330,7 +18330,7 @@
     {
      "text": "another 500 shares okay easy peasy we good",
      "cite": {
-      "source_id": "yt:RHCJnvb9YhY",
+      "source_id": "lpp:2025-02-13",
       "locator": "t=5169s",
       "label": "Live session, 2025-02-13, 1:26:09"
      }
@@ -20401,7 +20401,7 @@
     {
      "text": "so I'm going to take a small position here 100 shares",
      "cite": {
-      "source_id": "yt:8KBf9GxBdpU",
+      "source_id": "lpp:2024-08-28",
       "locator": "t=1250s",
       "label": "Live session, 2024-08-28, 20:50"
      }
@@ -20409,7 +20409,7 @@
     {
      "text": "150 shares on Nvidia going long",
      "cite": {
-      "source_id": "yt:lPhT0CwBFfs",
+      "source_id": "lpp:2024-09-17",
       "locator": "t=709s",
       "label": "Live session, 2024-09-17, 11:49"
      }
@@ -20417,7 +20417,7 @@
     {
      "text": "bearish right now so I just did 100 shares bought into Tesla",
      "cite": {
-      "source_id": "yt:3akuq5hWrHk",
+      "source_id": "lpp:2025-03-13",
       "locator": "t=593s",
       "label": "Live session, 2025-03-13, 9:53"
      }
@@ -22488,7 +22488,7 @@
     {
      "text": "so stay in light 100 chairs still trying to push 100 shares",
      "cite": {
-      "source_id": "yt:8KBf9GxBdpU",
+      "source_id": "lpp:2024-08-28",
       "locator": "t=334s",
       "label": "Live session, 2024-08-28, 5:34"
      }
@@ -22496,7 +22496,7 @@
     {
      "text": "yep added to my short here we go Nvidia dropping",
      "cite": {
-      "source_id": "yt:4BBRXqBYIfg",
+      "source_id": "lpp:2024-11-15",
       "locator": "t=129s",
       "label": "Live session, 2024-11-15, 2:09"
      }
@@ -22504,7 +22504,7 @@
     {
      "text": "I'm going to do 50 shares at a time.",
      "cite": {
-      "source_id": "yt:Bj-MhZD4O2Y",
+      "source_id": "lpp:2025-04-10",
       "locator": "t=1118s",
       "label": "Live session, 2025-04-10, 18:38"
      }
@@ -24575,7 +24575,7 @@
     {
      "text": "I'm going to buy 50 shares to go long.",
      "cite": {
-      "source_id": "yt:USz4bs8Q7eI",
+      "source_id": "lpp:2025-05-12",
       "locator": "t=131s",
       "label": "Live session, 2025-05-12, 2:11"
      }
@@ -24583,7 +24583,7 @@
     {
      "text": "I'll do a 100 shares long on on him",
      "cite": {
-      "source_id": "yt:8bG7TPrnj5E",
+      "source_id": "lpp:2025-07-29",
       "locator": "t=1457s",
       "label": "Live session, 2025-07-29, 24:17"
      }
