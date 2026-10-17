@@ -337,7 +337,7 @@ function renderProof() {
   $('#pSub').textContent = `${c.r.course_name || c.name} · ${kMoney(v.start)} fake money · ${month(r.window.start)} – ${month(r.window.end)} · entered ${delay} min late`;
   $('#pWord').textContent = v.word; root.style.setProperty('--word', WORD_COLOR[wcls(v.word)]);
   const swatch = (cl, dash) => `<svg viewBox="0 0 20 8" aria-hidden="true"><line x1="1" y1="4" x2="19" y2="4" stroke="${cl}" stroke-width="${dash ? 2 : 3}" stroke-linecap="round" ${dash ? 'stroke-dasharray="4 3"' : ''}/></svg>`;
-  const sub = [`${s.trades.toLocaleString('en-US')} trades`, s.won_pct != null && `won ${s.won_pct}%`, s.worst_drop_pct != null && `worst drop ${pct(s.worst_drop_pct)}`].filter(Boolean).join(' · ');
+  const sub = [`${s.trades.toLocaleString('en-US')} trades`, s.won_pct != null && `won ${s.won_pct}%`, s.worst_drop_pct != null && `worst drop ${pct(s.worst_drop_pct)}`, s.peak_invested_usd > 0 && `most in use at once ${fmt.money(s.peak_invested_usd)}`].filter(Boolean).join(' · ');
   $('#pNums').innerHTML =
     `<div><span class="n-name">${swatch(col)}Copying every trade</span><span class="n-pct" style="color:${col}">${pct(s.ret_pct)}<small>${fmt.money(s.end)}</small></span><span class="n-sub cap">${sub}</span></div>` +
     `<div><span class="n-name">${swatch('#1D1D1F', true)}Holding ${esc(v.hold)}</span><span class="n-pct">${pct(s.hold_ret_pct)}<small>${fmt.money(s.hold_end)}</small></span><span class="n-sub cap">${esc(r.hold?.what || '')}</span></div>`;
