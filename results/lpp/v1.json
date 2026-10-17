@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T19:05:41Z",
- "git_sha": "f935f1bd6a56d03df3416cf161efb356beecac25",
+ "generated_at": "2026-10-17T19:07:20Z",
+ "git_sha": "7384f1059ef5065addc0f71d6601eb943c309d6c",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -49055,7 +49055,7 @@
    "trades": 11
   },
   "kept": true,
-  "prism_url": null,
+  "prism_url": "https://prism.blockconvey.com/trajectories/692218c0-5db5-45cf-a6c8-a2d7998d6488",
   "trajectory_id": "692218c0-5db5-45cf-a6c8-a2d7998d6488",
   "picked_on": "dev",
   "generated_at": "2026-10-17T19:05:24Z"
