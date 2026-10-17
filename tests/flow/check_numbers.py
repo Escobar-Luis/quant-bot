@@ -195,6 +195,24 @@ def check_v2(path: str, r: dict, start: float) -> None:
                                     m.get("trades"))
                     if m["word"] != want:
                         say("FAIL", f"{path} ranges.{name}@{k}m: word {m['word']!r}, rule says {want!r}")
+    for cb in r.get("combos") or []:
+        w, se = f"{path} combo {'+'.join(cb.get('ids', []))}", cb.get("sealed") or {}
+        if cb.get("picked_on") != "dev":
+            say("FAIL", f"{w}: picked_on {cb.get('picked_on')!r}, must be 'dev' (honest-backtest rule)")
+        if se.get("ret_pct") is None or se.get("hold_ret_pct") is None:
+            say("FAIL", f"{w}: sealed needs ret_pct and hold_ret_pct")
+        elif cb.get("word") != word_for(se["ret_pct"], se["hold_ret_pct"], se.get("trades")):
+            say("FAIL", f"{w}: word {cb.get('word')!r}, rule on sealed says "
+                        f"{word_for(se['ret_pct'], se['hold_ret_pct'], se.get('trades'))!r}")
+    sg = r.get("suggestion")
+    if sg:
+        if sg.get("agent_id") != "daytrader-improver-v1":
+            say("FAIL", f"{path} suggestion: agent_id {sg.get('agent_id')!r}")
+        ids = {s.get("id") for s in r.get("strategies") or []} | {p["id"] for p in r.get("portfolios", [])}
+        if sg.get("applies_to") not in ids:
+            say("FAIL", f"{path} suggestion: applies_to {sg.get('applies_to')!r} is no strategy here")
+        if not (sg.get("dev") and sg.get("sealed")):
+            say("FAIL", f"{path} suggestion: needs dev and sealed before/after")
     bs = r.get("best_stop")
     if bs is not None:
         w0, w1 = r["window"]["start"], r["window"]["end"]
@@ -344,14 +362,16 @@ def check_proofs(proofs: dict, src: str, use_prism: bool) -> None:
     kb, rc, ev = proofs.get("knowledge_base") or {}, proofs.get("root_cause") or {}, proofs.get("evaluator") or {}
     say("PASS" if kb.get("run_url") and kb.get("hits") else "WARN",
         f"proof Knowledge Base: {len(kb.get('hits') or [])} hits, run {'linked' if kb.get('run_url') else 'pending'}")
-    say("PASS" if rc.get("failed_runs") and rc.get("our_sentence") and rc.get("url") else "WARN",
-        f"proof Root Cause: {rc.get('failed_runs')} failed runs, cluster {rc.get('cluster')!r}, "
-        f"sentence {'set' if rc.get('our_sentence') else 'pending'} (UI must show pending, not 'null')")
+    ok = bool(rc.get("failed_runs") and rc.get("our_sentence") and rc.get("url"))
+    say("PASS" if ok else "WARN",
+        f"proof Root Cause: {rc.get('failed_runs')} failed runs, cluster {str(rc.get('cluster'))[:50]!r}, "
+        f"sentence {'set' if rc.get('our_sentence') else 'pending'}" + ("" if ok else " (UI must show pending, not 'null')"))
     v1, v2 = (ev.get("v1") or {}).get("pass_pct"), (ev.get("v2") or {}).get("pass_pct")
     mirror = ev.get("code_mirror") or {}
-    say("PASS" if v1 is not None and v2 is not None else "WARN",
-        f"proof Evaluator: PRISM v1 {v1} → v2 {v2}; our code {mirror.get('v1_pass_pct')} → {mirror.get('v2_pass_pct')} "
-        f"(UI must not show 0% → 0% for null)")
+    ok = v1 is not None and v2 is not None
+    say("PASS" if ok else "WARN",
+        f"proof Evaluator: PRISM v1 {v1} → v2 {v2}; our code {mirror.get('v1_pass_pct')} → {mirror.get('v2_pass_pct')}"
+        + ("" if ok else " (UI must not show 0% → 0% for null)"))
     found = list(links(proofs))
     if not use_prism:
         say("WARN", f"PRISM lookups skipped ({len(found)} links)")
@@ -411,8 +431,10 @@ def main() -> int:
     if proofs is None:
         proofs, src = load_ref(PROOFS_FALLBACK, "proofs/prism.json"), PROOFS_FALLBACK
         say("WARN", f"proofs/prism.json not on {a.ref}; checking {PROOFS_FALLBACK} instead (story 2 PR unmerged)")
+    # The bot suggestion's PRISM link lives in the results file; check it with the proofs' links.
+    sugg = {p: {"suggestion": r["suggestion"]} for p, r in files.items() if (r.get("suggestion") or {}).get("prism_url")}
     if proofs:
-        check_proofs(proofs, src, not a.no_prism)
+        check_proofs({**proofs, "results_suggestions": sugg}, src, not a.no_prism)
 
     table = screen_table(files)
     print("\nWhat the app should show at 5 min late (headline):")
