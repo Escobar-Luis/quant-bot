@@ -128,3 +128,29 @@ Rules for the file:
 7. `metadata`: `{agent_version, course, prompt_version, git_sha, proof_set}`; `proof_set: true` only for the 30 traced LPP sessions.
 </content>
 </invoke>
+
+## v2 keys (additive, optional; Luis 2026-10-17 15:00)
+
+Written by story 1, read by story 3; a missing key hides its card. Strategy = trades grouped by setup (the event's `why` plus recurring rules), not by trade type; `portfolio` stays a facet. `series.dates` is shared by every curve. Ranges run from the window start. `combos` and `suggestion` are picked on dev months and reported on the sealed months; cross-course combos only where dates overlap.
+
+```json
+{
+"strategies": [{"id": "vwap-pullback", "name": "Pullback to VWAP", "portfolio": "day", "testable": true,
+  "sessions": 31,
+  "entails": {"buy": "Dip to the day's average price, then a bounce", "sell": "2x the risk, or back under VWAP",
+              "stop": "Just under the bounce low", "size": "His share count", "time": "Mostly 9:30-11:00"},
+  "quotes": [{"text": "wait for it to come back to VWAP", "cite": {"source_id": "yt:…", "locator": "t=850s", "label": "Live session, 2024-10-03, 14:10"}}],
+  "untestable": ["Feel the tape"],
+  "by_delay": {"5": {"end": 10900, "ret_pct": 9.0, "hold_ret_pct": 6.0, "trades": 98, "won_pct": 58, "word": "Yes"}},
+  "series": {"by_delay": {"5": [10000, 10120]}}}],
+"ranges": {"3m": {"by_delay": {"5": {"end": 9820, "hold_end": 10350, "word": "No"}}},
+           "6m": {"by_delay": {"5": {"end": 11240, "hold_end": 10900, "word": "Yes"}}},
+           "1y": {"by_delay": {"5": {"end": 10660, "hold_end": 11890, "word": "No"}}}},
+"best_stop": {"by_delay": {"5": {"date": "2025-03-03", "end": 12400, "hold_end": 10950}}},
+"combos": [{"ids": ["lpp:vwap-pullback", "cryptowizard:btc-setups"], "window": {"start": "2025-08-01", "end": "2025-09-12"},
+            "picked_on": "dev", "sealed": {"ret_pct": 14.0, "hold_ret_pct": 6.0}, "word": "Yes"}],
+"suggestion": {"agent_id": "daytrader-improver-v1", "applies_to": "vwap-pullback", "change": "Skip 9:30-9:45",
+               "dev": {"before_pct": 9.0, "after_pct": 13.0}, "sealed": {"before_pct": 4.0, "after_pct": 7.0},
+               "kept": true, "prism_url": null}
+}
+```

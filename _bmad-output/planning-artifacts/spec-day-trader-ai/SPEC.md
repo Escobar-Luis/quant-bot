@@ -46,9 +46,18 @@ A pain to solve, for one person first. Luis paid for three day-trading courses (
 - **CAP-8** The proof
   - **intent:** A judge opens the proof behind a verdict: the course rules the agent retrieved (Knowledge Base), the failure cluster and its cause (Root Cause), and the score from our evaluator on v1 and v2 (Evaluator), each linked to PRISM.
   - **success:** Each value comes from `proofs/prism.json`, and each link opens the PRISM run or cluster.
-- **CAP-9** Better version (deferred)
-  - **intent:** The agent proposes one change to a course's strategy; code backtests it and keeps it only if it beats the parent.
-  - **success:** Not part of the demo. Starts only after CAP-1 to CAP-8 work on the public URL.
+- **CAP-9** Bot suggests a better version (if time)
+  - **intent:** The agent proposes one change to a strategy; code backtests it on months it never saw and keeps it only if it beats the parent.
+  - **success:** The answer screen shows the change with before and after on dev and sealed months, linked to its `daytrader-improver-v1` PRISM run.
+- **CAP-10** What was traded
+  - **intent:** The user sees each course's strategies by name and, for one, what it entailed (buy, sell, stop, size, time) with cited quotes.
+  - **success:** Every strategy in `results.strategies` shows its name, trade count and result vs just holding; tapping it lists its rules with citations.
+- **CAP-11** Time range and best day to stop
+  - **intent:** The user picks how long they followed the course (3M, 6M, 1Y) and sees the day stopping would have made the most.
+  - **success:** The chips switch to `results.ranges` values; the chart marks `results.best_stop` with its date and value.
+- **CAP-12** Best mix (if time)
+  - **intent:** The user sees the best pair of strategies in one account, within a course or across courses, on dates both cover.
+  - **success:** `results.combos` shows the pair, its window and its sealed-month result vs just holding.
 
 ## Constraints
 
@@ -61,10 +70,11 @@ A pain to solve, for one person first. Luis paid for three day-trading courses (
 - Plain words for a non-trader: no "baseline", "drawdown", "Sharpe" or "in-sample" on first view; fake money; "Not advice" on every verdict.
 - Costs are always on: 5 bps per side for stocks, 20 bps under $10, 25 bps for crypto.
 - Freeze at 16:00; the full-flow test starts at 15:30.
+- The look is Mission Control (artifact GMm4UgLyFG3jLqXCSizu3y, X1 Night city), replacing stamp-v2.
 
 ## Non-goals
 
-- The agent-improved strategy or a custom algorithm from the findings (CAP-9): after the demo.
+- A fully custom trading algorithm beyond one tested change (CAP-9) and pairs (CAP-12).
 - Pricing options (no free options price history).
 - Real brokerage, live trading or trade alerts.
 - User accounts beyond sign-in: no saved portfolios, payments or per-user data on a server.
