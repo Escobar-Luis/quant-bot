@@ -36,6 +36,7 @@ usage = reply.usage
 
 print(f"NICRRON OK: model={reply.model} latency={latency_ms}ms reply={text!r}")
 
+session_id = f"smoke-{int(time.time())}"
 pt.trace_llm(
     model=reply.model or model,
     input_messages=messages,
@@ -45,8 +46,18 @@ pt.trace_llm(
     token_count_output=getattr(usage, "completion_tokens", 0) or 0,
     agent_id="quant-bot-smoke",
     agent_name="quant-bot smoke test",
-    session_id=f"smoke-{int(time.time())}",
+    session_id=session_id,
+)
+# An agent run with steps, so it shows on PRISM's Agent Runs page.
+run = pt.submit_trajectory(
+    agent_id="quant-bot-smoke",
+    agent_name="quant-bot smoke test",
+    conversation_id=session_id,
+    model=reply.model or model,
+    steps=[{"step_type": "final_answer", "label": "reply", "input_summary": messages[0]["content"],
+            "output_summary": text or "", "duration_ms": latency_ms}],
 )
 pt.flush(timeout=30)
 pt.close()
-print("PRISM trace sent. Check the PRISM dashboard, or run: uv run python -m prismtrace.verify")
+print(f"PRISM trace sent; agent run {'id=' + str(run.get('id')) if run else 'FAILED (see warning above)'}.")
+print("Next: uv run python -m prismtrace.verify")
