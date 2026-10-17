@@ -36,8 +36,9 @@ COURSES = {
 SOURCE_FIELDS = ("kind", "url", "server_id", "channel", "channel_id", "message_id", "author", "author_role",
                  "title", "duration_s", "captions")
 EVENT_TEXT = ("type", "session_date", "market", "ticker_said", "side", "action", "instrument", "level_kind",
-              "horizon", "why", "rule", "quote", "status", "model", "prompt_version")
+              "level_ref", "watch", "horizon", "why", "rule", "quote", "status", "model", "prompt_version")
 EVENT_NUM = ("t_s", "qty", "price", "entry", "stop", "level")
+EVENT_OWN = {*EVENT_TEXT, *EVENT_NUM, "event_id", "source_id", "course", "targets", "checks", "fail", "wall_utc", "ticker"}
 SEGMENT_S = 30
 
 
@@ -116,6 +117,8 @@ def load_events(db: Surreal, course: str) -> int:
                    checks=r.get("checks") or {}, fail=r.get("fail") or [])
         if r.get("wall_utc"):
             doc["wall"] = when(r["wall_utc"])
+        if extra := {k: v for k, v in r.items() if k not in EVENT_OWN and v not in (None, [], {})}:
+            doc["extra"] = extra  # nothing a collector writes is dropped
         eid = RecordID("event", r["event_id"])
         if ticker := (r.get("ticker") or "").upper().strip() or None:
             doc["ticker"] = ticker
@@ -189,12 +192,15 @@ def stats(db: Surreal) -> None:
     for table in ("course", "source", "segment", "event", "ticker", "mentions"):
         print(f"{table:9}", db.query(f"RETURN count(SELECT id FROM {table})"))
     print("embedded ", db.query("RETURN count(SELECT id FROM event WHERE embedding != NONE)"))
-    for course in COURSES:
-        s = db.query("RETURN fn::course_summary($c)", {"c": course})
-        if s and s.get("sources"):
-            print(course, json.dumps(s, default=str)[:600])
-    print("search   ", [r.get("rule") for r in db.query("RETURN fn::search_rules('stop loss', 3)")])
-    print("ticker   ", db.query("RETURN fn::ticker_activity('TSLA')"))
+    try:
+        for course in COURSES:
+            s = db.query("RETURN fn::course_summary($c)", {"c": course})
+            if s and s.get("sources"):
+                print(course, json.dumps(s, default=str)[:600])
+        print("search   ", [r.get("rule") for r in db.query("RETURN fn::search_rules('stop loss', 3)")])
+        print("ticker   ", db.query("RETURN fn::ticker_activity('TSLA')"))
+    except Exception as e:  # an empty database has no schema or functions yet
+        print("functions unavailable:", str(e)[:120])
 
 
 def main() -> None:

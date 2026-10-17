@@ -63,6 +63,8 @@ DEFINE FIELD OVERWRITE stop ON event TYPE option<number>;
 DEFINE FIELD OVERWRITE targets ON event TYPE array<number> DEFAULT [];
 DEFINE FIELD OVERWRITE level ON event TYPE option<number>;
 DEFINE FIELD OVERWRITE level_kind ON event TYPE option<string>;
+DEFINE FIELD OVERWRITE level_ref ON event TYPE option<string>;              -- e.g. prev_low when the level is relative
+DEFINE FIELD OVERWRITE watch ON event TYPE option<string>;                  -- what the poster says to watch
 DEFINE FIELD OVERWRITE horizon ON event TYPE option<string>;
 DEFINE FIELD OVERWRITE why ON event TYPE option<string>;                 -- paraphrase, 15 words max
 DEFINE FIELD OVERWRITE rule ON event TYPE option<string>;                -- paraphrase, 15 words max
@@ -73,6 +75,7 @@ DEFINE FIELD OVERWRITE status ON event TYPE string ASSERT $value IN ["ok", "need
 DEFINE FIELD OVERWRITE model ON event TYPE option<string>;
 DEFINE FIELD OVERWRITE prompt_version ON event TYPE option<string>;
 DEFINE FIELD OVERWRITE embedding ON event TYPE option<array<float>>;      -- voyage-finance-2 (1024) of rule or why
+DEFINE FIELD OVERWRITE extra ON event FLEXIBLE TYPE option<object>;        -- any course-specific keys (levels, links_to, setup_tags, ...)
 DEFINE INDEX OVERWRITE event_lookup ON event FIELDS course, type, ticker, wall;
 DEFINE INDEX OVERWRITE event_status ON event FIELDS status;
 
