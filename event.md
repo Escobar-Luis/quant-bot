@@ -55,6 +55,9 @@ Prizes: "cash prizes + partner credits", amounts not published. MT1: 1st $1,000 
 - **NicrronNinoo** (required, technology sponsor): Nicrron API (OpenAI-compatible, `https://api.nicrron.ai/v1`, 80+ models, `nicrron/auto`), Ninoo Builder (plain-English app → `*.ninoo.app`), Ninoo Code (terminal agent). $260/participant via code `FINTECH-LPBMK`. Credits expire 2026-10-18 18:00 ET.
 - **ElevenLabs** (optional): voice/chat agents, TTS, transcription. Free Creator month via their Discord #coupon-codes. Showcase submission for merch.
 
+## Track
+**Money Intelligence** (decided 2026-10-17). Required proofs: Knowledge Base, Root Cause, Evaluator. See `AGENTS.md`.
+
 ## The question
 Sponsor tech (Track A): do we understand PRISM + Nicrron well enough to apply them creatively? The track proofs make PRISM's observe → fix → prove loop the centre of the demo.
 
@@ -62,4 +65,4 @@ Sponsor tech (Track A): do we understand PRISM + Nicrron well enough to apply th
 A live demo (no slides) of a finance agent a domain user could run cold, where the code decides and the model proposes, it says what it doesn't know, and PRISM evidence proves the risk it stopped or the fix it made. Unique versus MT1's citation-and-questionnaire builds.
 
 ## Answer
-X for [user] who [pain]; on screen they see Z; [sponsors] do Y.
+Day Trader AI for people who paid for trading courses and never knew if the strategies worked; on screen they see a verdict per course and the agent's better version, with proof; Nicrron runs rule extraction and the improving agent, and PRISM's Knowledge Base, evaluator and Root Cause prove each fix.
