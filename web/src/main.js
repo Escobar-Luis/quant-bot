@@ -136,9 +136,10 @@ function holdLabel(h) {
 }
 // One honest fine-print line: sizing, plus trades we couldn't copy or had to shrink.
 function fineLine(r, s) {
-  const size = (r.sizing || '').match(/\$[\d,]+ (?:per|a) (?:trade|call|setup)/i)?.[0];
+  const sz = r.sizing || '', amt = sz.match(/\$[\d,]+/)?.[0];
+  const unit = sz.match(/(?:per|a|each) (trade|call|setup)/i)?.[1] || 'trade';
   const bits = [];
-  if (size) bits.push(/scal/i.test(r.sizing) ? 'Scaled to ' + size : size);
+  if (amt) bits.push(/scal/i.test(sz) ? `Scaled to ${amt} per ${unit}` : `${amt} per ${unit}`);
   if (s.couldnt_copy > 0) bits.push(`${s.couldnt_copy.toLocaleString('en-US')} couldn’t be copied`);
   if (s.sized_down > 0) bits.push(`${s.sized_down.toLocaleString('en-US')} sized down`);
   if (s.not_triggered > 0) bits.push(`${s.not_triggered.toLocaleString('en-US')} never triggered`);

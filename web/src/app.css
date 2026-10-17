@@ -34,8 +34,9 @@ body[data-screen=signin] .bar-right,body[data-screen=boot] .bar-right,body[data-
 .l-top .delay{--on:var(--d-on);--on2:var(--d-on2)}
 
 /* ---------- by kind of trade: bands are buttons ---------- */
-.band{display:block;min-height:0}
-.band-btn{display:flex;align-items:center;width:100%;min-height:104px;text-align:left;background:var(--field);color:var(--on)}
+.band{min-height:0}
+.band:has(.band-btn){display:flex;align-items:stretch}
+.band-btn{flex:1 1 auto;display:flex;align-items:center;width:100%;min-height:104px;text-align:left;background:var(--field);color:var(--on)}
 .band>.band-in{background:var(--field)}
 .band:not(:has(.band-btn)){display:flex;align-items:center;min-height:104px;background:var(--field);color:var(--on)}
 .b-tag{margin-left:2px}
