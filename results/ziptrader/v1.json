@@ -1,0 +1,1043 @@
+{
+ "schema": "results/1",
+ "course": "ziptrader",
+ "course_name": "ZipTrader",
+ "version": "v1",
+ "source_agent_id": "extract-ziptrader-v1",
+ "sample": false,
+ "partial": false,
+ "generated_at": "2026-10-17T18:36:03Z",
+ "git_sha": "655cd31c5acf8b340d6d1c5a21db17beb999da00",
+ "window": {
+  "start": "2026-10-01",
+  "end": "2026-10-16",
+  "sealed_from": "2026-10-01"
+ },
+ "money_start": 10000,
+ "course_fee_usd": null,
+ "delays_min": [
+  1,
+  3,
+  5,
+  10,
+  15,
+  30,
+  60
+ ],
+ "default_delay_min": 5,
+ "costs_bps_per_side": {
+  "stocks": 5,
+  "stocks_under_10": 20,
+  "crypto": 25
+ },
+ "sizing": "$1,000 per call (they never state a size)",
+ "hold": {
+  "symbol": "SPY",
+  "label": "Just holding",
+  "what": "Buy and keep the S&P 500 (SPY)"
+ },
+ "headline_portfolio": "all",
+ "portfolios": [
+  {
+   "id": "all",
+   "label": "Everything he traded",
+   "testable": true,
+   "by_delay": {
+    "1": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "3": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "5": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "10": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "15": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "30": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "60": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    }
+   },
+   "series": {
+    "dates": [
+     "2026-10-01",
+     "2026-10-02",
+     "2026-10-05",
+     "2026-10-06",
+     "2026-10-07",
+     "2026-10-08",
+     "2026-10-09",
+     "2026-10-12",
+     "2026-10-13",
+     "2026-10-14",
+     "2026-10-15",
+     "2026-10-16"
+    ],
+    "hold": [
+     9995.16,
+     10069.08,
+     10136.98,
+     10192.71,
+     10168.25,
+     10125.2,
+     10185.91,
+     10179.76,
+     10178.58,
+     10068.55,
+     10097.21,
+     9985.48
+    ],
+    "by_delay": {
+     "1": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "3": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "5": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "10": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "15": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "30": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "60": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ]
+    }
+   }
+  },
+  {
+   "id": "day",
+   "label": "Day trades",
+   "testable": true,
+   "by_delay": {
+    "1": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    },
+    "3": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    },
+    "5": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    },
+    "10": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    },
+    "15": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    },
+    "30": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    },
+    "60": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 0,
+     "not_triggered": 0,
+     "won_pct": 0,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": -0.15,
+      "trades": 0
+     }
+    }
+   },
+   "series": {
+    "dates": [
+     "2026-10-01",
+     "2026-10-02",
+     "2026-10-05",
+     "2026-10-06",
+     "2026-10-07",
+     "2026-10-08",
+     "2026-10-09",
+     "2026-10-12",
+     "2026-10-13",
+     "2026-10-14",
+     "2026-10-15",
+     "2026-10-16"
+    ],
+    "hold": [
+     9995.16,
+     10069.08,
+     10136.98,
+     10192.71,
+     10168.25,
+     10125.2,
+     10185.91,
+     10179.76,
+     10178.58,
+     10068.55,
+     10097.21,
+     9985.48
+    ],
+    "by_delay": {
+     "1": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ],
+     "3": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ],
+     "5": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ],
+     "10": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ],
+     "15": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ],
+     "30": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ],
+     "60": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0
+     ]
+    }
+   }
+  },
+  {
+   "id": "swing",
+   "label": "Swing trades",
+   "testable": true,
+   "by_delay": {
+    "1": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "3": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "5": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "10": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "15": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "30": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    },
+    "60": {
+     "end": 10006.61,
+     "ret_pct": 0.07,
+     "hold_end": 9985.48,
+     "hold_ret_pct": -0.15,
+     "trades": 1,
+     "not_triggered": 0,
+     "won_pct": 100,
+     "worst_drop_pct": 0.0,
+     "word": "Not enough trades",
+     "sealed": {
+      "ret_pct": 0.07,
+      "hold_ret_pct": -0.15,
+      "trades": 1
+     }
+    }
+   },
+   "series": {
+    "dates": [
+     "2026-10-01",
+     "2026-10-02",
+     "2026-10-05",
+     "2026-10-06",
+     "2026-10-07",
+     "2026-10-08",
+     "2026-10-09",
+     "2026-10-12",
+     "2026-10-13",
+     "2026-10-14",
+     "2026-10-15",
+     "2026-10-16"
+    ],
+    "hold": [
+     9995.16,
+     10069.08,
+     10136.98,
+     10192.71,
+     10168.25,
+     10125.2,
+     10185.91,
+     10179.76,
+     10178.58,
+     10068.55,
+     10097.21,
+     9985.48
+    ],
+    "by_delay": {
+     "1": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "3": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "5": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "10": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "15": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "30": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ],
+     "60": [
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10000.0,
+      10006.61,
+      10006.61,
+      10006.61
+     ]
+    }
+   }
+  },
+  {
+   "id": "options",
+   "label": "Options",
+   "testable": false,
+   "count": 0,
+   "why": "No free options price history"
+  }
+ ],
+ "rules": [
+  {
+   "id": "R1",
+   "text": "Only trade stocks the author has high conviction in",
+   "quote": "High Conviction Stocks",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R2",
+   "text": "Buy when the stock is in a dip, i.e. oversold",
+   "quote": "Buy Dips In High Conviction Stocks",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R3",
+   "text": "Hold positions with no price-based exit",
+   "quote": "HOLD HOLD HOLD",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R4",
+   "text": "Sell or trim once the company's value is judged realized",
+   "quote": "Sell/Trim When Value Realized",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R5",
+   "text": "Keep holding while the company continues to earn conviction",
+   "quote": "Continue To Hold If Company Continues Earning Conviction",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R6",
+   "text": "Stocks with rapid business model growth",
+   "quote": "Rapid Business Model Growth",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R7",
+   "text": "Buy stocks showing price momentum, i.e. trading above their trend",
+   "quote": "Buying Momentum Stocks",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R8",
+   "text": "Stay in the trade while momentum persists",
+   "quote": "Ride Momentum",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R9",
+   "text": "Stop loss set 15% to 20% below entry",
+   "quote": "Set Stop Loss 15%-20% Down",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R10",
+   "text": "Lock in profits quickly when a winning trade turns down",
+   "quote": "Lock In Profits",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R11",
+   "text": "Cut losing trades quickly when price turns down",
+   "quote": "Cut Losses Quickly",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  },
+  {
+   "id": "R12",
+   "text": "Apply options only to high conviction stocks",
+   "quote": "High Conviction Stocks",
+   "testable": false,
+   "cite": {
+    "source_id": "dc:1387103286389243985/1458657028481220719",
+    "locator": "1458657028481220719",
+    "label": "#morning-briefing, 2026-01-08"
+   }
+  }
+ ],
+ "trades": [
+  {
+   "trade_id": "zt-1557318875433934900-006",
+   "portfolio": "swing",
+   "ticker": "PENG",
+   "side": "long",
+   "posted_at": "2026-10-07T09:09:13Z",
+   "quote": "keep working for more than one session",
+   "cite": {
+    "source_id": "dc:634554429689036830/1557318875433934900",
+    "locator": "1557318875433934900",
+    "label": "#morning-briefing, 2026-10-07"
+   },
+   "by_delay": {
+    "1": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    },
+    "3": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    },
+    "5": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    },
+    "10": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    },
+    "15": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    },
+    "30": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    },
+    "60": {
+     "entry_at": "2026-10-07T13:30:00Z",
+     "entry": 67.2775,
+     "exit_at": "2026-10-14T19:55:00Z",
+     "exit": 67.79,
+     "ret_pct": 0.66,
+     "pnl": 6.61,
+     "legs": 2,
+     "exit_kind": "default",
+     "assumed_exit": true
+    }
+   }
+  }
+ ],
+ "unknown": [
+  "70 briefing items are watch-list notes with no direction: counted, not traded.",
+  "Only 12 briefings (Oct 1-16, 2026): too few to judge.",
+  "Exit assumed after 5 sessions for 1 calls with no exit.",
+  "$1,000 per call: they never state a size.",
+  "Prices are Yahoo 1-minute bars; costs 5 bps per side."
+ ],
+ "checks": {
+  "events_total": 86,
+  "events_ok": 85,
+  "needs_review": 1,
+  "briefing_items": 71,
+  "watch_only": 70,
+  "positions": 1,
+  "positions_priced": 1,
+  "results_by_status": {
+   "priced": 7
+  }
+ }
+}
