@@ -4,6 +4,7 @@ The model only proposes events; checks.py decides what is kept. Transcript text 
 in this call to Nicrron.
 """
 import json
+import random
 import re
 import time
 
@@ -54,11 +55,11 @@ def _parse(txt: str) -> dict:
     return json.loads(txt[i:j + 1])
 
 
-def _stream(client, model, msgs, max_tokens):
+def _stream(client, model, msgs, max_tokens, temperature=0.0):
     """Streamed call. Nicrron drops non-streamed calls at ~30 s, and Sonnet 5.5 thinks for 20-60 s on a whole
     session before its first token; the hidden thinking counts against max_tokens, so the budget is large."""
     parts, finish, usage = [], None, None
-    for ev in client.chat.completions.create(model=model, temperature=0, max_tokens=max_tokens, stream=True,
+    for ev in client.chat.completions.create(model=model, temperature=temperature, max_tokens=max_tokens, stream=True,
                                              stream_options={"include_usage": True}, messages=msgs):
         if ev.choices:
             if ev.choices[0].delta.content:
@@ -73,13 +74,16 @@ def call(tr: Transcript, models=MODELS, max_tokens=24000) -> dict:
     """One streamed call per session, retried, with a fallback model list. Returns the parsed reply plus metadata."""
     msgs = [{"role": "system", "content": PROMPTS[VERSION]},
             {"role": "user", "content": f"<source id=yt:{tr.video_id}>\n" + "\n".join(tr.lines()) + "\n</source>"}]
+    from openai import RateLimitError
     errors = []
     client = llm()
     for model in models:
-        for attempt in range(2):
+        attempt, limited = 0, 0
+        while attempt < 2:
             t0 = time.time()
             try:
-                txt, finish, usage = _stream(client, model, msgs, max_tokens)
+                # a retry after bad JSON at temperature 0 would repeat the same reply, so it samples a little
+                txt, finish, usage = _stream(client, model, msgs, max_tokens, 0.0 if attempt == 0 else 0.3)
                 if not txt.strip():
                     raise ValueError(f"empty reply (finish={finish})")
                 if finish == "length":
@@ -89,9 +93,18 @@ def call(tr: Transcript, models=MODELS, max_tokens=24000) -> dict:
                            finish=finish, errors=errors,
                            usage={"in": getattr(usage, "prompt_tokens", None), "out": getattr(usage, "completion_tokens", None)})
                 return res
+            except RateLimitError as e:
+                # Nicrron allows 60 requests/min per account, shared with the other agents: wait, same model
+                errors.append({"model": model, "attempt": attempt, "secs": round(time.time() - t0, 1),
+                               "error": f"RateLimitError: {str(e)[:80]}"})
+                limited += 1
+                if limited > 8:
+                    attempt += 1
+                time.sleep(min(120, 10 * 2 ** min(limited, 4)) * (0.5 + random.random()))
             except Exception as e:  # noqa: BLE001 - every failure is logged and becomes a PRISM failure kind
                 errors.append({"model": model, "attempt": attempt, "secs": round(time.time() - t0, 1),
                                "error": f"{type(e).__name__}: {str(e)[:160]}"})
+                attempt += 1
     return {"events": [], "airtime": [], "model": None, "errors": errors, "prompt_version": PROMPT_VERSION}
 
 
