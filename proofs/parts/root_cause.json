@@ -1,0 +1,9 @@
+{
+ "cluster": "failures in LPP session extractor v1 on path tool_call>reasoning>tool_call>final_answer (Task Completion, Error Handling)",
+ "tier": "Needs review",
+ "prism_cause": "Prompt: detectors failed_tool_call fired in 25 of 25 runs and unsupported_answer in 20 of 25 (both decisive)",
+ "our_sentence": "The v1 prompt let the model quote long caption stretches and lose track of open positions, so code checks failed in 28 of 30 runs.",
+ "failed_runs": 25,
+ "url": "https://prism.blockconvey.com/root-cause",
+ "at": "2026-10-17T19:07:11Z"
+}

@@ -1,0 +1,218 @@
+[
+ {
+  "id": "LPP-SIZING-1",
+  "theme": "sizing",
+  "rule": "Size into and out of positions in stages to capture quick moves.",
+  "locator": "yt:SOI0Cy2B4eM t=3213s"
+ },
+ {
+  "id": "LPP-SIZING-2",
+  "theme": "sizing",
+  "rule": "Avoid heavy position sizes when markets are overextended and barely moving",
+  "locator": "yt:zLWHovhkCks t=2142s"
+ },
+ {
+  "id": "LPP-SIZING-3",
+  "theme": "sizing",
+  "rule": "Use smaller position size on riskier stocks.",
+  "locator": "yt:ObT5nOcb574 t=2724s"
+ },
+ {
+  "id": "LPP-SIZING-4",
+  "theme": "sizing",
+  "rule": "If emotions or dollar amount control you, reduce position size.",
+  "locator": "yt:h7qumTF3ImI t=3702s"
+ },
+ {
+  "id": "LPP-SIZING-5",
+  "theme": "sizing",
+  "rule": "Don't overtrade on volatile days; size positions you can manage and tolerate.",
+  "locator": "yt:pDa6rq_UW2M t=1811s"
+ },
+ {
+  "id": "LPP-SIZING-6",
+  "theme": "sizing",
+  "rule": "In choppy markets, stay light with a small position instead of an aggressive one.",
+  "locator": "yt:-1bkI_eYRLY t=3689s"
+ },
+ {
+  "id": "LPP-STOP-1",
+  "theme": "stop",
+  "rule": "Skip trades where risk to reward is unfavorable; potential loss should not exceed potential profit.",
+  "locator": "yt:A4929OT4Jls t=2706s"
+ },
+ {
+  "id": "LPP-STOP-2",
+  "theme": "stop",
+  "rule": "Decide your stop-loss level and trade plan before entering the trade.",
+  "locator": "yt:Y6s0FABOjUY t=2825s"
+ },
+ {
+  "id": "LPP-STOP-3",
+  "theme": "stop",
+  "rule": "Avoid stagnant setups where risk equals reward; wait for a break of pattern up or \u2026",
+  "locator": "yt:AgzUslkUYQY t=2210s"
+ },
+ {
+  "id": "LPP-STOP-4",
+  "theme": "stop",
+  "rule": "Avoid shorting oversold stocks near major support; risk to reward worsens.",
+  "locator": "yt:rA_Dwts2A78 t=2902s"
+ },
+ {
+  "id": "LPP-STOP-5",
+  "theme": "stop",
+  "rule": "Don't fight a hyped momentum stock; cut losses and wait for the short opportunity.",
+  "locator": "yt:rDT7j_ccftU t=1734s"
+ },
+ {
+  "id": "LPP-STOP-6",
+  "theme": "stop",
+  "rule": "Cash out when a trade stops progressing and shows support, even if profitable.",
+  "locator": "yt:lYA1zjh60-g t=3367s"
+ },
+ {
+  "id": "LPP-EXIT-1",
+  "theme": "exit",
+  "rule": "Only take a trade once your entry criteria are met; never break rules to force \u2026",
+  "locator": "yt:Jds31wPEh1U t=1494s"
+ },
+ {
+  "id": "LPP-EXIT-2",
+  "theme": "exit",
+  "rule": "Enter shorts only when actively selling off below the 30 minute EMA; exit early if \u2026",
+  "locator": "yt:aqrvMDEmBZA t=2685s"
+ },
+ {
+  "id": "LPP-EXIT-3",
+  "theme": "exit",
+  "rule": "Set new targets at previous consolidation ranges and previous resistance that may act as support.",
+  "locator": "yt:mu83EuhCTdw t=2530s"
+ },
+ {
+  "id": "LPP-EXIT-4",
+  "theme": "exit",
+  "rule": "Don't carry short positions overnight; close them into the close.",
+  "locator": "yt:h7qumTF3ImI t=2380s"
+ },
+ {
+  "id": "LPP-EXIT-5",
+  "theme": "exit",
+  "rule": "Enter shorts only after true confirmation of sell-off, not before",
+  "locator": "yt:ocJR7r92HK0 t=2717s"
+ },
+ {
+  "id": "LPP-EXIT-6",
+  "theme": "exit",
+  "rule": "Know when to take profits; when in doubt, cash out.",
+  "locator": "yt:-1bkI_eYRLY t=152s"
+ },
+ {
+  "id": "LPP-ENTRY-1",
+  "theme": "entry",
+  "rule": "Don't short a stock that is ripping with favorable momentum direction.",
+  "locator": "yt:SOI0Cy2B4eM t=1332s"
+ },
+ {
+  "id": "LPP-ENTRY-2",
+  "theme": "entry",
+  "rule": "Do not short a stock with strong bullish momentum and no reversal signs.",
+  "locator": "yt:Bx5VMhZSVno t=2474s"
+ },
+ {
+  "id": "LPP-ENTRY-3",
+  "theme": "entry",
+  "rule": "Go long only after price breaks above the EMA, confirming a reversal.",
+  "locator": "yt:fueFsEqyBnE t=3357s"
+ },
+ {
+  "id": "LPP-ENTRY-4",
+  "theme": "entry",
+  "rule": "Don't short when range is small, market not overbought and reward is under 2:1",
+  "locator": "yt:9lEu6qvIsM4 t=2357s"
+ },
+ {
+  "id": "LPP-ENTRY-5",
+  "theme": "entry",
+  "rule": "After cutting a losing short in an uptrend, go long with the trend.",
+  "locator": "yt:PRh1PZh786Q t=3656s"
+ },
+ {
+  "id": "LPP-ENTRY-6",
+  "theme": "entry",
+  "rule": "Short only after Nasdaq curls over and the stock shows overbought, resistance, then selling pressure.",
+  "locator": "yt:MeHVez-eGKA t=2379s"
+ },
+ {
+  "id": "LPP-AVOID-1",
+  "theme": "avoid",
+  "rule": "Do not trade against the trend while direction is still favorable.",
+  "locator": "yt:Jds31wPEh1U t=1347s"
+ },
+ {
+  "id": "LPP-AVOID-2",
+  "theme": "avoid",
+  "rule": "Skip trades that are too risky; you don't have to trade every opportunity.",
+  "locator": "yt:RFyO84mr6X8 t=1223s"
+ },
+ {
+  "id": "LPP-AVOID-3",
+  "theme": "avoid",
+  "rule": "Avoid holding more than two trades at once.",
+  "locator": "yt:7-CdVRX7YwE t=2839s"
+ },
+ {
+  "id": "LPP-AVOID-4",
+  "theme": "avoid",
+  "rule": "Avoid trading the first 10 minutes after the open; hold back if direction flips quickly.",
+  "locator": "yt:cxltnx7qwPg t=295s"
+ },
+ {
+  "id": "LPP-AVOID-5",
+  "theme": "avoid",
+  "rule": "Use indicators (MACD, RSI) only as reference, never as the sole reason to trade.",
+  "locator": "yt:_OyQM2C2qts t=1145s"
+ },
+ {
+  "id": "LPP-AVOID-6",
+  "theme": "avoid",
+  "rule": "Avoid trading lower-cap stocks priced below $5 per share because they are too volatile.",
+  "locator": "yt:QwEx1Vzu6FM t=640s"
+ },
+ {
+  "id": "LPP-OTHER-1",
+  "theme": "other",
+  "rule": "Yesterday's support becomes today's resistance; keep alerts updated for the stock you trade.",
+  "locator": "yt:zHy9rzBn6dU t=291s"
+ },
+ {
+  "id": "LPP-OTHER-2",
+  "theme": "other",
+  "rule": "Judge a trade by whether it is still valid, not by how much you are \u2026",
+  "locator": "yt:ZojQwIUiSgg t=2839s"
+ },
+ {
+  "id": "LPP-OTHER-3",
+  "theme": "other",
+  "rule": "Test an unfamiliar strategy, such as shorting, with a one-share trade first.",
+  "locator": "yt:wqgCYX84tx4 t=2679s"
+ },
+ {
+  "id": "LPP-OTHER-4",
+  "theme": "other",
+  "rule": "Mark support as the consolidation zone, not the exact lowest point",
+  "locator": "yt:iXDi1nMvhbY t=383s"
+ },
+ {
+  "id": "LPP-OTHER-5",
+  "theme": "other",
+  "rule": "Analyze QQQ's chart rather than the 3x leveraged inverse ETF's chart.",
+  "locator": "yt:yEZGIVS9R4E t=1016s"
+ },
+ {
+  "id": "LPP-OTHER-6",
+  "theme": "other",
+  "rule": "Stay out of trading around scheduled events like meetings or speeches when volatility rises.",
+  "locator": "yt:Bo9DkCdY3z4 t=4239s"
+ }
+]

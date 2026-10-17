@@ -1,0 +1,312 @@
+{
+ "extract-lpp-v1": {
+  "sent_at": "2026-10-17T19:04:00Z",
+  "traces": [
+   {
+    "trace_id": "35ad1947-a278-59f9-b982-27aa982fd9ba",
+    "session_id": "lpp-E_sa74f6Ctw-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "e4205789-5b87-5bc8-8488-1714371fa00f",
+    "session_id": "lpp-zSJD7GANqwo-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "28ace87e-dcb7-5d75-ba5b-622bbfbc654b",
+    "session_id": "lpp-XQ8DS0EnyXY-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "8296959b-c2b4-57e9-bd7a-08f4535ab2b7",
+    "session_id": "lpp-5xvxykJ1W7Y-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "23e0a450-cda1-55a9-853c-a763c8e72bfa",
+    "session_id": "lpp-8bG7TPrnj5E-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "9161d176-009d-55f9-9c5e-302d74974988",
+    "session_id": "lpp-A4929OT4Jls-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "542b0e42-0a4d-563c-ada7-762fe315579b",
+    "session_id": "lpp-8KBf9GxBdpU-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "7fe9bf5f-62da-5a1a-8d09-c9a948b2d372",
+    "session_id": "lpp-lPhT0CwBFfs-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "12b6584c-ef66-5753-a30b-85a3011e2444",
+    "session_id": "lpp-xW7zeI3tVFA-lpp-v1",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "1c48b79e-3ab3-5839-8d3c-5045c048e43b",
+    "session_id": "lpp-_CDLe_xymXI-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "fb62d3cf-f6db-567c-832e-6a8207dd65cc",
+    "session_id": "lpp-_8ipOkrMiHo-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "3c023c41-839e-5b69-9dd9-b4acf91afbaa",
+    "session_id": "lpp-4BBRXqBYIfg-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "98905297-999b-5bb1-a945-47e5862136ea",
+    "session_id": "lpp-V8Hedo8avRw-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "4c21c81b-afe5-533a-b6ad-ad2f613cc827",
+    "session_id": "lpp-73uzVNLB5rg-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "1c3d2317-7bc9-5d6f-b8b5-f672ca32c56e",
+    "session_id": "lpp-wavVrUl3IL4-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "394eb9b3-b827-5df8-b3e0-bb3f0ea6a8ce",
+    "session_id": "lpp-ObT5nOcb574-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "d69ebfb7-6e4a-5bb7-8e3a-6e340d83288e",
+    "session_id": "lpp-pSALKx-kWuA-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "4462773b-def9-509b-8fbe-a1d30ec38b59",
+    "session_id": "lpp-RHCJnvb9YhY-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "c5831b2e-ca66-56aa-b646-c482fa1ad123",
+    "session_id": "lpp-3akuq5hWrHk-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "92ebd66c-30f4-57a0-a975-754135ceb4d2",
+    "session_id": "lpp-h7qumTF3ImI-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "79ff601d-b1f5-51cd-83b9-bacd4f90259d",
+    "session_id": "lpp-Bj-MhZD4O2Y-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "bdd878b1-00a7-532d-a0c1-8717f627d9ac",
+    "session_id": "lpp-xrjbRC0t_T4-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "e8545fa2-0d87-5479-8742-1d96ee963cce",
+    "session_id": "lpp-USz4bs8Q7eI-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "17a697b7-4499-56f1-bbf9-386988317d43",
+    "session_id": "lpp-pDa6rq_UW2M-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "b5a38e70-b0c3-5d19-9550-c89604b63118",
+    "session_id": "lpp-orHocpjx3Z8-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "ada6ee57-634b-542c-9d6b-f7df044f47a4",
+    "session_id": "lpp-R6Ut-VkHOD4-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "6eca1324-77b2-5992-bb45-18f1e5c913a2",
+    "session_id": "lpp-euYcAcGKIgU-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "593eb73d-31b5-58f0-a9d8-2b18c4ae788a",
+    "session_id": "lpp-ysnSNg2xMf0-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "b2fd226d-8b4e-501d-be52-369937e61e4b",
+    "session_id": "lpp-Snc5oy9rrn4-lpp-v1",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "28ed2ccb-aa4f-5af3-be68-baabed19e08c",
+    "session_id": "lpp-7hETukUoqWI-lpp-v1",
+    "final_status": "error"
+   }
+  ]
+ },
+ "extract-lpp-v2": {
+  "sent_at": "2026-10-17T19:04:00Z",
+  "traces": [
+   {
+    "trace_id": "9ced1827-8434-52c7-972f-35088496181c",
+    "session_id": "lpp-E_sa74f6Ctw-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "ebbddcd0-cc31-543a-bbc4-a6139ff99f06",
+    "session_id": "lpp-zSJD7GANqwo-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "8fde4df8-f0f8-55b1-b937-28b2dfa0cf36",
+    "session_id": "lpp-XQ8DS0EnyXY-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "6d404f50-a0c2-52f3-8da6-db184aff1220",
+    "session_id": "lpp-5xvxykJ1W7Y-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "06761a99-bec6-5533-812e-af9889b5fff4",
+    "session_id": "lpp-8bG7TPrnj5E-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "6fc27f9e-4e3b-5a4b-820c-d05937a641d2",
+    "session_id": "lpp-A4929OT4Jls-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "a3239e71-09aa-5389-b2c5-0abfb83d37be",
+    "session_id": "lpp-8KBf9GxBdpU-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "c3feffd6-3c07-588e-b124-8ba703c5515c",
+    "session_id": "lpp-lPhT0CwBFfs-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "1a0428c6-7490-5c00-ae32-0c2b4ea6eb24",
+    "session_id": "lpp-xW7zeI3tVFA-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "26ef43d3-9876-59da-a8cd-d940b44fbb35",
+    "session_id": "lpp-_CDLe_xymXI-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "0b10dfa4-c0a1-56bb-b239-77908cba3685",
+    "session_id": "lpp-_8ipOkrMiHo-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "741a3f50-2bb2-5d8c-a989-3bb5f7754d7a",
+    "session_id": "lpp-4BBRXqBYIfg-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "dcd8f911-5063-5efc-bf89-35f965480e94",
+    "session_id": "lpp-V8Hedo8avRw-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "8d595ebf-785e-5651-8bd0-7df801f1f821",
+    "session_id": "lpp-73uzVNLB5rg-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "1542c2b3-c995-5412-9620-fa840acd381c",
+    "session_id": "lpp-wavVrUl3IL4-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "91a5b3b8-931b-50a8-8c44-86331374fa60",
+    "session_id": "lpp-ObT5nOcb574-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "abddea09-334a-532b-8153-45ffd94d32b9",
+    "session_id": "lpp-pSALKx-kWuA-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "df5360c9-f67a-5a13-a233-a481afe14c05",
+    "session_id": "lpp-RHCJnvb9YhY-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "93b6db51-1814-56c0-b537-6990c5572456",
+    "session_id": "lpp-3akuq5hWrHk-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "66b47d67-8700-51c9-9003-c8304badbed5",
+    "session_id": "lpp-h7qumTF3ImI-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "bb00077f-6c9f-55fc-b903-edce38352dba",
+    "session_id": "lpp-Bj-MhZD4O2Y-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "af6ab1d4-6bf1-50d8-9270-7da792fd2051",
+    "session_id": "lpp-xrjbRC0t_T4-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "c667e0fe-fc19-521a-91cb-f4bd344287c7",
+    "session_id": "lpp-USz4bs8Q7eI-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "f9a7a640-a38d-53bc-b0cf-53e407120dd9",
+    "session_id": "lpp-pDa6rq_UW2M-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "378cea08-f653-5ca3-8bdd-1591f36b253f",
+    "session_id": "lpp-orHocpjx3Z8-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "1b2d982e-b9a4-5008-b690-7c71f7845827",
+    "session_id": "lpp-R6Ut-VkHOD4-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "b3416f5f-5d9e-5472-bc54-51bdeca86f2e",
+    "session_id": "lpp-euYcAcGKIgU-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "56c5ba90-5718-5c51-9694-1931b256ee54",
+    "session_id": "lpp-ysnSNg2xMf0-lpp-v2",
+    "final_status": "error"
+   },
+   {
+    "trace_id": "65ac6a06-41d3-5b0e-87c8-62dba095240b",
+    "session_id": "lpp-Snc5oy9rrn4-lpp-v2",
+    "final_status": "success"
+   },
+   {
+    "trace_id": "98b3d000-c068-57e2-a3ca-d721215f12fc",
+    "session_id": "lpp-7hETukUoqWI-lpp-v2",
+    "final_status": "success"
+   }
+  ]
+ }
+}
