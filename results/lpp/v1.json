@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T19:03:55Z",
- "git_sha": "5cd9d36a368bd0d8f2b29443d0959b09ffc77512",
+ "generated_at": "2026-10-17T19:05:41Z",
+ "git_sha": "f935f1bd6a56d03df3416cf161efb356beecac25",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -49038,5 +49038,26 @@
     "hold_end": 10639.49
    }
   }
+ },
+ "suggestion": {
+  "agent_id": "daytrader-improver-v1",
+  "applies_to": "short-breakdown",
+  "change": "Skip entries from 10:00 ET",
+  "why": "Entries from 10:00 on lost $183 over 19 trades; the first 30 minutes made $50.",
+  "delay_min": 5,
+  "dev": {
+   "before_pct": -1.34,
+   "after_pct": 0.5
+  },
+  "sealed": {
+   "before_pct": -0.09,
+   "after_pct": -0.09,
+   "trades": 11
+  },
+  "kept": true,
+  "prism_url": null,
+  "trajectory_id": "692218c0-5db5-45cf-a6c8-a2d7998d6488",
+  "picked_on": "dev",
+  "generated_at": "2026-10-17T19:05:24Z"
  }
 }
