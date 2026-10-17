@@ -2,6 +2,15 @@
 
 Newest run on top. Screenshots in `tests/flow/shots/`.
 
+## 15:36 · FINAL LIVE PASS, bundle index-Cf2KdCGq.js
+
+**Call: PASS at 390 and 1440 (39/39 each). Demo-ready.**
+
+1. Ranges at 5m: LPP All 315 / 3M 44 / 6M 100 / 1Y 289 trades; Crypto Wizard 122 / 27 / 45 / 122; money and word follow.
+2. Best mix: "Trailed holding on past months, lost on new ones", +1.46% / −2.52%.
+3. Evaluator: runs failing a check 28 of 30 → 18 of 30; our code 52% → 66%; PRISM 50% → 47% with the cut-off caveat.
+4. KB run link and Root Cause link present; no overflow.
+
 ## 15:33 · LIVE, bundle index-Dghwpi_b.js (story 3 ba235af), main e97200f
 
 **Call: numbers PASS · proof FAIL (stale proofs in the build)**
