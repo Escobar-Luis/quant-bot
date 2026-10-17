@@ -6,6 +6,8 @@
 import json
 import sys
 
+from surrealdb import RecordID
+
 from db.load import COURSES, DATA, SEGMENT_S, caption_words, connect, rows
 
 
@@ -41,6 +43,18 @@ def main() -> None:
             mark = "" if got[table] == n else "  MISMATCH"
             ok &= got[table] == n
             print(f"{course:13}{table:10}{n:8}{got[table]:8}{mark}")
+    for course in COURSES:
+        path = DATA / course / "session_keys.json"
+        if not path.exists():
+            continue
+        mapping = json.loads(path.read_text())
+        found = {r["session_key"]: r for r in db.query(
+            "SELECT session_key, url, meta::id(id) AS sid FROM source WHERE session_key != NONE AND course = $c",
+            {"c": RecordID("course", course)})}
+        good = sum(1 for k, v in mapping.items() if k in found and found[k]["url"] == v["url"]
+                   and found[k]["sid"] == f"yt:{v['video_id']}")
+        ok &= good == len(mapping) == len(found)
+        print(f"{course} session keys: {good}/{len(mapping)} map to their video id and url; {len(found)} keyed sources in db")
     rules = db.query("RETURN count(SELECT id FROM event WHERE type = 'rule' AND rule != NONE)")
     emb = db.query("RETURN count(SELECT id FROM event WHERE embedding != NONE)")
     print(f"rule embeddings {emb}/{rules}")

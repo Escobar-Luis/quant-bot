@@ -91,14 +91,25 @@ def batches(items: list, size: int = BATCH):
         yield items[i:i + size]
 
 
+def session_keys(course: str) -> dict[str, str]:
+    """video id -> public session key (lpp:<YYYY-MM-DD>), from the gitignored data/<course>/session_keys.json."""
+    path = DATA / course / "session_keys.json"
+    if not path.exists():
+        return {}
+    return {v["video_id"]: key for key, v in json.loads(path.read_text()).items()}
+
+
 def load_sources(db: Surreal, course: str) -> int:
     stats = {r["source_id"]: r for r in rows(DATA / course / "sessions.jsonl")}
+    keys = session_keys(course)
     docs = []
     for r in rows(DATA / course / "sources.jsonl"):
         doc = {k: r.get(k) for k in SOURCE_FIELDS if r.get(k) is not None}
         doc.update(course=RecordID("course", course), posted_at=when(r["posted_at"]))
         if r.get("release_utc"):
             doc["live_start"] = when(r["release_utc"])
+        if key := keys.get(r["source_id"].split(":", 1)[1]):
+            doc["session_key"] = key
         if s := stats.get(r["source_id"]):
             doc["stats"] = {k: v for k, v in s.items() if k not in ("source_id", "video_id", "posted_at", "release_utc")}
         docs.append({"id": RecordID("source", r["source_id"]), "doc": doc})
@@ -167,9 +178,10 @@ def load_segments(db: Surreal, course: str) -> int:
         docs = [{"id": RecordID("segment", f"{r['source_id']}:{start:05d}"), "source": src, "start_s": start,
                  "end_s": start + SEGMENT_S, "text": " ".join("".join(parts).split())}
                 for start, parts in sorted(buckets.items())]
-        db.query("DELETE segment WHERE source = $s;", {"s": src})
         for b in batches(docs):
-            db.query("INSERT INTO segment $docs;", {"docs": b})
+            # fixed ids + upsert: re-runs never scan the table to delete a session's old rows
+            db.query("INSERT INTO segment $docs ON DUPLICATE KEY UPDATE text = $input.text, end_s = $input.end_s;",
+                     {"docs": b})
         n += len(docs)
     return n
 

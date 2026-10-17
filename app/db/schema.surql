@@ -10,7 +10,7 @@ DEFINE TABLE OVERWRITE course SCHEMAFULL;
 DEFINE FIELD OVERWRITE name ON course TYPE string;
 DEFINE FIELD OVERWRITE market ON course TYPE string ASSERT $value IN ["us_equities", "crypto", "mixed"];
 
--- Sources: one Discord post or one video. id = the source_id, e.g. source:⟨yt:A4929OT4Jls⟩
+-- Sources: one Discord post or one video. id = the source_id, e.g. source:⟨yt:<video_id>⟩
 DEFINE TABLE OVERWRITE source SCHEMAFULL;
 DEFINE FIELD OVERWRITE course ON source TYPE record<course>;
 DEFINE FIELD OVERWRITE kind ON source TYPE string ASSERT $value IN ["discord_post", "discord_image", "youtube"];
@@ -27,7 +27,9 @@ DEFINE FIELD OVERWRITE live_start ON source TYPE option<datetime>;      -- video
 DEFINE FIELD OVERWRITE duration_s ON source TYPE option<number>;
 DEFINE FIELD OVERWRITE captions ON source TYPE option<string>;
 DEFINE FIELD OVERWRITE stats ON source FLEXIBLE TYPE option<object>;   -- per-session counts, airtime shares, failure kinds
+DEFINE FIELD OVERWRITE session_key ON source TYPE option<string>;        -- public name for a session, e.g. lpp:2024-08-15 (video ids stay private)
 DEFINE INDEX OVERWRITE source_course_time ON source FIELDS course, posted_at;
+DEFINE INDEX OVERWRITE source_session_key ON source FIELDS session_key UNIQUE;
 
 -- Segments: raw caption text in 30 s windows. Private: read through fn::context only.
 -- id = segment:⟨yt:<video>:<start_s>⟩
@@ -42,7 +44,7 @@ DEFINE INDEX OVERWRITE segment_at ON segment FIELDS source, start_s;
 DEFINE TABLE OVERWRITE ticker SCHEMAFULL;
 DEFINE FIELD OVERWRITE market ON ticker TYPE option<string>;
 
--- Events: what we keep from a source. id = event_id, e.g. event:⟨lpp:A4929OT4Jls:003⟩
+-- Events: what we keep from a source. id = event_id, e.g. event:⟨lpp:<video_id>:003⟩
 DEFINE TABLE OVERWRITE event SCHEMAFULL;
 DEFINE FIELD OVERWRITE course ON event TYPE record<course>;
 DEFINE FIELD OVERWRITE source ON event TYPE record<source>;
@@ -149,6 +151,11 @@ DEFINE FUNCTION OVERWRITE fn::similar_rules($vec: array<float>, $k: option<int>)
 DEFINE FUNCTION OVERWRITE fn::ticker_activity($ticker: string) {
   LET $t = type::thing("ticker", $ticker);
   RETURN SELECT course, type, count() AS n FROM event WHERE ->mentions->ticker CONTAINS $t GROUP BY course, type;
+};
+
+-- One session by its public key (lpp:<YYYY-MM-DD>), so the app and agent never need the video id.
+DEFINE FUNCTION OVERWRITE fn::session($key: string) {
+  RETURN (SELECT id, session_key, posted_at, live_start, duration_s, stats FROM source WHERE session_key = $key)[0];
 };
 
 -- Raw caption text around one moment, for checking a quote. Private: never sent to PRISM or the demo.
