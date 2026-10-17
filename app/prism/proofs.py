@@ -15,7 +15,7 @@ import argparse
 import json
 import sys
 
-from .common import APP_URL, PROOFS, now, read_jsonl, words
+from .common import APP_URL, KB, PROOFS, now, read_jsonl, words
 
 PARTS = PROOFS / "parts"
 OUT = PROOFS / "prism.json"
@@ -34,21 +34,49 @@ def _save(name: str, value) -> None:
 
 
 def run_url(trajectory_id: str | None) -> str | None:
-    links = _load("links.json", {})
-    return links.get(f"run:{trajectory_id}") if trajectory_id else None
+    """PRISM's run page is /trajectories/<id> (route checked live); links.json can override one."""
+    if not trajectory_id:
+        return None
+    return _load("links.json", {}).get(f"run:{trajectory_id}") or f"{APP_URL}/trajectories/{trajectory_id}"
+
+
+def latest_runs() -> dict:
+    """The latest traced verdict run per (agent, course, results version): the same inputs for v1 and v2."""
+    out = {}
+    for r in read_jsonl(PARTS / "verdict_runs.jsonl"):
+        if r.get("trajectory_id"):
+            out[(r["agent_id"], r["course"], r["version"])] = r
+    return out
+
+
+def _cards(course: str) -> list[dict]:
+    p = KB / f"{course}-cards.json"
+    return json.loads(p.read_text()) if p.exists() else []
 
 
 def knowledge_base() -> dict:
-    runs = [r for r in read_jsonl(PARTS / "verdict_runs.jsonl") if r.get("trajectory_id")]
-    best = next((r for r in reversed(runs) if r["final_status"] == "success" and r.get("kb_hits")), None) \
-        or (runs[-1] if runs else None)
+    runs = list(latest_runs().values())
+    ok = [r for r in runs if r["final_status"] == "success" and r.get("kb_hits")]
+    best = next((r for r in ok if (r["course"], r["version"]) == ("lpp", "v1")), None) or \
+        (ok[-1] if ok else (runs[-1] if runs else None))
     uploads = _load("kb_uploads.json", [])
     agent = best["agent_id"] if best else "daytrader-verdict-v1"
     docs = sorted({u["doc"] for u in uploads if u["agent_id"] == agent})
     hits = []
     if best:
-        hits = [{"doc": h["doc"], "snippet": h["snippet"]} for h in best.get("kb_hit_rows") or []] or \
-               [{"doc": d, "snippet": None} for d in best.get("kb_hits", [])]
+        # The cards the answer cites come first, shown by their rule; then the other retrieved notes.
+        cards = {c["id"]: c for c in _cards(best["course"])}
+        rows = best.get("kb_hit_rows") or []
+        for cid in best.get("cites", []):
+            doc = next((h["doc"] for h in rows if cid in (h.get("cards") or [])), f"{best['course']}-strategy-cards.md")
+            if cid in cards:
+                hits.append({"doc": doc, "card": cid, "snippet": cards[cid]["rule"], "locator": cards[cid]["locator"]})
+        seen = {h["doc"] for h in hits}
+        hits += [{"doc": h["doc"], "snippet": h["snippet"]} for h in rows if h["doc"] not in seen and
+                 not seen.add(h["doc"])]
+    per_course = [{"course": r["course"], "agent_id": r["agent_id"], "run_url": run_url(r["trajectory_id"]),
+                   "cites": r.get("cites", []), "final_status": r["final_status"]}
+                  for r in runs if r["agent_id"] == "daytrader-verdict-v1" and r["version"] == "v1"]
     return {"agent_id": agent if best or docs else None,
             "run_id": best.get("trajectory_id") if best else None,
             "run_url": run_url(best.get("trajectory_id")) if best else None,
@@ -56,7 +84,8 @@ def knowledge_base() -> dict:
             "query": best.get("query") if best else None,
             "hits": hits[:5],
             "answer": best.get("answer") if best else None,
-            "cites": best.get("cites", []) if best else []}
+            "cites": best.get("cites", []) if best else [],
+            "v1_run_per_course": per_course}
 
 
 def evaluator() -> dict:
@@ -74,13 +103,22 @@ def evaluator() -> dict:
 
 
 def evaluator_verdict() -> dict | None:
-    ev = _load("evaluator_verdict.json", None)
-    if not ev:
+    ev = _load("evaluator_verdict.json", {})
+    runs = latest_runs()
+    inputs = sorted({(c, v) for (_, c, v) in runs if all((f"daytrader-verdict-{a}", c, v) in runs for a in ("v1", "v2"))})
+    if not ev and not inputs:
         return None
+    mirror = {}
+    for a in ("v1", "v2"):
+        passed = sum(runs[(f"daytrader-verdict-{a}", c, v)]["final_status"] == "success" for c, v in inputs)
+        mirror[f"{a}_pass_pct"] = round(100 * passed / len(inputs)) if inputs else None
     return {"name": "Verdict numbers from results",
-            "checks": "Every number in the verdict is in the results file, and it cites a card",
+            "checks": "Every number in the verdict is in the results file; it cites a card and says Not advice",
+            "inputs": f"The same {len(inputs)} results files: " + ", ".join(f"{c}/{v}" for c, v in inputs),
             "v1": {"agent_id": "daytrader-verdict-v1", "pass_pct": ev.get("v1")},
-            "v2": {"agent_id": "daytrader-verdict-v2", "pass_pct": ev.get("v2")}, "url": ev.get("url")}
+            "v2": {"agent_id": "daytrader-verdict-v2", "pass_pct": ev.get("v2")},
+            "code_mirror": {**mirror, "what": "Our code checks (check_numbers, check_cites, check_language) on the same runs"},
+            "url": ev.get("url")}
 
 
 def credits() -> dict:
@@ -120,7 +158,7 @@ def check(doc: dict) -> list[str]:
         if k not in kb:
             errs.append(f"knowledge_base.{k} missing")
     for h in kb.get("hits") or []:
-        if len(words(h.get("snippet"))) > 40:
+        if len([w for w in words(h.get("snippet")) if w != "…"]) > 40:
             errs.append(f"snippet over 40 words: {h['doc']}")
     rc = doc.get("root_cause") or {}
     for k in ("agent_id", "failed_runs", "cluster", "tier", "prism_cause", "our_sentence", "url"):

@@ -22,24 +22,31 @@ evaluator 1 per run scored, Root Cause 5, Intelligence 1 per unanalysed trace (a
 
 ## Steps only Luis can do in PRISM
 
-Labels come from PRISM's docs; the exact button names get checked on screen and fixed here.
+Page paths checked live (they exist); button names come from PRISM's docs, so check them on screen.
 
-**K. Knowledge Base (after I upload)**
-1. Left menu → Knowledge Base.
-2. Check 9 docs, agent `daytrader-verdict-v1`.
+**K. Knowledge Base (done by code, just look)**
+1. Open prism.blockconvey.com/knowledge-base.
+2. See 9 docs on `daytrader-verdict-v1`.
+3. And 9 copies on `-v2`.
 
-**R. Root Cause (after the 30 v1 runs)**
-1. Left menu → Intelligence → Root Cause.
-2. Agent filter: `extract-lpp-v1`.
-3. Press "Analyze now" (5 credits).
-4. Open the biggest cluster.
-5. Send me its link.
+**R. Root Cause (the 30 v1 runs are in)**
+1. Open prism.blockconvey.com/root-cause.
+2. Press "Analyze now" (5 credits).
+3. Tell me when it finishes.
+4. I read the cluster by API.
 
 **E. Evaluator "Numbers grounded"**
-1. Left menu → Evaluators → New.
-2. Type: LLM judge.
-3. Paste the rubric: `uv run python -m prism.evaluators show`.
+1. Open prism.blockconvey.com/evaluators.
+2. Press New, pick LLM judge.
+3. Copy name and rubric from `proofs/evaluators.md`.
 4. Labels `grounded`, `ungrounded`; pass `grounded`.
-5. Save, then run on `extract-lpp-v1` runs.
-6. Run again on `extract-lpp-v2` runs.
-7. Send me both pass rates.
+5. Save.
+6. Score the 30 `extract-lpp-v1` runs.
+7. Score the 30 `extract-lpp-v2` runs.
+8. Send me both pass rates.
+
+If step E1 or E2 is blocked (Free plan), stop and tell me: the API key's project (…e515ae) still says Free.
+
+**E-bonus. Second evaluator (only if credits allow)**
+1. Same steps, rubric "Verdict numbers from results".
+2. Score the 4 v1 and 4 v2 verdict runs.

@@ -202,10 +202,15 @@ def upload(agent: str, courses: list[str]) -> None:
             if fn in have:
                 print(f"{fn}: already assigned to {agent}, skipped")
                 continue
-            r = pt.kb_upload(fn, (KB / fn).read_text(), agent_id=agent, content_type="text/markdown",
+            body = (KB / fn).read_text()
+            if agent != "daytrader-verdict-v1":  # PRISM dedupes identical files to one doc (one agent): make a copy
+                body = body.replace("\n", f"\n\n_Copy assigned to {agent}._\n", 1)
+            r = pt.kb_upload(fn, body, agent_id=agent, content_type="text/markdown",
                              description=f"{COURSES[course]} {kind.replace('-', ' ')} (derived notes, story 2)")
             print(f"{fn}: {'uploaded, ' + str(r.get('chunk_count')) + ' chunks' if r else 'FAILED'}")
-            if r:
+            if r and r.get("agent_id", agent) != agent:
+                print(f"{fn}: PRISM returned a doc assigned to {r.get('agent_id')}, not {agent}")
+            elif r:
                 log.append({"agent_id": agent, "doc": fn, "id": r.get("id"), "chunks": r.get("chunk_count"), "at": now()})
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.write_text(json.dumps(log, indent=1))

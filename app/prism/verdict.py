@@ -31,16 +31,26 @@ def query_for(course: str) -> str:
 
 
 def kb_hits(pt, course: str, agent_id: str, limit: int = 5) -> list[dict]:
-    """PRISM kb_search, or (dry run) a keyword search over the local kb/ files with the same output shape."""
+    """PRISM kb_search, or (dry run) the local kb/ cards. `text` (the whole chunk, our own derived notes) goes to the
+    model; the trace logs the doc, score, the card ids in the chunk and a 40-word snippet."""
     if pt is not None:
-        rows = pt.kb_search(query_for(course), agent_id=agent_id, limit=limit)
-        return [{"doc": r.get("document_name") or r.get("filename") or r.get("name") or r.get("document_id"),
-                 "snippet": clip(r.get("content") or r.get("text") or r.get("chunk") or "", SNIPPET_WORDS),
-                 "score": r.get("score") or r.get("similarity")} for r in rows]
-    text = (KB / f"{course}-strategy-cards.md").read_text() if (KB / f"{course}-strategy-cards.md").exists() else ""
-    blocks = [b for b in text.split("### ")[1:] if re.search(r"entr|exit|siz|stop", b, re.I)]
-    return [{"doc": f"{course}-strategy-cards.md", "snippet": clip(b.replace("\n", " "), SNIPPET_WORDS), "score": None}
-            for b in blocks[:limit]]
+        rows = [{"doc": r.get("doc_name") or r.get("document_name") or r.get("doc_id"),
+                 "chunk": r.get("chunk_index"), "score": r.get("relevance_score"), "text": r.get("content") or ""}
+                for r in pt.kb_search(query_for(course), agent_id=agent_id, limit=3 * limit)]
+        rows = [r for r in rows if str(r["doc"]).startswith(f"{course}-")][:limit]  # this course's notes only
+    else:
+        text = (KB / f"{course}-strategy-cards.md").read_text() if (KB / f"{course}-strategy-cards.md").exists() else ""
+        blocks = [b for b in text.split("### ")[1:] if re.search(r"entr|exit|siz|stop", b, re.I)]
+        rows = [{"doc": f"{course}-strategy-cards.md", "chunk": i, "score": None, "text": "### " + b}
+                for i, b in enumerate(blocks[:limit])]
+    for r in rows:
+        r["cards"] = sorted(set(CARD_ID.findall(r["text"])))
+        r["snippet"] = clip(" ".join(r["text"].split()), SNIPPET_WORDS)
+    return rows
+
+
+def logged(hits: list[dict]) -> list[dict]:
+    return [{k: h[k] for k in ("doc", "chunk", "score", "cards", "snippet")} for h in hits]
 
 
 def results_path(course: str, version: str, override: str | None):
@@ -66,7 +76,7 @@ def headline(res: dict) -> dict:
 
 
 def prompt(agent: str, course: str, hits: list[dict], head: dict, card_ids: list[str]) -> list[dict]:
-    rules = "\n".join(f"- [{h['doc']}] {h['snippet']}" for h in hits) or "- (no rules retrieved)"
+    rules = "\n\n".join(f"[{h['doc']}]\n{h['text']}" for h in hits) or "(no rules retrieved)"
     base = (f"You are Day Trader AI. A non-trader paid for the {COURSES[course]} course and asks: if I had copied "
             f"every trade it posted, with $10,000 of fake money, after costs, would it have beaten just holding?\n\n"
             f"Course rules retrieved from the knowledge base:\n{rules}\n\n"
@@ -142,7 +152,8 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
     hits = kb_hits(pt, course, agent_id)
     kb_ms = int((time.monotonic() - t0) * 1000)
     head = headline(res)
-    messages = prompt(agent, course, hits, head, card_ids)
+    retrieved = sorted({c for h in hits for c in h["cards"]}) or card_ids
+    messages = prompt(agent, course, hits, head, retrieved)
     if dry and not os.getenv("VERDICT_CALL_LLM"):
         answer, model, usage, llm_ms = "(dry run: no model call)", MODELS[0], {"in": 0, "out": 0}, 0
     else:
@@ -161,7 +172,7 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
     steps = [
         {"step_type": "tool_call", "tool_name": "kb_search", "label": "kb_search",
          "input_summary": json.dumps({"query": query_for(course), "agent_id": agent_id, "limit": 5}),
-         "output_summary": json.dumps({"hits": hits}), "duration_ms": kb_ms,
+         "output_summary": json.dumps({"hits": logged(hits)}), "duration_ms": kb_ms,
          "status": "success" if hits else "error"},
         {"step_type": "tool_call", "tool_name": "load_results", "label": "load_results",
          "input_summary": json.dumps({"path": f"results/{course}/{version}.json", "git_sha": res.get("git_sha")}),
@@ -192,7 +203,7 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
     ]
     row = {"agent_id": agent_id, "course": course, "version": version, "final_status": status, "checks": checks,
            "not_in_results": bad, "cites": cites, "query": query_for(course), "kb_hits": [h["doc"] for h in hits],
-           "kb_hit_rows": hits, "answer": answer, "at": now()}
+           "kb_hit_rows": logged(hits), "answer": answer, "at": now()}
     if dry:
         print(json.dumps({"agent_id": agent_id, "conversation_id": f"verdict-{course}-{version}",
                           "final_status": status, "metadata": meta, "steps": steps}, indent=1))

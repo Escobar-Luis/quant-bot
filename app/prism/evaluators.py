@@ -135,9 +135,15 @@ def main():
     ap.add_argument("cmd", choices=["show", "create", "local"])
     a = ap.parse_args()
     if a.cmd == "show":
+        md = ["# Evaluator rubrics (paste into PRISM -> Evaluators -> New)", "",
+              "Written by `uv run python -m prism.evaluators show`. Copy each rubric exactly.", ""]
         for ev in ALL:
-            print(f"=== {ev['name']} (labels: {', '.join(ev['rails'])}; pass = {ev['pass_label']}; "
-                  f"threshold {ev['pass_threshold']}; runs of {', '.join(ev['scope'])})\n{ev['template_prompt']}\n")
+            md += [f"## {ev['name']}", "", f"- Type: LLM judge", f"- Labels: {', '.join(ev['rails'])}",
+                   f"- Pass label: {ev['pass_label']} (threshold {ev['pass_threshold']})",
+                   f"- Score runs of: {', '.join(ev['scope'])}", f"- Description: {ev['description']}", "",
+                   "Rubric:", "", "```", ev["template_prompt"], "```", ""]
+        (PROOFS / "evaluators.md").write_text("\n".join(md))
+        print("\n".join(md))
     elif a.cmd == "create":
         create()
     else:

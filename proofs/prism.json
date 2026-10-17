@@ -1,16 +1,72 @@
 {
  "schema": "proofs/1",
- "updated_at": "2026-10-17T18:39:58Z",
+ "updated_at": "2026-10-17T18:56:09Z",
  "prism_app": "https://prism.blockconvey.com",
  "knowledge_base": {
-  "agent_id": null,
-  "run_id": null,
-  "run_url": null,
-  "docs": [],
-  "query": null,
-  "hits": [],
-  "answer": null,
-  "cites": []
+  "agent_id": "daytrader-verdict-v2",
+  "run_id": "7d3b0f72-d1e8-4472-8bc5-36da03782910",
+  "run_url": "https://prism.blockconvey.com/trajectories/7d3b0f72-d1e8-4472-8bc5-36da03782910",
+  "docs": [
+   "cryptowizard-events-summary.md",
+   "cryptowizard-strategy-cards.md",
+   "cryptowizard-untestable.md",
+   "lpp-events-summary.md",
+   "lpp-strategy-cards.md",
+   "lpp-untestable.md",
+   "ziptrader-events-summary.md",
+   "ziptrader-strategy-cards.md",
+   "ziptrader-untestable.md"
+  ],
+  "query": "Learn Plan Profit entry, exit and sizing rules",
+  "hits": [
+   {
+    "doc": "lpp-strategy-cards.md",
+    "card": "LPP-AVOID-2",
+    "snippet": "Skip trades that are too risky; you don't have to trade every opportunity.",
+    "locator": "yt:RFyO84mr6X8 t=1223s"
+   },
+   {
+    "doc": "lpp-events-summary.md",
+    "snippet": "# Learn Plan Profit: events summary _Copy assigned to daytrader-verdict-v2._ Window: 2024-08-15 to 2025-09-12. 244 sources, 4196 events (1775 trades, 1645 rules, 776 calls). 3000 passed every code check; 1196 need review. ## Per month | Month | Trades | \u2026"
+   },
+   {
+    "doc": "lpp-untestable.md",
+    "snippet": "# Learn Plan Profit: what we can't test, and why _Copy assigned to daytrader-verdict-v2._ 1196 of 4196 events failed a code check and are left out of the money result. Each kind, with one example: | Check failed | Events \u2026"
+   }
+  ],
+  "answer": "No: copying all 287 trades with $10000 of fake money ended at 8806.02, a -11.94% loss, while buying and holding the S&P 500 (SPY) gained 19.64%. The worst drop along the way was -20.4%, and part of the result rests on guesses, since exits were assumed for 128 day trades and $1000 was assumed on 199 entries with no share count. The course itself says you don't have to take every trade [LPP-AVOID-2], so copying everything isn't what it teaches, and this test can't say whether picking only some trades would have done better. Not advice.",
+  "cites": [
+   "LPP-AVOID-2"
+  ],
+  "v1_run_per_course": [
+   {
+    "course": "lpp",
+    "agent_id": "daytrader-verdict-v1",
+    "run_url": "https://prism.blockconvey.com/trajectories/44d6771c-0a50-479d-ae16-399032e2a11a",
+    "cites": [
+     "LPP-AVOID-1"
+    ],
+    "final_status": "error"
+   },
+   {
+    "course": "cryptowizard",
+    "agent_id": "daytrader-verdict-v1",
+    "run_url": "https://prism.blockconvey.com/trajectories/8f78d302-145a-4b71-a39c-231fb1bcc9bf",
+    "cites": [
+     "CRYPTOWIZARD-STOP-4"
+    ],
+    "final_status": "error"
+   },
+   {
+    "course": "ziptrader",
+    "agent_id": "daytrader-verdict-v1",
+    "run_url": "https://prism.blockconvey.com/trajectories/01614662-cbbe-4fa0-96f0-fb5f371c188f",
+    "cites": [
+     "ZIPTRADER-EXIT-1"
+    ],
+    "final_status": "error"
+   }
+  ]
  },
  "root_cause": {
   "agent_id": "extract-lpp-v1",
@@ -40,7 +96,25 @@
   },
   "url": null
  },
- "evaluator_verdict": null,
+ "evaluator_verdict": {
+  "name": "Verdict numbers from results",
+  "checks": "Every number in the verdict is in the results file; it cites a card and says Not advice",
+  "inputs": "The same 4 results files: cryptowizard/v1, lpp/v1, lpp/v2, ziptrader/v1",
+  "v1": {
+   "agent_id": "daytrader-verdict-v1",
+   "pass_pct": null
+  },
+  "v2": {
+   "agent_id": "daytrader-verdict-v2",
+   "pass_pct": null
+  },
+  "code_mirror": {
+   "v1_pass_pct": 0,
+   "v2_pass_pct": 100,
+   "what": "Our code checks (check_numbers, check_cites, check_language) on the same runs"
+  },
+  "url": null
+ },
  "bonus": {
   "alert": null,
   "guardrail": null
