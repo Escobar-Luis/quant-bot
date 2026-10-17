@@ -102,13 +102,16 @@ def main():
     ap.add_argument("--version", default="v1")
     ap.add_argument("--limit", type=int, default=None, help="price only the first N positions (partial file)")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--all-sessions", action="store_true",
+                    help="lpp v2+: every session extracted so far (default: the 30-session proof set)")
     ap.add_argument("--literal", action="store_true",
                     help="copy his raw share counts (default: scaled so each trade starts at $1,000)")
     a = ap.parse_args()
     a.scale = not a.literal
 
     mod = course_module(a.course)
-    built = mod.build(a.version)
+    only = mod.proof_set() if a.course == "lpp" and a.version != "v1" and not a.all_sessions else None
+    built = mod.build(a.version, only) if only else mod.build(a.version)
     positions = built["positions"][: a.limit] if a.limit else built["positions"]
     print(f"{a.course} {a.version}: {len(built['positions'])} positions, pricing {len(positions)}")
     seen = Counter()
@@ -147,8 +150,8 @@ def main():
     d5 = DEFAULT_DELAY_MIN
     same = None
     if a.course == "lpp" and a.version != "v1" and not a.limit:   # the fix vs the failure in money: v1 priced on this version's sessions
-        srcs = {e["source_id"] for e in mod.load(a.version)}
-        base = [p for p in mod.build("v1")["positions"] if p.cite["source_id"] in srcs]
+        srcs = only or {e["source_id"] for e in mod.load(a.version)}
+        base = mod.build("v1", srcs)["positions"]   # v1's events from exactly these sessions, same ledger rules
         for p in base:
             p.scale = a.scale
         prefetch(base)
@@ -156,7 +159,7 @@ def main():
         for d in DELAYS_MIN:
             rs = [engine.simulate(p, d) for p in base]
             rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
-        same = {"version": "v1", "sessions": len(srcs), "portfolio": "all", "by_delay": rows,
+        same = {"version": "v1", "sessions": len(srcs), "proof_set": bool(only), "portfolio": "all", "by_delay": rows,
                 "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
         print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
     priced = [rs for rs in by_pos.values() if rs[d5].status == "priced"]
@@ -176,8 +179,9 @@ def main():
         unknown.insert(0, f"At {d5} min, {head['sized_down']} trades were sized down and {head['couldnt_copy']} "
                           "not copied: no cash left, or too late in the day.")
     if same:
-        unknown.insert(0, f"{a.version} re-read only {same['sessions']} sessions; compare it with v1 on the same "
-                          "sessions, not with the full year.")
+        what = f"the {len(only)}-session proof set PRISM scores" if only else f"{same['sessions']} sessions"
+        unknown.insert(0, f"{a.version} covers {what} only; compare it with v1 on the same sessions "
+                          "(same_sessions), not with the full year.")
 
     out = {
         "schema": "results/1", "course": a.course, "course_name": mod.NAME, "version": a.version,
