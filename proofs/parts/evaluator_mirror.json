@@ -31,7 +31,7 @@
   "ysnSNg2xMf0",
   "zSJD7GANqwo"
  ],
- "at": "2026-10-17T18:36:38Z",
+ "at": "2026-10-17T18:39:58Z",
  "v1": {
   "agent_id": "extract-lpp-v1",
   "runs": 29,
@@ -41,7 +41,7 @@
  "v2": {
   "agent_id": "extract-lpp-v2",
   "runs": 29,
-  "runs_pass": 17,
-  "pass_pct": 59
+  "runs_pass": 19,
+  "pass_pct": 66
  }
 }

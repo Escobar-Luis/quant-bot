@@ -1,6 +1,6 @@
 {
  "schema": "proofs/1",
- "updated_at": "2026-10-17T18:37:42Z",
+ "updated_at": "2026-10-17T18:39:58Z",
  "prism_app": "https://prism.blockconvey.com",
  "knowledge_base": {
   "agent_id": null,
@@ -35,7 +35,7 @@
   },
   "code_mirror": {
    "v1_pass_pct": 52,
-   "v2_pass_pct": 59,
+   "v2_pass_pct": 66,
    "what": "The same rule run by our code on the same sessions, as a cross-check"
   },
   "url": null
