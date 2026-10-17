@@ -362,3 +362,5 @@ body[data-screen=verdict] .seg,body[data-screen=learn] .seg{display:flex}
 .bot-rows b{color:var(--ink);font-weight:600;white-space:nowrap}
 .bot-rows small{font-size:11px;font-weight:400;color:var(--ink2)}
 .bot-say{font-size:14px;font-weight:500}
+.bot-kept{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--yes)}
+.bot-kept[data-kept=false]{color:var(--barely2)}

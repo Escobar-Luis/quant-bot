@@ -273,6 +273,14 @@ function stratName(ref, c) {
 // Plain words for small changes: the code decides, the copy only reports it.
 const pct2 = v => { const r = Math.round(v * 100) / 100, a = Math.abs(r).toFixed(2); return (r > 0 ? '+' : r < 0 ? '−' : '') + a + '%'; };
 const moved = (before, after, where) => { const d = after - before; return (d > 0.05 ? 'Helped' : d < -0.05 ? 'Hurt' : 'No change') + ' on ' + where; };
+// Kept only if the sealed months agree. The file's `kept` and `kept_reason` decide; a file
+// without `kept_reason` whose sealed months didn't gain falls back to the same rule.
+function keptOf(sb) {
+  const gain = sb.sealed ? sb.sealed.after_pct - sb.sealed.before_pct : null;
+  if (sb.kept_reason) return { kept: !!sb.kept, text: `${sb.kept ? 'Kept' : 'Not kept'}: ${sb.kept_reason}` };
+  if (gain != null && gain <= 0.05) return { kept: false, text: 'Not kept: no gain on new months' };
+  return { kept: !!sb.kept, text: sb.kept ? 'Kept: it held up on new months' : 'Not kept' };
+}
 function renderBotMix(c) {
   const sb = c.r?.suggestion, m = Array.isArray(c.r?.combos) ? c.r.combos[0] : null;
   $('#cBot').hidden = !sb;
@@ -289,7 +297,8 @@ function renderBotMix(c) {
         ${sb.dev ? `<div><span>Past months</span><b>${pct2(sb.dev.before_pct)} → ${pct2(sb.dev.after_pct)}</b></div>` : ''}
         ${sb.sealed ? `<div><span>New months${sb.sealed.trades != null ? ` · ${sb.sealed.trades} trades` : ''}</span><b>${pct2(sb.sealed.before_pct)} → ${pct2(sb.sealed.after_pct)}</b></div>` : ''}
       </div>
-      <p class="bot-say">${[past, fresh].filter(Boolean).join(', ')}.${sb.kept != null ? ` ${sb.kept ? 'Kept.' : 'Not kept.'}` : ''}</p>
+      <p class="bot-say">${[past, fresh].filter(Boolean).join(', ')}.</p>
+      <p class="bot-kept" data-kept="${keptOf(sb).kept}">${esc(keptOf(sb).text)}</p>
       ${link(url, 'See the run in PRISM')}`;
   }
   $('#cMix').hidden = !m;
