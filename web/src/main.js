@@ -57,6 +57,7 @@ const fmt = {
   price: v => { const n = Number(v); const d = n >= 1 ? 2 : n >= 0.01 ? 4 : 6; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 };
 const pct = fmt.pct;
+const nTrades = n => `${Number(n).toLocaleString('en-US')} trade${Number(n) === 1 ? '' : 's'}`;
 const kMoney = v => (v % 1000 === 0 ? '$' + v / 1000 + 'k' : fmt.money(v));
 const MONTH = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 const month = d => MONTH.format(new Date(d + 'T00:00:00Z'));
@@ -225,6 +226,7 @@ function drawMain(v, k) {
     ${h.length ? `<path d="${path(h)}" fill="none" stroke="${HOLD_INK}" stroke-width="1.25" stroke-dasharray="4 4" class="flow"/>` : ''}
     <path d="${path(c)}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" pathLength="1" class="draw" style="filter:drop-shadow(0 0 6px ${col}55)"/>${dot}</svg>`;
   $('#chartMeta').innerHTML = `<span style="color:${col}">━</span> copying &nbsp;<span style="color:${HOLD_INK}">┅</span> holding ${esc(v.hold)}`;
+  $('#vStop').hidden = !bs || k.word === 'Not enough trades';
   $('#vStop').innerHTML = bs ? (bs.end > v.start ? `Best day to stop: <b>${longDay(bs.date)}</b>, with ${fmt.money(bs.end)}.` : `Best day to stop: <b>the day you started</b>. It never got above ${kMoney(v.start)}.`) : '';
 }
 let openStrat = null;
@@ -244,7 +246,7 @@ function renderStrats(c, v) {
     return `<li><button class="strat-row" type="button" data-sid="${esc(r.id)}" aria-expanded="${!!open}" ${r.st ? '' : 'aria-disabled="true"'}>
       <span class="sw" style="background:${r.color};box-shadow:0 0 8px ${r.color}88"></span>
       <span class="s-name">${esc(r.name)}</span>
-      <span class="s-sub">${a.trades.toLocaleString('en-US')} trades${a.won_pct != null ? ` · won ${a.won_pct}%` : ''}</span>
+      <span class="s-sub">${nTrades(a.trades)}${a.won_pct != null ? ` · won ${a.won_pct}%` : ''}</span>
       <span class="s-spark">${spark(r.curve, r.color)}</span>
       <span class="s-ret" style="color:${PAPER[wcls(a.word)]}">${pct(a.ret_pct)}<small>${esc(a.word)}</small></span></button>
       ${open ? entailsHTML(r.st) : ''}</li>`;
@@ -295,7 +297,7 @@ function renderBotMix(c) {
       ${sb.why ? `<p class="meta">${esc(sb.why)}</p>` : ''}
       <div class="bot-rows mono num">
         ${sb.dev ? `<div><span>Past months</span><b>${pct2(sb.dev.before_pct)} → ${pct2(sb.dev.after_pct)}</b></div>` : ''}
-        ${sb.sealed ? `<div><span>New months${sb.sealed.trades != null ? ` · ${sb.sealed.trades} trades` : ''}</span><b>${pct2(sb.sealed.before_pct)} → ${pct2(sb.sealed.after_pct)}</b></div>` : ''}
+        ${sb.sealed ? `<div><span>New months${sb.sealed.trades != null ? ` · ${nTrades(sb.sealed.trades)}` : ''}</span><b>${pct2(sb.sealed.before_pct)} → ${pct2(sb.sealed.after_pct)}</b></div>` : ''}
       </div>
       <p class="bot-say">${[past, fresh].filter(Boolean).join(', ')}.</p>
       <p class="bot-kept" data-kept="${keptOf(sb).kept}">${esc(keptOf(sb).text)}</p>
@@ -330,7 +332,7 @@ function renderVerdict(fresh) {
   root.style.setProperty('--word', WORD_COLOR[wcls(k.word)]);
   $('#vHead').innerHTML = headline(v, k);
   $('#vChip').textContent = k.word;
-  $('#vMeta').textContent = `${v.s.trades.toLocaleString('en-US')} trades`;
+  $('#vMeta').textContent = nTrades(v.s.trades);
   $('#vFine').innerHTML = fineLine(v.r, v.s).split(' · ').filter(Boolean).map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
   const span = v.head.series?.dates;
   $('#vRanges').innerHTML = RANGES.map(([id, lab, mo]) => {
@@ -373,13 +375,13 @@ function renderLearn(fresh) {
   list.innerHTML = ordered.map(p => {
     if (!p.testable) {
       if (!p.count) return '';
-      return `<li><div class="kind"><span class="k-name">${esc(p.label)}</span><span class="k-sub cap num">${p.count.toLocaleString('en-US')} trades · can’t test yet: ${esc(p.why || 'no prices')}</span></div></li>`;
+      return `<li><div class="kind"><span class="k-name">${esc(p.label)}</span><span class="k-sub cap num">${nTrades(p.count)} · can’t test yet: ${esc(p.why || 'no prices')}</span></div></li>`;
     }
     const a = p.at;
     if (!a || (p.id !== v.head.id && !a.trades)) return '';
     return `<li><button class="kind" type="button" data-trades="${esc(p.id)}" aria-label="${esc(p.label)}: ${pct(a.ret_pct)}, ${esc(a.word)}. Check its trades.">
       <span class="k-name">${esc(p.id === v.head.id ? 'Everything' : p.label)}</span>
-      <span class="k-sub cap num">${a.trades.toLocaleString('en-US')} trades · ${kMoney(v.start)} → ${fmt.money(a.end)}</span>
+      <span class="k-sub cap num">${nTrades(a.trades)} · ${kMoney(v.start)} → ${fmt.money(a.end)}</span>
       <span class="k-ret num w-${wcls(a.word)}">${pct(a.ret_pct)}<small>${esc(a.word)}</small></span>${icon('chevR')}</button></li>`;
   }).join('');
   if (fresh && !STILL) $$('#kinds li').forEach((li, i) => { li.style.animationDelay = (i * 50) + 'ms'; li.classList.add('fade'); });
@@ -393,7 +395,7 @@ $('#kinds').addEventListener('click', e => {
 const arc = $('#arc');
 arc.innerHTML = COURSES.map((c, i) => {
   const v = vm(c);
-  const found = v.tested ? `${v.s.trades.toLocaleString('en-US')} trades copied` : 'Not tested yet';
+  const found = v.tested ? `${nTrades(v.s.trades)} copied` : 'Not tested yet';
   return `<button class="acard" type="button" data-i="${i}" aria-pressed="true" aria-label="${esc(c.name)}, ${esc(c.kind)}, ${found}">
     <span class="chk">${icon('check')}</span>
     <span class="a-name">${esc(c.name)}</span>
@@ -503,7 +505,7 @@ function renderProof() {
   $('#pSub').textContent = `${c.r.course_name || c.name} · ${kMoney(v.start)} fake money · ${month(r.window.start)} – ${month(r.window.end)} · entered ${delay} min late`;
   $('#pWord').textContent = v.word; root.style.setProperty('--word', WORD_COLOR[wcls(v.word)]);
   const swatch = (cl, dash) => `<svg viewBox="0 0 20 8" aria-hidden="true"><line x1="1" y1="4" x2="19" y2="4" stroke="${cl}" stroke-width="${dash ? 2 : 3}" stroke-linecap="round" ${dash ? 'stroke-dasharray="4 3"' : ''}/></svg>`;
-  const sub = [`${s.trades.toLocaleString('en-US')} trades`, s.won_pct != null && `won ${s.won_pct}%`, s.worst_drop_pct != null && `worst drop ${pct(s.worst_drop_pct)}`, s.peak_invested_usd > 0 && `most in use at once ${fmt.money(s.peak_invested_usd)}`].filter(Boolean).join(' · ');
+  const sub = [nTrades(s.trades), s.won_pct != null && `won ${s.won_pct}%`, s.worst_drop_pct != null && `worst drop ${pct(s.worst_drop_pct)}`, s.peak_invested_usd > 0 && `most in use at once ${fmt.money(s.peak_invested_usd)}`].filter(Boolean).join(' · ');
   $('#pNums').innerHTML =
     `<div><span class="n-name">${swatch(col)}Copying every trade</span><span class="n-pct" style="color:${col}">${pct(s.ret_pct)}<small>${fmt.money(s.end)}</small></span><span class="n-sub cap">${sub}</span></div>` +
     `<div><span class="n-name">${swatch(HOLD_INK, true)}Holding ${esc(v.hold)}</span><span class="n-pct">${pct(s.hold_ret_pct)}<small>${fmt.money(s.hold_end)}</small></span><span class="n-sub cap">${esc(r.hold?.what || '')}</span></div>`;
@@ -542,7 +544,7 @@ function renderProof() {
   if (se && r.window.sealed_from && r.window.sealed_from > r.window.start) {
     const mx = Math.max(Math.abs(se.ret_pct), Math.abs(se.hold_ret_pct), 0.1);
     const bar = (x, cl) => { const w = Math.abs(x) / mx * 50; return `<i style="background:${cl};width:${w}%;left:${x >= 0 ? 50 : 50 - w}%"></i>`; };
-    $('#pNew').innerHTML = `<h3 class="p-h">Newest months</h3><p class="p-s cap num">${month(r.window.sealed_from)} – ${month(r.window.end)} · kept sealed${has(se.trades) ? ` · ${se.trades} trades` : ''}</p>
+    $('#pNew').innerHTML = `<h3 class="p-h">Newest months</h3><p class="p-s cap num">${month(r.window.sealed_from)} – ${month(r.window.end)} · kept sealed${has(se.trades) ? ` · ${nTrades(se.trades)}` : ''}</p>
       <div class="nd num">
         <div class="nd-row"><span>Copying</span><span class="nd-bar">${bar(se.ret_pct, col)}</span><b>${pct(se.ret_pct)}</b></div>
         <div class="nd-row"><span>Holding ${esc(v.hold)}</span><span class="nd-bar">${bar(se.hold_ret_pct, HOLD_INK)}</span><b>${pct(se.hold_ret_pct)}</b></div>
@@ -593,7 +595,7 @@ function renderTrades() {
   $('#tTitle').textContent = p.id === v.head.id ? 'Every trade' : p.label;
   $('#tSub').textContent = `${c.r.course_name || c.name} · entered ${delay} min after each post`;
   const total = p.at?.trades;
-  $('#tListH').textContent = total && total > list.length ? `${list.length} of ${total.toLocaleString('en-US')} trades` : 'Trades';
+  $('#tListH').textContent = total && total > list.length ? `${list.length} of ${nTrades(total)}` : 'Trades';
   if (!list.length) {
     $('#tHead').innerHTML = `<p>No sample trades in the file for this kind.</p>`;
     $('#tList').innerHTML = ''; $('#tQuote').innerHTML = ''; $('#tLegend').textContent = '';
