@@ -364,3 +364,5 @@ body[data-screen=verdict] .seg,body[data-screen=learn] .seg{display:flex}
 .bot-say{font-size:14px;font-weight:500}
 .bot-kept{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--yes)}
 .bot-kept[data-kept=false]{color:var(--barely2)}
+.ev2{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding-top:8px;border-top:1px solid #2f2e2b;font-size:12px;color:var(--ink2)}
+.ev2 b{color:var(--ink);font-weight:600}

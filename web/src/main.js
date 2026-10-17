@@ -529,16 +529,21 @@ function renderProof() {
       <p class="rc-fix cap num">${icon('wrench')}${[has(rc.failed_runs) && `${rc.failed_runs} failed runs`, has(rc.cluster) && `“${esc(rc.cluster)}”`, has(rc.tier) && esc(rc.tier)].filter(Boolean).join(' · ')}</p>
       ${has(rc.prism_cause) ? `<p class="p-s cap">PRISM: ${esc(rc.prism_cause)}</p>` : ''}${link(rc.url, 'See the cluster')}` : pending('The failure cluster')}`;
 
+  // Headline: our code's check on the full output. PRISM's own score sits under it with its caveat.
   const prismScore = has(ev?.v1?.pass_pct) && has(ev?.v2?.pass_pct);
   const mirror = ev?.code_mirror && has(ev.code_mirror.v1_pass_pct) && has(ev.code_mirror.v2_pass_pct) ? ev.code_mirror : null;
-  const a = prismScore ? ev.v1.pass_pct : mirror?.v1_pass_pct, b = prismScore ? ev.v2.pass_pct : mirror?.v2_pass_pct;
+  const a = mirror ? mirror.v1_pass_pct : prismScore ? ev.v1.pass_pct : null, b = mirror ? mirror.v2_pass_pct : prismScore ? ev.v2.pass_pct : null;
+  const fr = has(ev?.failed_runs?.v1) && has(ev?.failed_runs?.v2) ? ev.failed_runs : null;
   const psl = proofSetLine(c);
-  $('#pEV').innerHTML = `<h3 class="p-h">Evaluator<span class="by">${prismScore ? 'PRISM' : 'Our code'}</span></h3>
+  $('#pEV').innerHTML = `<h3 class="p-h">Evaluator<span class="by">${mirror ? 'Our code · full output' : 'PRISM'}</span></h3>
     ${psl ? `<p class="p-s cap mono num">${esc(psl)}</p>` : ''}
-    ${has(a) ? `<div class="ev num"><b style="color:${PAPER.No}">${a}%</b>${icon('arrowR')}<b style="color:${PAPER.Yes}">${b}%</b><small>v1 → v2${ev.inputs ? ' · ' + esc(ev.inputs) : ''}</small></div>
+    ${has(a) ? `<div class="ev num"><b style="color:${PAPER.No}">${a}%</b>${icon('arrowR')}<b style="color:${PAPER.Yes}">${b}%</b><small>v1 → v2 · numbers grounded</small></div>
       <p class="ev-t"><b>${esc(ev.name || 'Score')}:</b> ${esc(ev.checks || '')}</p>
-      ${has(ev.failed_runs?.v1) && has(ev.failed_runs?.v2) ? `<p class="p-s cap mono num">Runs failing a code check: ${ev.failed_runs.v1} of ${ev.failed_runs.of} → ${ev.failed_runs.v2} of ${ev.failed_runs.of}</p>` : ''}
-      ${prismScore ? link(ev.url, 'See the scores') : `<p class="p-s cap">PRISM’s own score: pending.</p>`}` : pending('The v1 → v2 score')}`;
+      ${fr ? `<p class="p-s cap mono num">Runs failing a code check: ${fr.v1} of ${fr.of} → ${fr.v2} of ${fr.of}</p>` : ''}
+      ${mirror ? (prismScore ? `<div class="ev2 mono num"><span>PRISM’s own score</span><b>${ev.v1.pass_pct}% → ${ev.v2.pass_pct}%</b></div>
+        ${ev.caveat ? `<p class="p-s cap">${esc(ev.caveat)}</p>` : ''}` : `<p class="p-s cap">PRISM’s own score: pending.</p>`) : (ev.caveat ? `<p class="p-s cap">${esc(ev.caveat)}</p>` : '')}
+      ${ev.framing ? `<p class="p-s cap">${esc(ev.framing)}</p>` : ''}
+      ${link(ev.url, 'See the evaluator in PRISM')}` : pending('The v1 → v2 score')}`;
 
   const se = s.sealed;
   if (se && r.window.sealed_from && r.window.sealed_from > r.window.start) {
