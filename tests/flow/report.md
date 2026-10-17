@@ -2,6 +2,19 @@
 
 Newest run on top. Screenshots in `tests/flow/shots/`.
 
+## 15:18 · story 3 build c4408eb (local preview), main 28e3f2e
+
+**Call: files PASS · new build PASS · live still old build (deploy waits on Luis's OK)**
+
+| Check | Phone 390 | Desktop 1440 | Notes |
+|---|---|---|---|
+| Files vs contract, PRISM links | PASS | PASS | KB, improver run open in "bot"; Root Cause is a page link |
+| Verdict numbers (3 courses × 1/5/15 × ranges) | PASS 153/153 | PASS 153/153 (2a3eee8) | |
+| "1 trade", no best stop when too few | PASS | | Fixed |
+| Learning view, trade sheet, sign-out | PASS | | |
+| Proof: KB search + run link, Root Cause + cluster link, Evaluator 52% → 66% | PASS | | PRISM's own score: pending (credits) |
+| Proof counts agree | FAIL | | Root Cause says 28 of 30, Evaluator says 29 of 30 (shots/phone-proof-28-vs-29.jpg). Sent to story 2; story 4 told |
+
 ## 15:15 · story 3 build 7a2f242 (local preview) + live URL
 
 **Call: files PASS · live FAIL (stale deploy) · new build PASS**
