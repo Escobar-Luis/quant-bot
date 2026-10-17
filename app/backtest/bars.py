@@ -167,3 +167,31 @@ def sessions(start: dt.date, end: dt.date, market: str, symbol: str) -> list[dt.
 def last_close_on(market: str, symbol: str, day: dt.date) -> float | None:
     bars = day_bars(market, symbol, day)
     return bars[max(bars)][3] if bars else None
+
+
+def daily_closes(market: str, symbol: str, start: dt.date, end: dt.date) -> dict[str, float]:
+    """{date: close} for [start, end] in one request (Alpaca 1Day for stocks, Binance 1d for crypto), cached."""
+    p = BARS / "daily" / f"{symbol}_{start}_{end}.json"
+    if p.exists():
+        return json.loads(p.read_text())
+    out = {}
+    if market == "us_equities":
+        if not has_alpaca():
+            raise NoBars("no Alpaca keys in .env (APCA_API_KEY_ID / APCA_API_SECRET_KEY)")
+        params = {"timeframe": "1Day", "start": start.isoformat(), "end": (end + dt.timedelta(days=1)).isoformat(),
+                  "limit": 10000, "feed": os.getenv("ALPACA_FEED", "sip"), "adjustment": "raw"}
+        for b in _alpaca_get(f"{symbol}/bars", params).get("bars") or []:
+            out[et_date(to_ts(b["t"])).isoformat()] = b["c"]
+    else:
+        t0 = int(dt.datetime.combine(start, dt.time(0, 0), UTC).timestamp()) * 1000
+        t1 = int(dt.datetime.combine(end, dt.time(23, 59), UTC).timestamp()) * 1000
+        r = httpx.get(BINANCE, params={"symbol": symbol, "interval": "1d", "startTime": t0, "endTime": t1,
+                                       "limit": 1000}, timeout=30)
+        if r.status_code != 200:
+            raise NoBars(f"binance {symbol} 1d http {r.status_code}")
+        for k in r.json():
+            out[dt.datetime.fromtimestamp(k[0] // 1000, UTC).date().isoformat()] = float(k[4])
+    out = {k: v for k, v in sorted(out.items()) if start.isoformat() <= k <= end.isoformat()}
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(out))
+    return out

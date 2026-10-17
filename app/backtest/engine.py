@@ -40,6 +40,7 @@ class Position:
     target_fracs: list[float] = field(default_factory=list)   # share of the start size closed at each target
     trigger: float | None = None    # entry level to wait for; None = enter at market
     be_after_target: int | None = None   # move the stop to the average entry once this many targets have filled
+    scale: bool = False             # True: his share counts scaled so the first entry is $1,000 (keeps his ratios)
     quote: str | None = None
     cite: dict | None = None
     notes: list[str] = field(default_factory=list)            # assumptions made while building it
@@ -170,7 +171,7 @@ def _simulate(p: Position, delay_min: int) -> Result:
                     stop = r.entry_notional / start_qty
         return False
 
-    clock = None
+    clock, factor = None, None
     for leg in sorted(p.legs, key=lambda x: x.posted_ts):
         t = leg.posted_ts + d
         if leg.action in ("open", "add"):
@@ -185,7 +186,13 @@ def _simulate(p: Position, delay_min: int) -> Result:
                     return Result(p, delay_min, "not_triggered" if p.trigger is not None else "no_bars")
                 continue
             ts, px = hit
-            qty = leg.qty if leg.qty else PER_TRADE_USD / px
+            if not leg.qty:
+                qty = PER_TRADE_USD / px
+            elif p.scale:
+                factor = factor or PER_TRADE_USD / (px * leg.qty)
+                qty = leg.qty * factor
+            else:
+                qty = leg.qty
             book(ts, px, qty, "entry")
             start_qty += qty
             host_held += leg.qty or 0

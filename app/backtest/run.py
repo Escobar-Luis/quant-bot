@@ -9,6 +9,7 @@ import argparse
 import datetime as dt
 import json
 from collections import Counter
+from pathlib import Path
 
 from . import bars, engine
 from .common import (COSTS_BPS, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha)
@@ -29,20 +30,50 @@ def course_module(course: str):
 
 
 def hold_numbers(market: str, symbol: str, window: dict) -> tuple[dict, list[str], list[float]]:
-    """$10k bought at the window's first trading minute, held to its last bar; plus its daily series."""
+    """$10k bought at the open of the window's first trading minute, held to its last close; plus its daily series."""
     start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
-    days = bars.sessions(start, end, market, symbol)
-    first = bars.day_bars(market, symbol, days[0])
-    px0 = first[min(first)][0]
-    closes = [bars.last_close_on(market, symbol, d) for d in days]
-    sealed = dt.date.fromisoformat(window["sealed_from"])
-    sealed_day = next(d for d in days if d >= sealed)
-    sb = bars.day_bars(market, symbol, sealed_day)
-    sealed_px0 = sb[min(sb)][0]
-    series = [round(MONEY_START * c / px0, 2) for c in closes]
-    hold = {"end": series[-1], "ret_pct": round((closes[-1] / px0 - 1) * 100, 2),
-            "sealed_ret_pct": round((closes[-1] / sealed_px0 - 1) * 100, 2)}
-    return hold, [d.isoformat() for d in days], series
+    closes = bars.daily_closes(market, symbol, start, end)
+    dates = list(closes)
+
+    def first_open(day: str) -> float:
+        b = bars.day_bars(market, symbol, dt.date.fromisoformat(day))
+        return b[min(b)][0]
+
+    px0 = first_open(dates[0])
+    sealed_px0 = first_open(next(d for d in dates if d >= window["sealed_from"]))
+    last = closes[dates[-1]]
+    series = [round(MONEY_START * c / px0, 2) for c in closes.values()]
+    hold = {"end": series[-1], "ret_pct": round((last / px0 - 1) * 100, 2),
+            "sealed_ret_pct": round((last / sealed_px0 - 1) * 100, 2)}
+    return hold, dates, series
+
+
+def prefetch(positions, workers: int = 6):
+    """Fetch every stock session a position can touch (first leg to last leg + 7 days), in parallel."""
+    from concurrent.futures import ThreadPoolExecutor
+    need = set()
+    for p in positions:
+        if p.market != "us_equities":
+            continue
+        t0, t1 = min(lg.posted_ts for lg in p.legs), max(lg.posted_ts for lg in p.legs)
+        day, last = bars.et_date(t0), bars.et_date(t1) + dt.timedelta(days=9 if p.portfolio == "swing" else 2)
+        while day <= last:
+            if day.weekday() < 5:
+                need.add((p.ticker, day))
+            day += dt.timedelta(days=1)
+    todo = [k for k in need if not (bars.BARS / "alpaca_1m" / k[0] / f"{k[1].isoformat()}.json").exists()]
+    print(f"  prefetch: {len(need)} ticker-sessions, {len(todo)} to download")
+
+    def get(k):
+        try:
+            bars.stock_day(*k)
+        except bars.NoBars as e:
+            return str(e)
+
+    with ThreadPoolExecutor(workers) as ex:
+        errs = [e for e in ex.map(get, todo) if e]
+    if errs:
+        print(f"  prefetch errors: {len(errs)}, e.g. {errs[0]}")
 
 
 def trade_row(results: dict[int, engine.Result]) -> dict:
@@ -68,6 +99,7 @@ def main():
     ap.add_argument("--version", default="v1")
     ap.add_argument("--limit", type=int, default=None, help="price only the first N positions (partial file)")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--scale", action="store_true", help="scale his share counts so each trade starts at $1,000")
     a = ap.parse_args()
 
     mod = course_module(a.course)
@@ -75,6 +107,9 @@ def main():
     positions = built["positions"][: a.limit] if a.limit else built["positions"]
     print(f"{a.course} {a.version}: {len(built['positions'])} positions, pricing {len(positions)}")
 
+    for p in positions:
+        p.scale = a.scale
+    prefetch(positions)
     hold, dates, hold_series = hold_numbers(mod.MARKET, mod.HOLD["symbol"], mod.WINDOW)
     by_pos: dict[str, dict[int, engine.Result]] = {}
     for i, p in enumerate(positions):
@@ -83,6 +118,8 @@ def main():
             print(f"  priced {i + 1}/{len(positions)}")
     status = Counter(r.status for rs in by_pos.values() for r in rs.values())
     print("  results by status (all delays):", dict(status))
+    for why, n in Counter(r.why for rs in by_pos.values() for r in rs.values() if r.why).most_common(5):
+        print(f"  skipped {n}x: {why}")
 
     kinds = ["day", "swing"] if mod.MARKET == "us_equities" else ["crypto"]
     portfolios = []
@@ -122,7 +159,7 @@ def main():
                                        "positions_priced": len(positions),
                                        "results_by_status": dict(status)},
     }
-    path = RESULTS / a.course / f"{a.version}.json" if not a.out else a.out
+    path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=1, ensure_ascii=False))
     al = portfolios[0]["by_delay"]

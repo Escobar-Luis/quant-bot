@@ -74,7 +74,8 @@ def build(version: str) -> dict:
     for e in load("events.rules.jsonl"):
         if e["status"] == "ok" and e.get("rule") and e.get("quote") and len(e["quote"].split()) <= 12 \
                 and len(e["rule"].split()) <= 15:
-            label = f"Lesson {e['lesson']}" if e.get("lesson") else "Discord post"
+            n = e["lesson"].get("n") if isinstance(e.get("lesson"), dict) else e.get("lesson")
+            label = f"Lesson {n}" if n else "Discord post"
             rules.append({"text": e["rule"], "quote": e["quote"], "testable": bool(e.get("testable")),
                           "cite": cite(e, label)})
     step = max(1, len(rules) // 12)
