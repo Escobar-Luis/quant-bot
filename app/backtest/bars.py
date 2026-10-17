@@ -72,6 +72,8 @@ def stock_day(ticker: str, day: dt.date) -> dict[int, list]:
     p = d / f"{day.isoformat()}.json"
     if p.exists():
         return {int(k): v for k, v in json.loads(p.read_text()).items()}
+    if day >= dt.date.today():
+        raise NoBars(f"{ticker} {day} not closed yet")
     if not has_alpaca():
         if (dt.date.today() - day).days <= 28:
             return yahoo_day(ticker, day)

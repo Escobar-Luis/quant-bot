@@ -102,13 +102,20 @@ def main():
     ap.add_argument("--version", default="v1")
     ap.add_argument("--limit", type=int, default=None, help="price only the first N positions (partial file)")
     ap.add_argument("--out", default=None)
-    ap.add_argument("--scale", action="store_true", help="scale his share counts so each trade starts at $1,000")
+    ap.add_argument("--literal", action="store_true",
+                    help="copy his raw share counts (default: scaled so each trade starts at $1,000)")
     a = ap.parse_args()
+    a.scale = not a.literal
 
     mod = course_module(a.course)
     built = mod.build(a.version)
     positions = built["positions"][: a.limit] if a.limit else built["positions"]
     print(f"{a.course} {a.version}: {len(built['positions'])} positions, pricing {len(positions)}")
+    seen = Counter()
+    for p in built["positions"]:   # a post with two setups must not collapse into one id
+        seen[p.pid] += 1
+        if seen[p.pid] > 1:
+            p.pid = f"{p.pid}-{seen[p.pid]}"
 
     for p in positions:
         p.scale = a.scale

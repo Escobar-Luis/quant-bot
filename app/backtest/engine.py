@@ -94,8 +94,8 @@ def default_exit_ts(p: Position, entry_ts: int) -> int:
         return entry_ts + int(arg) * 3600
     day = bars.day_of(p.market, entry_ts)
     if kind == "sessions":
-        n = int(arg)
-        while n:
+        n, last = int(arg), day + dt.timedelta(days=15)   # bounded: a halted or delisted ticker stops here
+        while n and day < last:
             day += dt.timedelta(days=1)
             if day.weekday() < 5 and bars.day_bars(p.market, p.ticker, day):
                 n -= 1
@@ -169,6 +169,9 @@ def _simulate(p: Position, delay_min: int) -> Result:
                 hit_targets = sum(f.kind == "target" for f in r.fills)
                 if p.be_after_target and hit_targets >= p.be_after_target:
                     stop = r.entry_notional / start_qty
+                    if (sign > 0 and l <= stop) or (sign < 0 and h >= stop):
+                        book(k, stop, held, "stop")
+                        return True
         return False
 
     clock, factor = None, None
@@ -186,6 +189,9 @@ def _simulate(p: Position, delay_min: int) -> Result:
                     return Result(p, delay_min, "not_triggered" if p.trigger is not None else "no_bars")
                 continue
             ts, px = hit
+            if clock is None and p.portfolio == "day" and (
+                    bars.et_date(ts) != bars.et_date(leg.posted_ts) or ts >= bars.et_at(bars.et_date(ts), 15, 55)):
+                return Result(p, delay_min, "too_late", why="day trade: no time left that session to copy it")
             if not leg.qty:
                 qty = PER_TRADE_USD / px
             elif p.scale:
@@ -254,7 +260,7 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
     """Copy trades in entry order with $10k of cash: a trade uses its entry money until it exits, and realized
     gains or losses change the cash. When open trades leave too little, the next trade is sized down to what is
     left, or skipped below $100 (counted as "couldn't copy"), so the account never spends money it doesn't have."""
-    kept, sized_down, skipped = [], 0, 0
+    kept, sized_down, skipped, peak = [], 0, 0, 0.0
     open_: list[tuple[int, float, float]] = []      # (exit ts, money in use, pnl to book at exit)
     cash = MONEY_START
     for r in sorted(results, key=lambda r: r.entry.ts):
@@ -277,13 +283,14 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
             sized_down += 1
         cash -= need * f
         open_.append((r.last_exit.ts, need * f, r.pnl * f))
+        peak = max(peak, sum(u for _, u, _ in open_))
         kept.append((r, f))
-    return kept, sized_down, skipped
+    return kept, sized_down, skipped, peak
 
 
 def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_from: str) -> tuple[dict, list]:
     """One delay of one portfolio: the by_delay entry and its daily money series (realized at each exit)."""
-    kept, sized_down, skipped = fit_to_cash([r for r in results if r.status == "priced"])
+    kept, sized_down, skipped, peak = fit_to_cash([r for r in results if r.status == "priced"])
     pnl_by_day: dict[str, float] = {}
     for r, f in kept:
         day = bars.day_of(r.position.market, r.last_exit.ts).isoformat()
@@ -297,15 +304,16 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
         series.append(round(money, 2))
         peak = max(peak, money)
         worst = min(worst, (money - peak) / peak * 100 if peak else 0.0)
-    end = MONEY_START + sum(r.pnl * f for r, f in kept)
-    ret = (end / MONEY_START - 1) * 100
+    end = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
+    ret = round((end / MONEY_START - 1) * 100, 2)   # the word is decided on the numbers the file shows
     sealed = [(r, f) for r, f in kept if bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed_from]
     entry = {
         "end": round(end, 2), "ret_pct": round(ret, 2),
         "hold_end": hold["end"], "hold_ret_pct": hold["ret_pct"],
         "trades": len(kept),
         "not_triggered": sum(r.status == "not_triggered" for r in results),
-        "couldnt_copy": skipped, "sized_down": sized_down,
+        "couldnt_copy": skipped + sum(r.status == "too_late" for r in results), "sized_down": sized_down,
+        "peak_invested_usd": round(peak),
         "won_pct": round(100 * sum(r.pnl > 0 for r, _ in kept) / len(kept)) if kept else 0,
         "worst_drop_pct": round(worst, 1),
         "word": word(len(kept), ret, hold["ret_pct"]),

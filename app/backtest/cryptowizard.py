@@ -95,6 +95,7 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"Exit assumed for {assumed['crypto']} setups they never closed (24 h or last update).")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} setup-delays had no price bars and were skipped.")
-    out.append("$1,000 per setup: they never state a size.")
+    out.append("Their take-profit posts are matched by the copier's own target orders.")
+    out.append("$1,000 per setup: most of the $10k sits in cash, earning nothing.")
     out.append("Prices are Binance 1-minute bars; costs 25 bps per side.")
     return out

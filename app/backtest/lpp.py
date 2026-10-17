@@ -39,13 +39,13 @@ def words(text: str | None, n: int) -> str | None:
 
 def cite(e: dict) -> dict:
     t = int(e.get("t_s") or 0)
-    return {"source_id": e["source_id"], "locator": f"t={t}s",
-            "label": f"Live session, {e['session_date']}, {t // 60}:{t % 60:02d}"}
+    at = f"{t // 3600}:{t % 3600 // 60:02d}:{t % 60:02d}" if t >= 3600 else f"{t // 60}:{t % 60:02d}"
+    return {"source_id": e["source_id"], "locator": f"t={t}s", "label": f"Live session, {e['session_date']}, {at}"}
 
 
 def usable(e: dict) -> bool:
     return e["type"] == "trade" and bool(e.get("ticker")) and bool(e.get("action")) and \
-        (e["status"] == "ok" or set(e.get("fail") or []) <= LEDGER_FAILS)
+        (e["status"] == "ok" or (bool(e.get("fail")) and set(e["fail"]) <= LEDGER_FAILS))
 
 
 def is_option(e: dict) -> bool:
@@ -56,8 +56,9 @@ def build(version: str) -> dict:
     """Positions to copy, plus what the results file needs to say about the events."""
     evs = load(version)
     trades = sorted((e for e in evs if usable(e)), key=lambda e: bars.to_ts(e["wall_utc"]))
-    options = [e for e in trades if is_option(e)]
-    trades = [e for e in trades if not is_option(e) and e.get("side") in ("long", "short")]
+    options = [e for e in trades if is_option(e) and e["action"] == "open"]
+    trades = [e for e in trades if not is_option(e) and (e.get("side") in ("long", "short")
+                                                          or e["action"] in ("trim", "close"))]
     stats = Counter()
     positions, open_pos = [], {}
 
@@ -71,7 +72,13 @@ def build(version: str) -> dict:
                      cite=cite(first))
         positions.append(p)
 
-    for i, e in enumerate(trades):
+    for e in trades:
+        if e.get("side") not in ("long", "short"):   # an exit that didn't say long or short: his one open position
+            sides = [k for k in open_pos if k[0] == e["ticker"]]
+            if len(sides) != 1:
+                stats["exit_side_unknown"] += 1
+                continue
+            e = {**e, "side": sides[0][1]}
         key, ts = (e["ticker"], e["side"]), bars.to_ts(e["wall_utc"])
         if key in open_pos:
             last = open_pos[key][0][-1].posted_ts
@@ -143,6 +150,8 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"Half the position assumed sold on {stats['trim_size_unknown']} trims with no size.")
     if stats.get("entry_size_unknown"):
         out.append(f"$1,000 assumed on {stats['entry_size_unknown']} entries with no share count.")
+    if stats.get("exit_side_unknown"):
+        out.append(f"{stats['exit_side_unknown']} exits didn't say which position and were skipped.")
     if stats.get("close_without_open"):
         out.append(f"{stats['close_without_open']} exits had no matching entry and were skipped.")
     if status.get("no_bars"):

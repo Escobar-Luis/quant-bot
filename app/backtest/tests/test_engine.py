@@ -113,5 +113,13 @@ def test_overlapping_trades_never_spend_more_than_the_cash():
     b = _r(10, 50, 4000, 40)          # only $2k left: sized down to half
     c = _r(20, 60, 1000, 10)          # $0 left: skipped
     d = _r(200, 300, 4000, 40)        # after a and b exit: full size
-    kept, sized_down, skipped = engine.fit_to_cash([a, b, c, d])
-    assert [f for _, f in kept] == [1.0, 0.5, 1.0] and sized_down == 1 and skipped == 1
+    kept, sized_down, skipped, peak = engine.fit_to_cash([a, b, c, d])
+    assert [f for _, f in kept] == [1.0, 0.5, 1.0] and sized_down == 1 and skipped == 1 and peak == 10000
+
+
+def test_day_trade_too_late_to_copy_that_session(fake):
+    late = bars.et_at(DAY, 15, 30)
+    nxt = DAY + dt.timedelta(days=1)
+    fake[nxt] = {bars.et_at(nxt, 9, 30) + 60 * i: [100.0, 101.0, 99.0, 100.5, 1] for i in range(390)}
+    r = engine.simulate(pos([Leg("a", late, "open", 1)]), 30)   # 16:00: market closed
+    assert r.status == "too_late"
