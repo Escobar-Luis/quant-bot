@@ -104,6 +104,12 @@ def ev_for(item):
 def test_side_alone_makes_a_call():
     e = ev_for({"ticker": "OTHR", "side": "long", "levels": [], "quote": "looks set to keep running"})
     assert e["type"] == "call" and e["side"] == "long" and e["status"] == "ok"
+    assert e["event_id"] == "zt:2:001" and e["fail"] == []
+
+
+def test_failed_checks_listed_for_the_loader():
+    e = ev_for({"ticker": "OTHR", "levels": [{"value": 32.5, "kind": "support"}], "quote": "looks set to keep running"})
+    assert e["status"] == "needs_review" and e["fail"] == ["numbers_ok"]
 
 
 def test_named_level_alone_makes_a_call():

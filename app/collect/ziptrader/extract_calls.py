@@ -18,7 +18,7 @@ import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 
-from checks import check, clip_quote, panel_of, status
+from checks import check, clip_quote, failed, panel_of, status
 from common import (BRIEFING_XCHECK_MODEL, DATA, TRANSCRIPTS, VISION_BRIEFING_MODEL, chat, is_num, parse_json, prism,
                     read_jsonl, write_jsonl)
 
@@ -66,7 +66,7 @@ def to_event(src: dict, n: int, e: dict, text: str, xtext: str | None, model: st
     side = e.get("side") if e.get("side") in ("long", "short") else None
     ticker = text_or_none(e.get("ticker"))
     ev = {
-        "event_id": f"{src['source_id']}#{n}", "source_id": src["source_id"], "course": "ziptrader",
+        "event_id": f"zt:{src['message_id']}:{n:03d}", "source_id": src["source_id"], "course": "ziptrader",
         "type": "call" if side or levels else "setup",
         "t_s": None, "wall_utc": src["posted_at"], "market": "us_equities",
         "ticker_said": text_or_none(e.get("ticker_said")), "ticker": ticker and ticker.upper(),
@@ -86,6 +86,7 @@ def to_event(src: dict, n: int, e: dict, text: str, xtext: str | None, model: st
     xspan = panel_of(xtext, ev["ticker"], ev["quote"]) if xtext else None
     ev["checks"] = check(ev, span, (xspan or xtext) if xtext else None)
     ev["status"] = status(ev["checks"])
+    ev["fail"] = failed(ev["checks"])
     return ev
 
 

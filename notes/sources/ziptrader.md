@@ -89,6 +89,8 @@ Run in order with `uv run` (each script declares its own dependencies):
 7. `--trace` on the two extract scripts sends one PRISM run per post (locators and derived events only).
 
 **Additions to the shared record shapes** (extra keys; the common loader can ignore them)
+Event ids follow the loader's course-prefixed form, `zt:<message_id>:<nnn>`; `fail` lists the checks that failed. Verified: the SurrealDB loader (PR #11) loads all 13 sources and 86 events.
+
 1. `events.levels`: every level of a call, `[{value, kind, ref}]`; `entry`, `stop`, `targets`, `level`, `level_kind` are filled from it.
 2. `events.level_ref`: a named level without a number (`prev_low`, `premarket_high`, ...).
 3. `events.watch`: paraphrase of the WATCH line.

@@ -20,7 +20,7 @@ import json
 import re
 import time
 
-from checks import check, clip_quote, quote_in, status
+from checks import check, clip_quote, failed, quote_in, status
 from common import (CARD_XCHECK_MODEL, DATA, TRANSCRIPTS, VISION_STRATEGY_MODEL, canon, chat, is_num, norm, numbers_in,
                     parse_json, prism, read_jsonl, write_jsonl)
 
@@ -146,7 +146,8 @@ def assemble(rules: list, text: str, xtext: str | None, src: dict, model: str) -
             bad.append(f"numbers neither on the line nor in assumptions: {sorted(nums - line_nums - declared)}")
         if kind is None:
             bad.append(f"kind {r.get('kind')!r}")
-        ev = {"event_id": f"{src['source_id']}#{n}", "source_id": src["source_id"], "course": "ziptrader", "type": "rule",
+        ev = {"event_id": f"zt:{src['source_id'].split('/')[-1]}:{n:03d}", "source_id": src["source_id"],
+              "course": "ziptrader", "type": "rule",
               "t_s": None, "wall_utc": src["posted_at"], "market": "us_equities", "ticker_said": None, "ticker": None,
               "side": "long" if kind == "entry" else None, "action": None, "qty": None, "price": None,
               "entry": None, "stop": None, "targets": [], "level": None, "level_kind": None, "horizon": None,
@@ -156,6 +157,7 @@ def assemble(rules: list, text: str, xtext: str | None, src: dict, model: str) -
         if bad:
             ev["checks"]["rule_errors"] = bad
         ev["status"] = "needs_review" if bad else status(ev["checks"])
+        ev["fail"] = failed(ev["checks"])
         events.append(ev)
         testable = bool(r.get("testable")) and r.get("expr") is not None and not bad and ev["status"] == "ok"
         title = r.get("strategy") or "unnamed"

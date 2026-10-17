@@ -88,6 +88,12 @@ def check(ev: dict, span: str, xcheck_text: str | None = None) -> dict:
     return checks
 
 
+def failed(checks: dict) -> list[str]:
+    """Names of the checks that failed, for the loader's `fail` field."""
+    return [k for k in ("quote_ok", "numbers_ok", "ticker_ok", "price_ok", "xcheck_ok") if checks.get(k) is False] + (
+        ["rule_errors"] if checks.get("rule_errors") else [])
+
+
 def status(checks: dict) -> str:
     hard = [checks["quote_ok"], checks["numbers_ok"]]
     soft = [checks[k] for k in ("ticker_ok", "price_ok", "xcheck_ok")]
