@@ -47,6 +47,12 @@ function uniq(pts) {
   return pts.filter((p, i) => i === 0 || p.time !== pts[i - 1].time);
 }
 
+// Empty slots either side so the edge markers' labels ("Posted", "Out") aren't clipped.
+function pad(pts) {
+  if (pts.length < 2) return pts;
+  const span = pts[pts.length - 1].time - pts[0].time, gap = Math.max(60, Math.round(span * 0.12 / 60) * 60);
+  return [{ time: pts[0].time - gap }, ...pts, { time: pts[pts.length - 1].time + gap }];
+}
 const nearest = (pts, t) => pts.reduce((best, p) => (Math.abs(p.time - t) < Math.abs(best.time - t) ? p : best), pts[0]).time;
 
 export function drawTrade(el, trade, delay, color, priceFmt) {
@@ -59,12 +65,12 @@ export function drawTrade(el, trade, delay, color, priceFmt) {
   let pts;
   if (bars) {
     series = chart.addSeries(CandlestickSeries, { upColor: '#5fbf93', downColor: '#ef6f61', borderVisible: false, wickUpColor: '#5fbf93', wickDownColor: '#ef6f61', priceLineVisible: false, lastValueVisible: false });
-    series.setData(bars);
+    series.setData(pad(bars));
     pts = bars;
   } else {
     series = chart.addSeries(LineSeries, { color: '#ecebe6', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, pointMarkersVisible: true, pointMarkersRadius: 2.5 });
     pts = linePoints(trade, delay);
-    series.setData(pts);
+    series.setData(pad(pts));
   }
   if (!pts.length) return false;
   const me = trade.by_delay?.[String(delay)];
