@@ -247,13 +247,47 @@ def word(trades: int, ret_pct: float, hold_ret_pct: float) -> str:
     return "Barely"
 
 
+MIN_TRADE_USD = 100.0
+
+
+def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int, int]:
+    """Copy trades in entry order with $10k of cash: a trade uses its entry money until it exits, and realized
+    gains or losses change the cash. When open trades leave too little, the next trade is sized down to what is
+    left, or skipped below $100 (counted as "couldn't copy"), so the account never spends money it doesn't have."""
+    kept, sized_down, skipped = [], 0, 0
+    open_: list[tuple[int, float, float]] = []      # (exit ts, money in use, pnl to book at exit)
+    cash = MONEY_START
+    for r in sorted(results, key=lambda r: r.entry.ts):
+        still = []
+        for ts, used, pnl in open_:
+            if ts <= r.entry.ts:
+                cash += used + pnl
+            else:
+                still.append((ts, used, pnl))
+        open_ = still
+        need = r.entry_notional
+        if cash < MIN_TRADE_USD or need <= 0:
+            skipped += 1
+            continue
+        f = min(1.0, cash / need)
+        if f < 1.0:
+            if cash < MIN_TRADE_USD:
+                skipped += 1
+                continue
+            sized_down += 1
+        cash -= need * f
+        open_.append((r.last_exit.ts, need * f, r.pnl * f))
+        kept.append((r, f))
+    return kept, sized_down, skipped
+
+
 def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_from: str) -> tuple[dict, list]:
     """One delay of one portfolio: the by_delay entry and its daily money series (realized at each exit)."""
-    priced = [r for r in results if r.status == "priced"]
+    kept, sized_down, skipped = fit_to_cash([r for r in results if r.status == "priced"])
     pnl_by_day: dict[str, float] = {}
-    for r in priced:
+    for r, f in kept:
         day = bars.day_of(r.position.market, r.last_exit.ts).isoformat()
-        pnl_by_day[day] = pnl_by_day.get(day, 0.0) + r.pnl
+        pnl_by_day[day] = pnl_by_day.get(day, 0.0) + r.pnl * f
     by_point = [0.0] * len(dates)  # a day off the date list counts on the next listed date (or the last one)
     for day, v in pnl_by_day.items():
         by_point[min(bisect.bisect_left(dates, day), len(dates) - 1)] += v
@@ -263,18 +297,19 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
         series.append(round(money, 2))
         peak = max(peak, money)
         worst = min(worst, (money - peak) / peak * 100 if peak else 0.0)
-    end = MONEY_START + sum(r.pnl for r in priced)
+    end = MONEY_START + sum(r.pnl * f for r, f in kept)
     ret = (end / MONEY_START - 1) * 100
-    sealed = [r for r in priced if bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed_from]
+    sealed = [(r, f) for r, f in kept if bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed_from]
     entry = {
         "end": round(end, 2), "ret_pct": round(ret, 2),
         "hold_end": hold["end"], "hold_ret_pct": hold["ret_pct"],
-        "trades": len(priced),
+        "trades": len(kept),
         "not_triggered": sum(r.status == "not_triggered" for r in results),
-        "won_pct": round(100 * sum(r.pnl > 0 for r in priced) / len(priced)) if priced else 0,
+        "couldnt_copy": skipped, "sized_down": sized_down,
+        "won_pct": round(100 * sum(r.pnl > 0 for r, _ in kept) / len(kept)) if kept else 0,
         "worst_drop_pct": round(worst, 1),
-        "word": word(len(priced), ret, hold["ret_pct"]),
-        "sealed": {"ret_pct": round(100 * sum(r.pnl for r in sealed) / MONEY_START, 2),
+        "word": word(len(kept), ret, hold["ret_pct"]),
+        "sealed": {"ret_pct": round(100 * sum(r.pnl * f for r, f in sealed) / MONEY_START, 2),
                    "hold_ret_pct": hold["sealed_ret_pct"], "trades": len(sealed)},
     }
     return entry, series

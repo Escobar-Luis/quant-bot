@@ -98,3 +98,20 @@ def test_scaled_sizing_keeps_his_ratios(fake):
     r = engine.simulate(p, 1)
     assert r.fills[0].qty * r.fills[0].px == pytest.approx(1000)
     assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
+
+
+def _r(entry_ts, exit_ts, notional, pnl):
+    p = pos([Leg("a", entry_ts, "open")])
+    r = engine.Result(p, 1, "priced", fills=[engine.Fill(entry_ts, 1, notional, "entry"),
+                                             engine.Fill(exit_ts, 1, notional, "exit")], pnl=pnl,
+                      entry_notional=notional)
+    return r
+
+
+def test_overlapping_trades_never_spend_more_than_the_cash():
+    a = _r(0, 100, 8000, 80)          # uses $8k until t=100
+    b = _r(10, 50, 4000, 40)          # only $2k left: sized down to half
+    c = _r(20, 60, 1000, 10)          # $0 left: skipped
+    d = _r(200, 300, 4000, 40)        # after a and b exit: full size
+    kept, sized_down, skipped = engine.fit_to_cash([a, b, c, d])
+    assert [f for _, f in kept] == [1.0, 0.5, 1.0] and sized_down == 1 and skipped == 1
