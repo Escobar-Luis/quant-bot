@@ -12,7 +12,7 @@ import collections
 import json
 import re
 
-from .common import COURSES, DATA, KB, PROOFS, clip, now, read_jsonl
+from .common import COURSES, DATA, KB, PROOFS, clip, now, read_jsonl, write_public
 
 THEMES = [  # first match wins, most specific first
     ("sizing", "Sizing", r"\b(size|sizing|shares|position|contracts?|half|quarter)\b"),
@@ -181,8 +181,8 @@ def build() -> dict:
         files = {f"{course}-strategy-cards.md": text, f"{course}-events-summary.md": summary(course, ev, src),
                  f"{course}-untestable.md": untestable(course, ev, src)}
         for fn, body in files.items():
-            (KB / fn).write_text(body)
-        (KB / f"{course}-cards.json").write_text(json.dumps(index, indent=1))
+            write_public(KB / fn, body)
+        write_public(KB / f"{course}-cards.json", json.dumps(index, indent=1))
         made[course] = list(files)
         print(f"{course}: {len(ev)} events -> {', '.join(files)} ({len(index)} cards)")
     return made
@@ -212,8 +212,7 @@ def upload(agent: str, courses: list[str]) -> None:
                 print(f"{fn}: PRISM returned a doc assigned to {r.get('agent_id')}, not {agent}")
             elif r:
                 log.append({"agent_id": agent, "doc": fn, "id": r.get("id"), "chunks": r.get("chunk_count"), "at": now()})
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_path.write_text(json.dumps(log, indent=1))
+    write_public(log_path, json.dumps(log, indent=1))
     pt.close()
 
 
