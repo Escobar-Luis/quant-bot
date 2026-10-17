@@ -1,0 +1,75 @@
+# Devpost submission draft (Luis submits it himself)
+
+Paste each block into its field. Lines marked **[fill]** wait on a PRISM value; `python3 demo/check_numbers.py` prints the current ones. Numbers are from `results/<course>/v1.json` at the 5-minute delay and `proofs/prism.json`.
+
+---
+
+## Project name
+Day Trader AI
+
+## Tagline
+Did your trading course actually work? Copy every trade it posted, with fake money, and find out.
+
+## Track
+Money Intelligence
+
+## Links
+- Live app: https://day-trader-ai.vercel.app
+- Video: **[fill: recording link from `demo/README.md`]**
+- Code: https://github.com/Escobar-Luis/quant-bot (private; judges get access on request)
+
+## The problem
+People pay for day-trading courses: rules, daily calls, live trading sessions. Course sellers show their wins, never a full record. The research says most retail day traders lose after fees (US retail options traders lost $2.1B in 20 months, 2019-21; Bryzgalova, Pavlova & Sikorskaya, Journal of Finance, 2023). Luis paid for three courses (Learn Plan Profit, ZipTrader, Crypto Wizard) and never knew if following them would have made money.
+
+## What it does
+Day Trader AI answers one question per course: if you had copied every trade it posted, verbatim, would it have beaten just holding the market?
+1. It copies every posted trade with $10,000 of fake money, after trading costs.
+2. It compares the result with just holding the S&P 500 (stocks) or Bitcoin (crypto).
+3. It gives one word: **Yes**, **Barely**, **No**, or **Not enough trades**.
+4. A slider sets how late you got in after each post (1 to 60 minutes), because people reading Discord are not bots.
+5. Each kind of trade (day, swing, options, crypto) is its own portfolio, so you learn which part worked.
+6. Every verdict opens its proof: the course rules it used, the failures PRISM found, and the evaluator's score.
+
+Results today:
+- **Learn Plan Profit: No.** 287 trades from a year of live sessions. $10,000 became $8,806; just holding the S&P 500 made $11,964.
+- **Crypto Wizard: Yes**, with a catch: $10,000 became $9,221 while just holding Bitcoin made $7,543. It lost money, just less. In the newest three months, kept sealed, it was behind (-0.8% vs Bitcoin +26.0%).
+- **ZipTrader: Not enough trades.** 12 briefings, mostly watch-lists; one trade could be copied. It says so instead of guessing.
+
+## How we built it
+1. **Collect** (read-only): a year of Learn Plan Profit live-session videos (246 with captions), Crypto Wizard's 126 Discord calls, ZipTrader's 12 morning briefings. Raw content stays on Luis's laptop, never in git or the app.
+2. **Extract**: one streamed model call per whole session or post, through the Nicrron API (`anthropic/claude-sonnet-5-5`), writes down each trade: ticker, side, price, stop, target, time, and a quote of 12 words or fewer.
+3. **Check**: code tests every event. The quote must be in the source, every number must be in the quote, the ticker must be real, the price must fit the market that minute. Any failure is marked `needs_review`, never kept silently.
+4. **Backtest**: code, not the model, prices every trade on 1-minute bars (Alpaca for stocks, Binance for crypto) at post time + your delay, with costs (5 bps per side, 20 under $10, 25 for crypto).
+5. **Prove**: every extraction and verdict run is traced to PRISM, with one stable agent id per version (`extract-lpp-v1`, `extract-lpp-v2`, `daytrader-verdict-v1`, ...).
+6. **Show**: a static web app (Vite, Clerk Google sign-in, TradingView Lightweight Charts) that reads only the committed result files. No backend, no per-user data.
+
+## The PRISM proofs (failure → fix → score)
+- **The failure (Root Cause):** `extract-lpp-v1` failed 28 of 30 proof-set runs on our code checks. PRISM's Root Cause clustered them: **[fill: cluster name and PRISM's cause, `proofs/prism.json` → `root_cause`]**. Our sentence: **[fill: `root_cause.our_sentence`]**.
+- **The fix:** v2 makes each quote carry the numbers it backs, and code trims the quote to the 12 words that hold them. Failed runs fell from 28 to 16 of the same 30 sessions.
+- **The score (Evaluator):** our evaluator "Numbers grounded" (every price, level and quantity appears in the quote it cites) scored v1 and v2 on the same 29 sessions: **[fill: PRISM pass rates]** in PRISM; our code running the same rule gives 52% → 66% of runs passing. The verdict stayed "No" on both versions: the fix made the evidence cleaner, not the answer rosier.
+- **Knowledge Base:** paraphrased strategy cards per course (rules, event summaries, what can't be tested) are uploaded to PRISM's Knowledge Base and assigned to `daytrader-verdict-v1`; each verdict run starts with a `kb_search` step and cites the card it used. **[fill: run link]**
+
+## How it handles uncertainty
+1. **The code decides, not the model.** The model only extracts events and writes plain text. It has no field for outcomes; code prices every trade on real bars.
+2. **"Not enough trades" is an answer.** Under 30 trades, no verdict. ZipTrader gets exactly that.
+3. **"What we don't know" on every verdict**, straight from the results file: exits we had to assume (e.g. 15:55 for 128 day trades with no stated close), trades we couldn't copy, sizes we assumed, dividends left out.
+4. **Assumptions are marked, not hidden.** Options are counted but not priced (no free price history), and the app says "Can't test yet".
+5. **Sealed newest months.** The last three months of each window are reported on their own, so a result that only held in the past shows it (Crypto Wizard does).
+6. **Failed checks are kept visible.** Events that fail a code check become `needs_review` and are counted, not dropped quietly.
+7. **Citations.** Every rule shown cites its source (video and timestamp, or channel and date) with a quote of 12 words or fewer.
+8. **Fake money, not advice**, on every verdict.
+
+## Built with
+PRISM by Block Convey (`prismtrace-sdk`: traces, Knowledge Base, Root Cause, Evaluators) · Nicrron API (Claude Sonnet 5.5 and Haiku 5.5) · ElevenLabs (demo narration) · Clerk (Google sign-in) · Vercel · Vite · TradingView Lightweight Charts · Python and uv · Alpaca market data · Binance market data · Claude Code (parallel agents, one git worktree per story) · BMAD Method (spec and stories)
+
+## Team
+- **Luis Escobar**: product owner and the user. Picked the question, the courses and the rules for "worked"; gave read access to his own courses; made every call.
+- **AI agent lanes (Claude Code, one branch and worktree each):** course collectors, data and backtest, PRISM proofs, web app and deploy, demo, full-flow test. Every change landed through a reviewed pull request.
+
+## Challenges
+- Long model calls timed out until we streamed them (hidden thinking ate the first 20-60 seconds).
+- The course hosts trade $40k+ positions; we scaled each trade to $1,000 so $10,000 can copy them, and say so.
+- Three courses, three formats: videos, Discord calls, briefing images. One event shape covers all three.
+
+## What's next
+An agent that proposes one change to a course's strategy; code backtests it and keeps it only if it beats the original on months it never saw.
