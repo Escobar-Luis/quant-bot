@@ -142,7 +142,7 @@ def build(version: str, only: set[str] | None = None) -> dict:
 
 
 SIZING = "His own share counts when he said them; $1,000 per entry when he didn't"
-SIZING_SCALED = "His share counts scaled so each trade starts at $1,000; $1,000 when he gave none"
+SIZING_SCALED = "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6 (Luis, 2026-10-17)
 
 
 def unknown(stats, assumed, priced, total, status) -> list[str]:
@@ -165,7 +165,6 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"{stats['close_without_open']} exits had no matching entry and were skipped.")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} trade-delays had no price bars and were skipped.")
-    out.append("His positions (often $40k+) are scaled to $1,000 a trade, split by his share counts.")
     out.append("Prices are 1-minute market bars, not his own fills.")
     out.append("Costs are estimates: 5 bps per side, 20 under $10.")
     out.append("Just holding SPY leaves out its dividends (about 1% a year).")

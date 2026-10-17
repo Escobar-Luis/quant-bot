@@ -172,8 +172,6 @@ def main():
     unknown = mod.unknown(st, assumed, len(positions), len(built["positions"]), status) \
         if hasattr(mod, "unknown") else []
     unknown.append("Worst drop counts closed trades only, not open ones.")
-    if not a.scale:
-        unknown = [u for u in unknown if "scaled" not in u]
     head = portfolios[0]["by_delay"][str(d5)]
     if head["sized_down"] or head["couldnt_copy"]:
         unknown.insert(0, f"At {d5} min, {head['sized_down']} trades were sized down and {head['couldnt_copy']} "
