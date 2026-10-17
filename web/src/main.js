@@ -178,12 +178,12 @@ function cut(v) {
   let n = curve ? curve.length - 1 : -1;
   const R = RANGES.find(x => x[0] === range);
   if (R[2] && dates.length) { const lim = v.r.ranges?.[range]?.until || addMonths(dates[0], R[2]); while (n > 0 && dates[n] > lim) n--; }
-  const out = { n, curve, dates, hold: S?.hold, end: v.s.end, hold_end: v.s.hold_end, word: v.word, ret: v.s.ret_pct, hold_ret: v.s.hold_ret_pct, from: 'file' };
+  const out = { n, curve, dates, hold: S?.hold, end: v.s.end, hold_end: v.s.hold_end, word: v.word, ret: v.s.ret_pct, hold_ret: v.s.hold_ret_pct, trades: v.s.trades, from: 'file' };
   if (range === 'all' || !curve) return out;
   const fileR = v.r.ranges?.[range]?.by_delay?.[dkey(v.r.ranges[range].by_delay)];
   const end = fileR?.end ?? curve[n], hold_end = fileR?.hold_end ?? S.hold?.[n];
   const ret = (end / v.start - 1) * 100, hold_ret = (hold_end / v.start - 1) * 100;
-  return { ...out, end, hold_end, ret, hold_ret, word: fileR?.word ?? wordFor(ret, hold_ret, v.s.trades < 30 ? v.s.trades : null), from: fileR ? 'file' : 'curve' };
+  return { ...out, end, hold_end, ret, hold_ret, trades: fileR?.trades ?? null, word: fileR?.word ?? wordFor(ret, hold_ret, v.s.trades < 30 ? v.s.trades : null), from: fileR ? 'file' : 'curve' };
 }
 function bestStop(v, k) {
   const bs = range === 'all' ? v.r.best_stop?.by_delay?.[dkey(v.r.best_stop?.by_delay)] : null;
@@ -305,7 +305,7 @@ function renderBotMix(c) {
   }
   $('#cMix').hidden = !m;
   if (m) {
-    const say = m.dev && m.sealed ? `${m.dev.ret_pct >= 0 ? 'Looked good' : 'Lost money'} on past months, ${m.sealed.ret_pct < 0 ? 'lost on new ones' : m.sealed.ret_pct >= m.sealed.hold_ret_pct ? 'held up on new ones' : 'trailed holding on new ones'}.` : '';
+    const say = m.dev && m.sealed ? `${m.dev.ret_pct >= m.dev.hold_ret_pct ? 'Beat holding' : m.dev.ret_pct >= 0 ? 'Trailed holding' : 'Lost money'} on past months, ${m.sealed.ret_pct < 0 ? 'lost on new ones' : m.sealed.ret_pct >= m.sealed.hold_ret_pct ? 'held up on new ones' : 'trailed holding on new ones'}.` : '';
     $('#cMix').innerHTML = `<div class="ch"><span>Best mix <span class="meta">within this course</span></span><span class="wchip" style="--word:${WORD_COLOR[wcls(m.word)]}">${esc(m.word || '')}</span></div>
       <p class="bot-change">${m.ids.map(id => esc(stratName(id, c))).join(' + ')}</p>
       <div class="bot-rows mono num">
@@ -332,7 +332,7 @@ function renderVerdict(fresh) {
   root.style.setProperty('--word', WORD_COLOR[wcls(k.word)]);
   $('#vHead').innerHTML = headline(v, k);
   $('#vChip').textContent = k.word;
-  $('#vMeta').textContent = nTrades(v.s.trades);
+  $('#vMeta').textContent = k.trades != null ? nTrades(k.trades) : '';
   $('#vFine').innerHTML = fineLine(v.r, v.s).split(' · ').filter(Boolean).map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
   const span = v.head.series?.dates;
   $('#vRanges').innerHTML = RANGES.map(([id, lab, mo]) => {
