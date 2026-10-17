@@ -6,7 +6,7 @@ import json
 import statistics as st
 from collections import Counter
 
-from .common import RES
+from .common import DATA, RES
 
 
 def main():
@@ -59,7 +59,8 @@ def main():
         vals = [s["airtime"].get(k, 0) for s in done if s["airtime"]]
         print(f"| {k} | {st.mean(vals):.1f} | {st.median(vals):.1f} |")
     print()
-    carried(S, E)
+    carried([json.loads(line) for line in open(DATA / "sessions.jsonl")],
+            [json.loads(line) for line in open(DATA / "events.jsonl")])  # needs every session: always the v1 run
     print()
     tick = Counter(e["ticker"] for e in E if e["type"] == "trade" and e["ticker"])
     print("Most traded tickers:", ", ".join(f"{t} {n}" for t, n in tick.most_common(12)))

@@ -99,7 +99,7 @@ def call(tr: Transcript, models=MODELS, max_tokens=24000) -> dict:
                                "error": f"RateLimitError: {str(e)[:80]}"})
                 limited += 1
                 if limited > 8:
-                    attempt += 1
+                    attempt, limited = attempt + 1, 0
                 time.sleep(min(120, 10 * 2 ** min(limited, 4)) * (0.5 + random.random()))
             except Exception as e:  # noqa: BLE001 - every failure is logged and becomes a PRISM failure kind
                 errors.append({"model": model, "attempt": attempt, "secs": round(time.time() - t0, 1),
@@ -112,9 +112,14 @@ def cached(tr: Transcript, force=False) -> dict:
     OUT.mkdir(parents=True, exist_ok=True)
     p = OUT / f"{tr.video_id}.json"
     if p.exists() and not force:
-        res = json.loads(p.read_text())
+        try:
+            res = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            res = {}
         if res.get("model"):
             return res
     res = call(tr)
-    p.write_text(json.dumps(res, indent=1))
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(json.dumps(res, indent=1))
+    tmp.replace(p)  # atomic: an interrupted run never leaves half a reply in the cache
     return res

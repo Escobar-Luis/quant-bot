@@ -7,6 +7,7 @@
 import argparse
 import datetime as dt
 import json
+import threading
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -41,6 +42,7 @@ def session_row(vid, link, tr, raw, events, trips) -> dict:
         "session_date": events[0]["session_date"] if events else (checks.bars.session_date(tr.release_ts) if tr and tr.release_ts else None),
         "release_utc": dt.datetime.fromtimestamp(tr.release_ts, dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if tr and tr.release_ts else None,
         "posted_at": link.get("posted_at"), "duration_s": tr.duration if tr else None,
+        "time_source": tr.time_source if tr else None,
         "words": len(tr.words) if tr else 0,
         "model": raw.get("model"), "secs": raw.get("secs"), "usage": raw.get("usage"),
         "call_errors": raw.get("errors") or [],
@@ -56,28 +58,30 @@ def session_row(vid, link, tr, raw, events, trips) -> dict:
 
 
 _CARRY = None
+_CARRY_LOCK = threading.Lock()
 
 
 def carry_map() -> dict:
-    """v2 ledger input: for each session, the (ticker, side) positions still open at the end of the previous
-    trading session, from the full-year v1 events (the only run that covers every session)."""
+    """v2 ledger input: for each session, the (ticker, side) positions still open when it starts, carried from
+    earlier sessions (a hold can span days; a session without trades keeps them), from the full-year v1 events
+    (the only run that covers every session). Built once, under a lock, before any worker reads it."""
     global _CARRY
-    if _CARRY is None:
-        _CARRY = {}
-        p = DATA / "events.jsonl"
-        if VERSION != "v1" and p.exists():
-            by, dates = {}, {}
-            for e in map(json.loads, open(p)):
-                by.setdefault(e["source_id"], []).append(e)
-                dates[e["source_id"]] = e["session_date"]
-            prev_open = set()
-            for src in sorted(by, key=lambda s: dates[s] or ""):
-                _CARRY[src.split(":", 1)[1]] = set(prev_open)
+    with _CARRY_LOCK:
+        if _CARRY is None:
+            carry = {}
+            p = DATA / "events.jsonl"
+            if VERSION != "v1" and p.exists():
+                by, dates = {}, {}
+                for e in map(json.loads, open(p)):
+                    by.setdefault(e["source_id"], []).append(e)
+                    dates[e["source_id"]] = e["session_date"]
                 held = {}
-                for e in sorted((e for e in by[src] if e["type"] == "trade" and e["ticker"]), key=lambda e: e["t_s"] or 0):
-                    k = (e["ticker"], e["side"] or "long")
-                    held[k] = e["action"] in ("open", "add") or (held.get(k, False) and e["action"] == "trim")
-                prev_open = {k for k, v in held.items() if v}
+                for src in sorted(by, key=lambda s: dates[s] or ""):
+                    carry[src.split(":", 1)[1]] = {k for k, v in held.items() if v}
+                    for e in sorted((e for e in by[src] if e["type"] == "trade" and e["ticker"]), key=lambda e: e["t_s"] or 0):
+                        k = (e["ticker"], e["side"] or "long")
+                        held[k] = e["action"] in ("open", "add") or (held.get(k, False) and e["action"] == "trim")
+            _CARRY = carry
     return _CARRY
 
 
@@ -127,7 +131,7 @@ def write(L, results=None):
     RES.mkdir(parents=True, exist_ok=True)
     with open(RES / "sources.jsonl", "w") as fs, open(RES / "events.jsonl", "w") as fe, \
             open(RES / "sessions.jsonl", "w") as fss:
-        for vid in sorted(results, key=lambda v: L.get(v, {}).get("posted_at", "")):
+        for vid in sorted(results, key=lambda v: L.get(v, {}).get("posted_at") or ""):
             tr, raw, events, trips = results[vid]
             link = L.get(vid, {})
             fs.write(json.dumps({

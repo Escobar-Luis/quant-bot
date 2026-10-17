@@ -11,14 +11,15 @@ import argparse
 import json
 
 from .checks import _nums_in, _num, _said
-from .common import DATA, RES, VERSION
+from .common import RES, VERSION
 from .transcript import norm
 
 
 def grounded(e: dict) -> bool:
-    nums = [n for n in (_num(e.get("qty")), _num(e.get("price")), _num(e.get("level"))) if n is not None]
+    nums = [(n, sh) for n, sh in ((_num(e.get("qty")), False), (_num(e.get("price")), True), (_num(e.get("level")), True))
+            if n is not None]
     have = _nums_in(norm(e.get("quote") or ""))
-    return all(_said(n, have) for n in nums)
+    return all(_said(n, have, sh) for n, sh in nums)
 
 
 def main():
@@ -26,8 +27,9 @@ def main():
     ap.add_argument("--ids", nargs="*")
     ap.add_argument("--proof-set", action="store_true")
     a = ap.parse_args()
-    ids = set(a.ids or (json.loads((DATA / "gold" / "proof_set.json").read_text()) if a.proof_set else []))
-    by = {}
+    from .prism import proof_set
+    ids = set(a.ids or (proof_set() if a.proof_set else []))
+    by = {v: [] for v in ids}  # every requested session counts, even one with no events (it passes vacuously)
     for e in map(json.loads, open(RES / "events.jsonl")):
         vid = e["source_id"].split(":", 1)[1]
         if not ids or vid in ids:

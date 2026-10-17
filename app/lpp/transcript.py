@@ -24,6 +24,7 @@ class Transcript:
     release_ts: int | None  # live start, unix seconds
     duration: int | None
     title: str
+    time_source: str = "release_timestamp"  # "timestamp" (upload time) makes wall_utc approximate
 
     @property
     def text(self) -> str:
@@ -83,8 +84,9 @@ def load(video_id: str) -> Transcript | None:
                 if w.startswith("[") and w.endswith("]"):  # [Music], [Applause]
                     continue
                 words.append(((e["tStartMs"] + s.get("tOffsetMs", 0)) / 1000, w))
-    return Transcript(video_id, words, info.get("release_timestamp") or info.get("timestamp"),
-                      info.get("duration"), info.get("title", ""))
+    rel = info.get("release_timestamp")
+    return Transcript(video_id, words, rel or info.get("timestamp"), info.get("duration"), info.get("title", ""),
+                      "release_timestamp" if rel else "timestamp")
 
 
 def available() -> list[str]:

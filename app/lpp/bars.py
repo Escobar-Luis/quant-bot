@@ -7,6 +7,9 @@ every minute-level check stays null.
 import datetime as dt
 import json
 import os
+import sys
+import threading
+import time
 from zoneinfo import ZoneInfo
 
 from .common import BARS, has_alpaca
@@ -14,6 +17,14 @@ from .common import BARS, has_alpaca
 ET = ZoneInfo("America/New_York")
 START, END = "2024-08-01", "2025-09-30"
 _daily: dict[str, dict] = {}
+_warned: set[int] = set()
+
+
+def _write(p, obj):
+    """Atomic cache write: worker threads may read the same ticker's file while another writes it."""
+    tmp = p.with_suffix(f".{os.getpid()}.{threading.get_ident()}.tmp")
+    tmp.write_text(json.dumps(obj))
+    os.replace(tmp, p)
 
 
 def session_date(unix_ts: float) -> str:
@@ -32,12 +43,15 @@ def daily(ticker: str) -> dict | None:
     else:
         import yfinance as yf
         try:
-            df = yf.Ticker(ticker).history(start=START, end=END, interval="1d", auto_adjust=False)
+            df = yf.Ticker(ticker).history(start=START, end=END, interval="1d", auto_adjust=False, raise_errors=True)
             rows = {i.date().isoformat(): [float(r.Open), float(r.High), float(r.Low), float(r.Close), int(r.Volume)]
                     for i, r in df.iterrows()}
-        except Exception:  # noqa: BLE001 - unknown symbols raise or return empty; both mean "no data"
+        except Exception as e:  # noqa: BLE001
+            # an unknown symbol is cached as {} ("no such ticker"); a network or rate-limit error is not cached
+            if "rate" in str(e).lower() or "timed out" in str(e).lower() or "connection" in str(e).lower():
+                return None
             rows = {}
-        p.write_text(json.dumps(rows))
+        _write(p, rows)
     _daily[ticker] = rows or None
     return _daily[ticker]
 
@@ -69,9 +83,21 @@ def minute(ticker: str, date: str) -> dict | None:
                   "adjustment": "raw"}
         if token:
             params["page_token"] = token
-        r = httpx.get(f"https://data.alpaca.markets/v2/stocks/{ticker}/bars", params=params,
-                      headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": sec}, timeout=30)
+        for wait in (0, 5, 20, 60):
+            time.sleep(wait)
+            try:
+                r = httpx.get(f"https://data.alpaca.markets/v2/stocks/{ticker}/bars", params=params,
+                              headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": sec}, timeout=30)
+            except httpx.HTTPError:
+                continue
+            if r.status_code != 429:
+                break
+        else:
+            return None
         if r.status_code != 200:
+            if r.status_code not in _warned:  # say once why minute bars are missing (403: feed not in plan)
+                _warned.add(r.status_code)
+                print(f"alpaca {r.status_code} for {ticker} {date}: {r.text[:120]}", file=sys.stderr)
             return None
         js = r.json()
         for b in js.get("bars") or []:
@@ -80,5 +106,5 @@ def minute(ticker: str, date: str) -> dict | None:
         token = js.get("next_page_token")
         if not token:
             break
-    p.write_text(json.dumps(rows))
+    _write(p, rows)
     return {int(k): v for k, v in rows.items()} or None

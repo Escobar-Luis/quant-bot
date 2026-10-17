@@ -22,6 +22,8 @@ load_dotenv(ROOT / ".env")
 # LPP_VERSION picks the extractor version: v1 (default) writes data/lpp/*.jsonl; v2 writes data/lpp/v2/*.jsonl.
 # lpp-v0 (first draft prompt, gold set only) is kept in data/lpp/extract/lpp-v0/ for the record.
 VERSION = os.getenv("LPP_VERSION", "v1")
+if VERSION not in ("v1", "v2"):
+    raise SystemExit(f"LPP_VERSION must be v1 or v2, not {VERSION!r}")
 DATA = Path(os.getenv("DATA_DIR", ROOT / "data")) / "lpp"
 YT = DATA / "youtube"
 PROMPT_VERSION = f"lpp-{VERSION}"
