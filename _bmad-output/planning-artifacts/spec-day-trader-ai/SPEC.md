@@ -57,7 +57,7 @@ A pain to solve, for one person first. Luis paid for three day-trading courses (
   - **success:** The chips switch to `results.ranges` values; the chart marks `results.best_stop` with its date and value.
 - **CAP-12** Best mix (if time)
   - **intent:** The user sees the best pair of strategies in one account, within a course or across courses, on dates both cover.
-  - **success:** `results.combos` shows the pair, its window and its sealed-month result vs just holding.
+  - **success:** `results.combos` shows the pair, its window and its sealed-month result vs just holding. Today it is within one course only: LPP (2024-08 to 2025-09) and Crypto Wizard (2025-10 to 2026-10) share no dates.
 
 ## Constraints
 
