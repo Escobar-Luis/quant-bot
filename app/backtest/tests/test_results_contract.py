@@ -76,3 +76,11 @@ def test_combos_are_picked_on_dev_and_reported_on_sealed(path):
         assert c["picked_on"] == "dev" and c["window"]["start"] == d["window"]["sealed_from"]
         assert len(c["ids"]) == 2 and all(i.startswith(d["course"] + ":") for i in c["ids"])
         assert c["word"] == engine.word(c["sealed"]["trades"], c["sealed"]["ret_pct"], c["sealed"]["hold_ret_pct"])
+
+
+@pytest.mark.parametrize("path", FILES, ids=[f"{p.parent.name}/{p.name}" for p in FILES])
+def test_suggestion_is_the_improver_picked_on_dev(path):
+    s = json.loads(path.read_text()).get("suggestion")
+    if s:
+        assert s["agent_id"] == "daytrader-improver-v1" and s["picked_on"] == "dev"
+        assert s["kept"] == (s["dev"]["after_pct"] > s["dev"]["before_pct"])
