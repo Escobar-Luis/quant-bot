@@ -205,6 +205,8 @@ Needs 1-min bars for 2024-25: yfinance only reaches back ~30 days, so this needs
 
 ## 5. Storage
 
+**Update, later on 2026-10-17:** Luis chose SurrealDB (embedded now, Surreal Cloud once instance credentials are in `.env`). Schema, agent functions and loader are in PR Escobar-Luis/quant-bot#11 (`notes/storage-surrealdb.md`). The SQLite plan below is superseded; the record shapes and the privacy rules still hold.
+
 **Recommendation: SQLite + sqlite-vec, one local file. Not Supabase.**
 1. Paid content stays on Luis's Mac; Supabase would put it on a third-party cloud.
 2. Zero setup; a few thousand chunks is tiny for brute-force vector search.
