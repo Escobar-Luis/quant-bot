@@ -1,6 +1,5 @@
 import './ui.css';
-import { COURSE_META, latest, PROOF } from './data.js';
-import FIXTURES from './fixtures.json';
+import { COURSE_META, latest, proofSet, PROOF } from './data.js';
 import { initAuth, signInWithGoogle, signOut, hasClerk } from './auth.js';
 import { drawTrade, destroy as destroyTrade, etTime } from './tradeChart.js';
 
@@ -64,7 +63,7 @@ const month = d => MONTH.format(new Date(d + 'T00:00:00Z'));
 const DAY = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' });
 
 /* ---------- data: one view-model per course at the chosen delay ---------- */
-const COURSES = COURSE_META.map(m => ({ ...m, r: latest(m.key) }));
+const COURSES = COURSE_META.map(m => ({ ...m, r: latest(m.key), set: proofSet(m.key) }));
 const KEYS = COURSES.map(c => c.key);
 const DELAYS = (COURSES.find(c => c.r)?.r.delays_min || [1, 3, 5, 10, 15, 30, 60]).slice().sort((a, b) => a - b);
 const DEFAULT_DELAY = COURSES.find(c => c.r)?.r.default_delay_min || 5;
@@ -99,6 +98,15 @@ function fineLine(r, s) {
   if (s.sized_down > 0) bits.push(`${s.sized_down.toLocaleString('en-US')} sized down`);
   if (s.not_triggered > 0) bits.push(`${s.not_triggered.toLocaleString('en-US')} never triggered`);
   return bits.join(' · ');
+}
+// The fix, in money: the same sessions priced from v1's and v2's extraction (LPP's proof set).
+function proofSetLine(c) {
+  const ps = c.set, ss = ps?.same_sessions;
+  if (!ss) return '';
+  const a = ss.by_delay?.[dkey(ss.by_delay)];
+  const h = (ps.portfolios || []).find(p => p.id === ps.headline_portfolio), b = h?.by_delay?.[dkey(h.by_delay)];
+  if (!a || !b) return '';
+  return `${ss.sessions}-session proof set (${ss.version} vs ${ps.version}: ${fmt.money(a.end)} → ${fmt.money(b.end)})`;
 }
 // The PRISM proof exists for LPP only (the extract-lpp runs).
 const proofFor = c => (PROOF && c.key === 'lpp' ? PROOF : null);
@@ -156,11 +164,10 @@ function setDelay(d) {
 document.addEventListener('click', e => { const b = e.target.closest('[data-di]'); if (b) setDelay(DELAYS[+b.dataset.di]); });
 
 /* ---------- verdict (CAP-5): one sentence, one chip, then the detail cards ---------- */
-// v2 keys (strategies, ranges, best_stop, combos, suggestion) come from the results file;
-// until story 1 writes them, strategies/combos/suggestion fall back to web/src/fixtures.json, tagged Sample.
+// v2 keys (strategies, ranges, best_stop, combos, suggestion) come from the results file; a missing key hides its card.
 const RANGES = [['3m', '3M', 3], ['6m', '6M', 6], ['1y', '1Y', 12], ['all', 'All', 0]];
 let range = 'all';
-const extra = (c, key) => (c.r?.[key] != null ? { v: c.r[key], sample: !!c.r.sample } : FIXTURES[c.key]?.[key] != null ? { v: FIXTURES[c.key][key], sample: true } : null);
+const extra = (c, key) => (c.r?.[key] != null ? { v: c.r[key], sample: !!c.r.sample } : null);
 const addMonths = (iso, n) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() + n); return d.toISOString().slice(0, 10); };
 const wordFor = (ret, hold, trades) => (trades != null && trades < 30 ? 'Not enough trades' : ret - hold >= 2 ? 'Yes' : ret - hold <= -2 ? 'No' : 'Barely');
 // The window, cut to the chosen range: numbers from ranges[...] when the file has them, else from the curve.
@@ -168,7 +175,7 @@ function cut(v) {
   const S = v.head.series, curve = S?.by_delay?.[dkey(S?.by_delay)], dates = S?.dates || [];
   let n = curve ? curve.length - 1 : -1;
   const R = RANGES.find(x => x[0] === range);
-  if (R[2] && dates.length) { const lim = addMonths(dates[0], R[2]); while (n > 0 && dates[n] > lim) n--; }
+  if (R[2] && dates.length) { const lim = v.r.ranges?.[range]?.until || addMonths(dates[0], R[2]); while (n > 0 && dates[n] > lim) n--; }
   const out = { n, curve, dates, hold: S?.hold, end: v.s.end, hold_end: v.s.hold_end, word: v.word, ret: v.s.ret_pct, hold_ret: v.s.hold_ret_pct, from: 'file' };
   if (range === 'all' || !curve) return out;
   const fileR = v.r.ranges?.[range]?.by_delay?.[dkey(v.r.ranges[range].by_delay)];
@@ -226,10 +233,9 @@ function renderStrats(c, v) {
   if (ex && Array.isArray(ex.v) && ex.v.length) {
     sample = ex.sample;
     rows = ex.v.map((st, i) => ({ id: st.id, name: st.name, color: STRAT_COLORS[i % STRAT_COLORS.length], at: st.by_delay?.[dkey(st.by_delay)], curve: st.series?.by_delay?.[dkey(st.series?.by_delay)], st }));
-  } else {
-    rows = v.ports.filter(p => p.testable && p.at && p.at.trades && p.id !== v.head.id).map((p, i) => ({ id: p.id, name: p.label, color: STRAT_COLORS[i % STRAT_COLORS.length], at: p.at, curve: p.series?.by_delay?.[dkey(p.series?.by_delay)], st: null }));
-  }
+  } else rows = [];
   $('#stratMeta').innerHTML = (sample ? '<span class="tagS">Sample</span> ' : '') + `<span class="mono">holding ${esc(v.hold)} ${pct(v.s.hold_ret_pct)}</span>`;
+  rows.sort((a, b) => (b.at?.trades || 0) - (a.at?.trades || 0));
   $('#cStrat').hidden = !rows.length;
   $('#strats').innerHTML = rows.map(r => {
     const a = r.at; if (!a) return '';
@@ -257,7 +263,7 @@ $('#strats').addEventListener('click', e => {
 function stratName(ref, c) {
   const [ck, sid] = ref.includes(':') ? ref.split(':') : [c.key, ref];
   const course = COURSES.find(x => x.key === ck) || c;
-  const list = course.r?.strategies || FIXTURES[course.key]?.strategies || [];
+  const list = course.r?.strategies || [];
   const st = list.find(x => x.id === sid);
   const port = course.r?.portfolios?.find(p => p.id === sid);
   const name = st?.name || port?.label || sid;
@@ -273,9 +279,9 @@ function renderBotMix(c) {
     <p class="meta">${sb.kept ? 'Kept: code tested it and it held up.' : 'Dropped: it didn’t hold up.'}${sb.prism_url ? ` ${link(sb.prism_url, 'See the run')}` : ''}</p>`;
   const m = Array.isArray(mix?.v) ? mix.v[0] : null;
   $('#cMix').hidden = !m;
-  if (m) $('#cMix').innerHTML = `<div class="ch"><span>Best mix</span>${mix.sample ? '<span class="tagS">Sample</span>' : `<span class="meta">${esc(m.word || '')}</span>`}</div>
+  if (m) $('#cMix').innerHTML = `<div class="ch"><span>Best mix <span class="meta">within this course</span></span>${mix.sample ? '<span class="tagS">Sample</span>' : `<span class="wchip" style="--word:${WORD_COLOR[wcls(m.word)]}">${esc(m.word || '')}</span>`}</div>
     <p class="bot-change">${m.ids.map(id => esc(stratName(id, c))).join(' + ')}</p>
-    <div class="bot-nums">${m.window ? `<span>${month(m.window.start)} – ${month(m.window.end)}</span>` : ''}${m.sealed ? `<span>Together: <b>${pct(m.sealed.ret_pct)}</b> vs holding <b>${pct(m.sealed.hold_ret_pct)}</b></span>` : ''}</div>`;
+    <div class="bot-nums">${m.dev ? `<span>Picked on earlier months: <b>${pct(m.dev.ret_pct)}</b> vs holding ${pct(m.dev.hold_ret_pct)}</span>` : ''}${m.sealed ? `<span>Then, on ${m.window ? `${month(m.window.start)} – ${month(m.window.end)}` : 'months it never saw'}: <b>${pct(m.sealed.ret_pct)}</b> vs holding <b>${pct(m.sealed.hold_ret_pct)}</b></span>` : ''}</div>`;
 }
 let shownWord = null;
 function renderVerdict(fresh) {
@@ -289,6 +295,7 @@ function renderVerdict(fresh) {
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
+  if (range !== 'all' && v.r.ranges && !v.r.ranges[range]) range = 'all';
   const k = cut(v);
   root.style.setProperty('--word', WORD_COLOR[wcls(k.word)]);
   $('#vHead').innerHTML = headline(v, k);
@@ -297,9 +304,11 @@ function renderVerdict(fresh) {
   $('#vFine').innerHTML = fineLine(v.r, v.s).split(' · ').filter(Boolean).map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
   const span = v.head.series?.dates;
   $('#vRanges').innerHTML = RANGES.map(([id, lab, mo]) => {
-    const ok = !mo || (span && span.length && addMonths(span[0], mo) <= span[span.length - 1]) || v.r.ranges?.[id];
-    return `<button type="button" data-range="${id}" aria-pressed="${range === id}" ${ok ? '' : 'disabled'}>${lab}</button>`;
+    const ok = !mo || (v.r.ranges ? !!v.r.ranges[id] : span && span.length && addMonths(span[0], mo) <= span[span.length - 1]);
+    return ok ? `<button type="button" data-range="${id}" aria-pressed="${range === id}">${lab}</button>` : '';
   }).join('');
+  const onlyAll = $$('#vRanges button').length < 2;
+  $('#vRanges').hidden = onlyAll; $('#vRanges').previousElementSibling.hidden = onlyAll;
   if (fresh && !STILL) { const h = $('#vHead'); h.classList.remove('reveal'); void h.offsetWidth; h.classList.add('reveal'); }
   shownWord = k.word;
   drawMain(v, k);
@@ -329,6 +338,7 @@ function renderLearn(fresh) {
   }
   $('#lDelay').hidden = false;
   $('#lSub').textContent = `Each kind as its own ${kMoney(v.start)}. Holding ${v.hold}: ${pct(v.s.hold_ret_pct)}.`;
+  const psl = proofSetLine(c); $('#lSet').hidden = !psl; $('#lSet').textContent = psl;
   const ordered = [v.head, ...v.ports.filter(p => p.id !== v.head.id)];
   list.innerHTML = ordered.map(p => {
     if (!p.testable) {
@@ -488,7 +498,9 @@ function renderProof() {
   const prismScore = has(ev?.v1?.pass_pct) && has(ev?.v2?.pass_pct);
   const mirror = ev?.code_mirror && has(ev.code_mirror.v1_pass_pct) && has(ev.code_mirror.v2_pass_pct) ? ev.code_mirror : null;
   const a = prismScore ? ev.v1.pass_pct : mirror?.v1_pass_pct, b = prismScore ? ev.v2.pass_pct : mirror?.v2_pass_pct;
+  const psl = proofSetLine(c);
   $('#pEV').innerHTML = `<h3 class="p-h">Evaluator<span class="by">${prismScore ? 'PRISM' : 'Our code'}</span></h3>
+    ${psl ? `<p class="p-s cap mono num">${esc(psl)}</p>` : ''}
     ${has(a) ? `<div class="ev num"><b style="color:${PAPER.No}">${a}%</b>${icon('arrowR')}<b style="color:${PAPER.Yes}">${b}%</b><small>v1 → v2${ev.inputs ? ' · ' + esc(ev.inputs) : ''}</small></div>
       <p class="ev-t"><b>${esc(ev.name || 'Score')}:</b> ${esc(ev.checks || '')}</p>
       ${prismScore ? link(ev.url, 'See the scores') : `<p class="p-s cap">PRISM’s own score: pending.</p>`}` : pending('The v1 → v2 score')}`;

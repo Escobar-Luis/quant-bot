@@ -30,12 +30,18 @@ function byCourse() {
 
 export const RESULTS_BY_COURSE = byCourse();
 
-// Latest extraction version wins the verdict (v2 is the fix).
+// The headline is the full-window file. A file marked `same_sessions.proof_set`
+// (LPP v2: only the 30 traced sessions) is the fix's proof, never the headline.
+const isProofSet = r => !!r?.same_sessions?.proof_set;
 export function latest(course) {
   const vs = RESULTS_BY_COURSE[course];
   if (!vs) return null;
-  const k = Object.keys(vs).sort((a, b) => vnum(b) - vnum(a))[0];
-  return vs[k];
+  const keys = Object.keys(vs).sort((a, b) => vnum(b) - vnum(a));
+  return vs[keys.find(k => !isProofSet(vs[k])) ?? keys[0]];
+}
+export function proofSet(course) {
+  const vs = RESULTS_BY_COURSE[course];
+  return vs ? Object.values(vs).find(isProofSet) || null : null;
 }
 
 export const PROOF = Object.values(PROOFS)[0] || null;
