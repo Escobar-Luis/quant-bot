@@ -9,7 +9,7 @@ The short version lives in `AGENTS.md` (every agent reads it). This file holds t
 3. **Entry:** the open of the first 1-minute bar at or after post time + delay. If the post gives a trigger level, entry is when price trades the trigger after post time + delay; if it never does, no trade (counted as `not_triggered`).
 4. **Exit**, first that applies: the course's own close or trim (+ delay); stop or target, whichever trades first (both in one bar = stop); the horizon as written; otherwise day trades at 15:55 ET the same session, swing trades after 5 sessions, crypto setups after 24 hours (all three `assumed`, listed in `unknown`).
 5. **Costs per side:** 5 bps stocks, 20 bps stocks under $10, 25 bps crypto.
-6. **Sizing:** the course's own size when stated (LPP: the host's share counts); otherwise $1,000 per trade. Each portfolio starts with $10,000 of fake money; unused cash earns nothing.
+6. **Sizing:** $1,000 per trade. LPP scales the host's share counts so each trade starts at $1,000, keeping his add/trim ratios (decided by Luis, 2026-10-17); total open exposure is capped at cash, and trades that don't fit are sized down or counted as couldn't-copy. Each portfolio starts with $10,000 of fake money; unused cash earns nothing.
 7. **Just holding:** $10,000 in SPY (stocks) or BTC (crypto) bought at the window's first trading minute, held to its end.
 8. **Portfolios:** `day` (opened and closed the same session, or called intraday or a scalp), `swing` (held overnight, or a horizon in days), `options` (calls, puts, strikes or expiries: counted, `testable: false`), `crypto` (Crypto Wizard setups), and `all` (every testable trade in one account: the course headline).
 9. **Answer word, per portfolio and delay:** fewer than 30 trades → `Not enough trades`; else return minus just holding's return ≥ +2 pts → `Yes`; within ±2 pts → `Barely`; ≤ −2 pts → `No`.
@@ -35,7 +35,7 @@ The short version lives in `AGENTS.md` (every agent reads it). This file holds t
   "delays_min": [1, 3, 5, 10, 15, 30, 60],
   "default_delay_min": 5,
   "costs_bps_per_side": {"stocks": 5, "stocks_under_10": 20, "crypto": 25},
-  "sizing": "Host's share counts; $1,000 per trade when not stated",
+  "sizing": "His share counts, scaled to $1,000 per trade",
   "hold": {"symbol": "SPY", "label": "Just holding", "what": "Buy and keep the S&P 500 (SPY)"},
   "headline_portfolio": "all",
   "portfolios": [
@@ -138,7 +138,7 @@ Written by story 1, read by story 3; a missing key hides its card. Strategy = tr
 "strategies": [{"id": "vwap-pullback", "name": "Pullback to VWAP", "portfolio": "day", "testable": true,
   "sessions": 31,
   "entails": {"buy": "Dip to the day's average price, then a bounce", "sell": "2x the risk, or back under VWAP",
-              "stop": "Just under the bounce low", "size": "His share count", "time": "Mostly 9:30-11:00"},
+              "stop": "Just under the bounce low", "size": "His share count, scaled to $1,000", "time": "Mostly 9:30-11:00"},
   "quotes": [{"text": "wait for it to come back to VWAP", "cite": {"source_id": "yt:…", "locator": "t=850s", "label": "Live session, 2024-10-03, 14:10"}}],
   "untestable": ["Feel the tape"],
   "by_delay": {"5": {"end": 10900, "ret_pct": 9.0, "hold_ret_pct": 6.0, "trades": 98, "won_pct": 58, "word": "Yes"}},

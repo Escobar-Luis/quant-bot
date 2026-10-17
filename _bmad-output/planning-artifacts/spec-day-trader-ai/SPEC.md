@@ -88,7 +88,7 @@ On the public Ninoo URL a judge signs in with Google on their phone, picks Learn
 ## Assumptions
 
 - Options posts are counted and shown as "Can't test yet", not priced through the underlying stock.
-- Sizing: LPP copies the host's share counts when stated; otherwise $1,000 per trade.
+- Sizing: $1,000 per trade; LPP scales the host's share counts to $1,000 a trade, keeping his add/trim ratios (Luis, 2026-10-17).
 - The slider opens at 5 minutes.
 - Each course is tested on the dates we have: LPP 2024-08-15 to 2025-09-12 (247 sessions); ZipTrader 2026-10-01 to 10-16 (12 briefings, mostly watch-lists, weak evidence); Crypto Wizard the window Luis picked for its collector. Dates barely overlap, so CAP-2 stays a stretch.
 - Anyone who signs in sees the same three verdicts; the product answers Luis's own question.

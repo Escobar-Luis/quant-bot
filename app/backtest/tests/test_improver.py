@@ -15,3 +15,12 @@ def test_off_menu_or_bad_values_fail_with_the_check_name():
     assert improver.check({**base, "change_type": "double_size"}, NAMES) == "change_not_on_menu"
     assert improver.check({**base, "value": "08:00"}, NAMES) == "time_not_in_session"
     assert improver.check({**base, "change_type": "skip_side", "value": "both"}, NAMES) == "side_not_long_or_short"
+
+
+def test_kept_needs_a_sealed_test_that_agrees():
+    s = {"dev": {"before_pct": -1.34, "after_pct": 0.5}, "sealed": {"before_pct": -0.09, "after_pct": -0.09}}
+    assert improver.decide(s)["kept"] is False and s["kept_reason"] == "no gain on new (sealed) months"
+    s["sealed"]["after_pct"] = 0.2
+    assert improver.decide(s)["kept"] is True
+    s["dev"]["after_pct"] = -2.0
+    assert improver.decide(s)["kept"] is False
