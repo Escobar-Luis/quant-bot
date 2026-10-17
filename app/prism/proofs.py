@@ -125,14 +125,25 @@ def improver() -> dict | None:
             "kept": s.get("kept"), "kept_reason": s.get("kept_reason"), "source": "results/lpp/v1.json"}
 
 
+def caveat(ev: dict) -> str | None:
+    """Said plainly when PRISM's judge mostly saw cut-off outputs, so its v1 vs v2 score can't be read as a result."""
+    cut = [((ev.get(f"{v}_counts") or {}).get("judge_saw_cut_off_output"), sum(
+        (ev.get(f"{v}_counts") or {}).get(k, 0) for k in ("grounded", "ungrounded"))) for v in ("v1", "v2")]
+    if not all(c and n for c, n in cut) or max(c / n for c, n in cut) < 0.5:
+        return None
+    return (f"PRISM's judge saw a cut-off run output in {cut[0][0]} of {cut[0][1]} v1 runs and {cut[1][0]} of "
+            f"{cut[1][1]} v2 runs, so its score can't separate the versions; our code check reads the full output.")
+
+
 def evaluator() -> dict:
     ev = _load("evaluator.json", {})
     mirror = _load("evaluator_mirror.json", {})
     return {"name": "Numbers grounded",
             "checks": "Every price, level and quantity appears in the quote it cites",
             "inputs": ev.get("inputs") or mirror.get("inputs"),
-            "v1": {"agent_id": "extract-lpp-v1", "pass_pct": ev.get("v1")},
-            "v2": {"agent_id": "extract-lpp-v2", "pass_pct": ev.get("v2")},
+            "v1": {"agent_id": "extract-lpp-v1", "pass_pct": ev.get("v1"), "counts": ev.get("v1_counts")},
+            "v2": {"agent_id": "extract-lpp-v2", "pass_pct": ev.get("v2"), "counts": ev.get("v2_counts")},
+            "caveat": caveat(ev),
             "code_mirror": {"v1_pass_pct": (mirror.get("v1") or {}).get("pass_pct"),
                             "v2_pass_pct": (mirror.get("v2") or {}).get("pass_pct"),
                             "what": "The same rule run by our code on the same sessions, as a cross-check"} if mirror else None,

@@ -130,9 +130,38 @@ def create() -> None:
     pt.close()
 
 
+def prism_scores(evaluator: str = "Numbers grounded") -> dict:
+    """PRISM's own labels (GET /api/eval-results), per agent, on the sessions both versions have."""
+    from .common import client
+    pt = client()
+    rows = [r for r in (pt._get_sync(f"/api/eval-results?project_id={pt.project_id}") or {}).get("results", [])
+            if r.get("evaluator_name") == evaluator]
+    traces = {}
+    for aid in ("extract-lpp-v1", "extract-lpp-v2"):
+        for t in (pt._get_sync(f"/api/traces?project_id={pt.project_id}&agent_id={aid}&limit=100") or {}).get("traces", []):
+            traces[t["id"]] = (aid, t.get("session_id", "").rsplit("-lpp-", 1)[0])
+    pt.close()
+    by = {}
+    for r in sorted(rows, key=lambda r: r["created_at"]):  # latest label per trace wins
+        if r["trace_id"] in traces:
+            aid, sess = traces[r["trace_id"]]
+            cut = any(w in r["reasoning"].lower() for w in ("truncat", "incomplete"))
+            by.setdefault(aid, {})[sess] = (r["label"], cut)
+    same = sorted(set(by.get("extract-lpp-v1", {})) & set(by.get("extract-lpp-v2", {})))
+    out = {"evaluator": evaluator, "inputs": f"The same {len(same)} LPP sessions (proof set), scored by PRISM",
+           "task_id": next((r["task_id"] for r in rows), None), "at": now()}
+    for v in ("v1", "v2"):
+        got = [by[f"extract-lpp-{v}"][s] for s in same]
+        labels = [g[0] for g in got]
+        out[v] = round(100 * labels.count("grounded") / len(labels)) if labels else None
+        out[f"{v}_counts"] = {"grounded": labels.count("grounded"), "ungrounded": labels.count("ungrounded"),
+                              "judge_saw_cut_off_output": sum(g[1] for g in got)}
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["show", "create", "local"])
+    ap.add_argument("cmd", choices=["show", "create", "local", "prism"])
     a = ap.parse_args()
     if a.cmd == "show":
         md = ["# Evaluator rubrics (paste into PRISM -> Evaluators -> New)", "",
@@ -146,6 +175,13 @@ def main():
         print("\n".join(md))
     elif a.cmd == "create":
         create()
+    elif a.cmd == "prism":
+        ev = prism_scores()
+        old = json.loads((PROOFS / "parts" / "evaluator.json").read_text()) if (PROOFS / "parts" / "evaluator.json").exists() else {}
+        ev["url"] = old.get("url") or "https://prism.blockconvey.com/evaluators"
+        (PROOFS / "parts").mkdir(parents=True, exist_ok=True)
+        (PROOFS / "parts" / "evaluator.json").write_text(json.dumps(ev, indent=1))
+        print(json.dumps(ev, indent=1))
     else:
         m = mirror()
         (PROOFS / "parts").mkdir(parents=True, exist_ok=True)

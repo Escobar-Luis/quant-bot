@@ -1,6 +1,6 @@
 {
  "schema": "proofs/1",
- "updated_at": "2026-10-17T19:18:02Z",
+ "updated_at": "2026-10-17T19:29:15Z",
  "prism_app": "https://prism.blockconvey.com",
  "knowledge_base": {
   "agent_id": "daytrader-verdict-v2",
@@ -80,15 +80,26 @@
  "evaluator": {
   "name": "Numbers grounded",
   "checks": "Every price, level and quantity appears in the quote it cites",
-  "inputs": "The same 29 LPP sessions (proof set of 30; both versions extracted these)",
+  "inputs": "The same 30 LPP sessions (proof set), scored by PRISM",
   "v1": {
    "agent_id": "extract-lpp-v1",
-   "pass_pct": null
+   "pass_pct": 50,
+   "counts": {
+    "grounded": 15,
+    "ungrounded": 15,
+    "judge_saw_cut_off_output": 24
+   }
   },
   "v2": {
    "agent_id": "extract-lpp-v2",
-   "pass_pct": null
+   "pass_pct": 47,
+   "counts": {
+    "grounded": 14,
+    "ungrounded": 16,
+    "judge_saw_cut_off_output": 24
+   }
   },
+  "caveat": "PRISM's judge saw a cut-off run output in 24 of 30 v1 runs and 24 of 30 v2 runs, so its score can't separate the versions; our code check reads the full output.",
   "code_mirror": {
    "v1_pass_pct": 52,
    "v2_pass_pct": 66,
@@ -110,7 +121,7 @@
    "source": "results/lpp/v2.json"
   },
   "framing": "The v2 fix shows in extraction quality (grounded numbers, fewer failed runs), not in money: on the same sessions both versions end within a few dollars.",
-  "url": null
+  "url": "https://prism.blockconvey.com/evaluators"
  },
  "evaluator_verdict": {
   "name": "Verdict numbers from results",
@@ -157,7 +168,7 @@
  "credits": {
   "budget": 200,
   "cap": 150,
-  "spent": 0,
+  "spent": 65,
   "log": "proofs/README.md"
  }
 }
