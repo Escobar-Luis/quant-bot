@@ -120,16 +120,30 @@ function vm(c) {
   const head = ports.find(p => p.id === r.headline_portfolio && p.at) || ports.find(p => p.at);
   if (!head) return { tested: false, tone: 'ink', word: 'Not yet' };
   const s = head.at;
-  const parts = ports.filter(p => p.at && p.id !== head.id);
+  const parts = ports.filter(p => p.at && p.id !== head.id && p.at.trades > 0);
   const best = parts.length ? parts.reduce((a, b) => (b.at.ret_pct - b.at.hold_ret_pct > a.at.ret_pct - a.at.hold_ret_pct ? b : a)) : null;
   return {
     tested: true, r, head, s, best, ports,
     word: s.word, tone: WORD_TONE[s.word] || 'grey',
-    holdLabel: r.hold?.label || 'Just holding',
+    holdLabel: holdLabel(r.hold),
     start: r.money_start || 10000
   };
 }
 const nameOf = c => c.r?.course_name || c.name;
+function holdLabel(h) {
+  const label = h?.label || 'Just holding';
+  return /^BTC/i.test(h?.symbol || '') && !/bitcoin/i.test(label) ? label + ' Bitcoin' : label;
+}
+// One honest fine-print line: sizing, plus trades we couldn't copy or had to shrink.
+function fineLine(r, s) {
+  const size = (r.sizing || '').match(/\$[\d,]+ (?:per|a) (?:trade|call|setup)/i)?.[0];
+  const bits = [];
+  if (size) bits.push(/scal/i.test(r.sizing) ? 'Scaled to ' + size : size);
+  if (s.couldnt_copy > 0) bits.push(`${s.couldnt_copy.toLocaleString('en-US')} couldn’t be copied`);
+  if (s.sized_down > 0) bits.push(`${s.sized_down.toLocaleString('en-US')} sized down`);
+  if (s.not_triggered > 0) bits.push(`${s.not_triggered.toLocaleString('en-US')} never triggered`);
+  return bits.join(' · ');
+}
 
 /* ---------- state ---------- */
 let user = null, booted = false, cur = 0, route = null, openedByUser = false;
@@ -352,7 +366,8 @@ function fillSlide(el, c, animateNums) {
   }
   stub.hidden = false; see.hidden = false; dl.hidden = false;
   const s = v.s;
-  line.innerHTML = `<span>${kMoney(v.start)} became ${animateNums ? cnt(s.end, 'money') : fmt.money(s.end)}.</span> <span>${esc(v.holdLabel)} made ${animateNums ? cnt(s.hold_end, 'money') : fmt.money(s.hold_end)}.</span>`;
+  const fine = fineLine(v.r, s);
+  line.innerHTML = `<span>${kMoney(v.start)} became ${animateNums ? cnt(s.end, 'money') : fmt.money(s.end)}.</span> <span>${esc(v.holdLabel)} made ${animateNums ? cnt(s.hold_end, 'money') : fmt.money(s.hold_end)}.</span>${fine ? `<span class="v-fine cap">${esc(fine)}</span>` : ''}`;
   if (v.best) {
     const b = v.best.at, bt = TONE[toneOf(b)];
     setVars(stub, bt);
@@ -434,7 +449,7 @@ function fitStamps() {
     st.style.fontSize = '100px';
     const w = st.offsetWidth, h = st.offsetHeight;
     const k = Math.min(bw * .92 / (w * c + h * s), bh * .9 / (w * s + h * c));
-    st.style.fontSize = Math.max(40, Math.min(max, 100 * k)).toFixed(1) + 'px';
+    st.style.fontSize = Math.max(18, Math.min(max, 100 * k)).toFixed(1) + 'px';
   });
 }
 const live = $('#live');
@@ -551,6 +566,7 @@ function renderLearn(vt, quietNums = false) {
   let html = '';
   ordered.forEach((p, k) => {
     if (!p.testable) {
+      if (!p.count) return;
       html += `<li class="band" data-k="${k}" style="${vars(TONE.grey)}"><div class="band-in">
         <span class="b-step num">${(p.count ?? 0).toLocaleString('en-US')} trades</span>
         <div class="b-main"><span class="b-text">${esc(p.label)}</span>
@@ -558,7 +574,7 @@ function renderLearn(vt, quietNums = false) {
         </div></li>`;
       return;
     }
-    if (!p.at) return;
+    if (!p.at || (p.id !== v.head.id && !p.at.trades)) return;
     const a = p.at, t = TONE[toneOf(a)];
     const vtName = vt && k === 1 ? ' data-vt="1"' : '';
     html += `<li class="band"${vtName}><button class="band-btn" type="button" data-trades="${esc(p.id)}" style="${vars(t)}" aria-label="${esc(p.label)}: ${pct(a.ret_pct)}, ${esc(a.word)}. Check its trades."><div class="band-in">
@@ -625,10 +641,10 @@ function renderProof() {
       <p class="ev-t"><b>${esc(ev.name)}:</b> ${esc(ev.checks)}</p>${link(ev.url, 'See the scores')}` : pending('The v1 → v2 score')}`;
 
   const se = s.sealed;
-  if (se && r.window.sealed_from) {
+  if (se && r.window.sealed_from && r.window.sealed_from > r.window.start) {
     const mx = Math.max(Math.abs(se.ret_pct), Math.abs(se.hold_ret_pct), 0.1);
     const bar = (x, col) => { const w = Math.abs(x) / mx * 50; return `<i style="background:${col};width:${w}%;left:${x >= 0 ? 50 : 50 - w}%"></i>`; };
-    $('#pNew').innerHTML = `<h3 class="p-h">Newest months</h3><p class="p-s cap">${month(r.window.sealed_from)} – ${month(r.window.end)} · kept sealed</p>
+    $('#pNew').innerHTML = `<h3 class="p-h">Newest months</h3><p class="p-s cap num">${month(r.window.sealed_from)} – ${month(r.window.end)} · kept sealed${se.trades != null ? ` · ${se.trades} trades` : ''}</p>
       <div class="nd num">
         <div class="nd-row"><span>Copying</span><span class="nd-bar">${bar(se.ret_pct, t.paper)}</span><b>${pct(se.ret_pct)}</b></div>
         <div class="nd-row"><span>${esc(v.holdLabel)}</span><span class="nd-bar">${bar(se.hold_ret_pct, '#1D1D1F')}</span><b>${pct(se.hold_ret_pct)}</b></div>
@@ -695,7 +711,7 @@ function renderTrades() {
   $('#tHead').innerHTML = `<span class="t-tick">${esc(x.ticker)}</span><span class="t-side cap">${x.side === 'short' ? 'Short' : 'Long'} · posted ${DAY.format(new Date(x.posted_at))}, ${etTime(x.posted_at)} ET</span>
     ${me ? `<span class="t-res" style="color:${TONE[me.ret_pct >= 0 ? 'green' : 'red'].paper}">${pct(me.ret_pct)}</span>` : ''}`;
   $('#tLegend').textContent = me
-    ? `In at ${fmt.money2(me.entry)} (${etTime(me.entry_at)}), out at ${fmt.money2(me.exit)} (${etTime(me.exit_at)}). ${x.bars ? 'Minute bars.' : 'Line joins the prices at each delay.'}`
+    ? `In at ${fmt.money2(me.entry)} (${etTime(me.entry_at)}), out at ${fmt.money2(me.exit)} (${etTime(me.exit_at)})${me.assumed_exit ? ', exit assumed' : ''}. ${x.bars ? 'Minute bars.' : 'Line joins the prices at each delay.'}`
     : 'Not entered at this delay.';
   $('#tQuote').innerHTML = x.quote ? `<p>“${esc(x.quote)}”</p><footer class="cap">${icon(/^yt:/.test(x.cite?.source_id || '') ? 'play' : 'chat')}${esc(x.cite?.label || '')}</footer>` : '';
   requestAnimationFrame(() => drawTrade($('#tChart'), x, +dkey(x.by_delay), TONE[v.tone].paper));
@@ -750,8 +766,13 @@ function startRun() {
 const samplePop = $('#samplePop'), menu = $('#menu'), sampleBtn = $('#sampleBtn'), avatarBtn = $('#avatarBtn');
 function syncSample() {
   const scr = document.body.dataset.screen;
-  const on = (scr === 'verdict' || scr === 'learn') && !!COURSES[cur].r?.sample;
+  const r = COURSES[cur].r;
+  const on = (scr === 'verdict' || scr === 'learn') && !!(r?.sample || r?.partial);
   sampleBtn.hidden = !on;
+  if (on) {
+    sampleBtn.lastChild.textContent = r.sample ? 'Sample data' : 'Partial data';
+    samplePop.textContent = r.sample ? 'Made-up numbers to build the screens. Not a real test of this course yet.' : 'Not every post is priced yet. Numbers will move.';
+  }
   if (!on) samplePop.hidden = true;
 }
 function closePops() {
