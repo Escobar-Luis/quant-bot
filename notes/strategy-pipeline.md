@@ -16,7 +16,7 @@ Tags: **[V]** verified live today, **[D]** docs only, **[?]** unverified, test f
 **PRISM proofs** (section 7)
 1. KB: course cards → verdict agent.
 2. Root Cause: failed extraction runs.
-3. Evaluator: v1 vs v2, 60 sessions.
+3. Evaluator: v1 vs v2, 30 sessions.
 
 **Decisions for you** (details in section 9)
 1. Alpaca paper keys: blocking.
@@ -310,26 +310,29 @@ Each run: `submit_trajectory(agent_id, conversation_id, steps, final_status)`, w
 
 ### Proof 2: Root Cause (a cluster of 3+ failed runs)
 1. Failed run = an `extract-lpp-v1` session where any event fails a code check (section 4); `final_status="error"`, with the failing event's check name and its quote (12 words max) in the output, so the cluster has something to read.
-2. Expected cause, from the prototype: dollar P&L read as a price or level, and misheard tickers ("open" vs OPEN). Each showed up in one session already; across 60 sessions they should repeat.
-3. Run v1 on a fixed **proof set of 60 sessions** (the gold 5 plus 55 spread over the year), then "Analyze now" (5 credits).
+2. Expected cause, from the prototype: dollar P&L read as a price or level, and misheard tickers ("open" vs OPEN). Each showed up in one session already; across 30 sessions they should repeat. If v1 fails fewer than 3 of the 30, use the chunked Haiku prompt from the prototype as v1 (it failed more often); it is a real first version, not a strawman.
+3. Run v1 on a fixed **proof set of 30 sessions** (the gold 5 plus 25 spread over the year), then "Analyze now" (5 credits).
 4. Our one sentence for the demo: live-stream captions mix P&L talk with prices, and a chunked reader can't tell them apart.
-5. The fix: v2 prompt (P&L is never a price; resolve "it" from the position ledger) on the same 60 sessions.
+5. The fix: v2 prompt (P&L is never a price; resolve "it" from the position ledger) on the same 30 sessions.
 
 ### Proof 3: Evaluator, v1 vs v2 on the same inputs
 1. Evaluator "numbers grounded" (LLM judge over `{output}` and `{context}`): pass when every price, level and quantity in the output appears in the quote the same event cites. Labels pass / fail, threshold 1.0 per run.
-2. Score `extract-lpp-v1` and `extract-lpp-v2` on the same 60 sessions (datasets are off on our plan, so the replay is ours).
+2. Score `extract-lpp-v1` and `extract-lpp-v2` on the same 30 sessions (datasets are off on our plan, so the replay is ours).
 3. Second evaluator, if credits allow: "every rule cites its source", on `daytrader-verdict-v1` vs `-v2` for the three courses.
-4. Demo line: v1 pass rate, v2 pass rate, same 60 sessions.
+4. Demo line: v1 pass rate, v2 pass rate, same 30 sessions.
 
-### Budget (Builder: 400 + 100 welcome credits; 200 analysed runs a day)
+### Budget (Luis's workspace: 200 credits in total, one time, per its Billing page; 200 free automatic analyses a day)
 | Item | Runs | Credits |
 |---|---|---|
-| `extract-lpp-v1` + `-v2` on the proof set | 120 | 120 Intelligence + 120 evaluator |
+| `extract-lpp-v1` + `-v2` on the 30-session proof set | 60 | 0 Intelligence (inside the free daily analyses) + 60 evaluator |
 | Root Cause, twice | 2 | 10 |
-| `daytrader-verdict` v1 and v2, 3 courses, a few tries | ~20 | ~40 |
-| **Total** | ~140 | ~290 |
+| `daytrader-verdict` v1 and v2, 3 courses, a few tries, plus the second evaluator | ~20 | ~40 |
+| **Total** | ~82 | **~110**, leaving ~90 spare |
 
-So trace only the 60-session proof set to PRISM; run the other 187 LPP sessions untraced (or under a separate project).
+Rules that keep it there:
+1. Trace only the 30-session proof set; run the other 217 LPP sessions untraced (or under a separate project).
+2. Let the free automatic analyses score traces first; press "Analyze" only on traces that haven't been scored.
+3. Run each evaluator once per agent version, on the proof set only.
 
 ### Bonus (only after the three proofs)
 1. Verdict runs already have 7+ tool steps.
