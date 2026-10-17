@@ -6,6 +6,7 @@
 | `narration.md` | ~55 s voice-over text and captions | Ready |
 | `narration.mp3` | 57 s voice-over, made by `python3 demo/narrate.py` (Nicrron `openai/tts-1-hd`, voice onyx; ElevenLabs when its key works) | Ready |
 | `submission.md` | Devpost answers, ready to paste | Draft; **[fill]** marks PRISM values and the video link |
+| `explainer.md` | 44 s animated architecture explainer: link, source, what it shows | Ready; Nicrron voice (ElevenLabs key in `.env` is the key ID) |
 | `check_numbers.py` | Prints every number the script says, from the files; exit 1 while anything is pending | Works |
 
 ## Before you go on stage (or submit)
