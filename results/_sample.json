@@ -1,0 +1,777 @@
+{
+ "schema": "results/1",
+ "course": "lpp",
+ "course_name": "Learn Plan Profit",
+ "version": "v1",
+ "source_agent_id": "extract-lpp-v1",
+ "sample": true,
+ "generated_at": "2026-10-17T18:40:00Z",
+ "git_sha": null,
+ "window": {
+  "start": "2024-08-15",
+  "end": "2025-09-12",
+  "sealed_from": "2025-06-12"
+ },
+ "money_start": 10000,
+ "course_fee_usd": null,
+ "delays_min": [
+  1,
+  3,
+  5,
+  10,
+  15,
+  30,
+  60
+ ],
+ "default_delay_min": 5,
+ "costs_bps_per_side": {
+  "stocks": 5,
+  "stocks_under_10": 20,
+  "crypto": 25
+ },
+ "sizing": "Host's share counts; $1,000 per trade when not stated",
+ "hold": {
+  "symbol": "SPY",
+  "label": "Just holding",
+  "what": "Buy and keep the S&P 500 (SPY)"
+ },
+ "headline_portfolio": "all",
+ "portfolios": [
+  {
+   "id": "all",
+   "label": "Everything he traded",
+   "testable": true,
+   "by_delay": {
+    "1": {
+     "end": 10960,
+     "ret_pct": 9.6,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 52,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 2.4,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "3": {
+     "end": 10780,
+     "ret_pct": 7.8,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 51,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 1.9,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "5": {
+     "end": 10660,
+     "ret_pct": 6.6,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 50,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 1.6,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "10": {
+     "end": 10440,
+     "ret_pct": 4.4,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 49,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 1.1,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "15": {
+     "end": 10270,
+     "ret_pct": 2.7,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 48,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 0.7,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "30": {
+     "end": 9890,
+     "ret_pct": -1.1,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 43,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": -0.3,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "60": {
+     "end": 9340,
+     "ret_pct": -6.6,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 412,
+     "not_triggered": 0,
+     "won_pct": 34,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": -1.6,
+      "hold_ret_pct": 3.1
+     }
+    }
+   },
+   "series": {
+    "dates": [
+     "2024-08-15",
+     "2024-10-01",
+     "2024-12-02",
+     "2025-02-03",
+     "2025-04-01",
+     "2025-06-02",
+     "2025-08-01",
+     "2025-09-12"
+    ],
+    "hold": [
+     10000,
+     10350,
+     10900,
+     11300,
+     10600,
+     11400,
+     11800,
+     11890
+    ],
+    "by_delay": {
+     "1": [
+      10000,
+      10137,
+      10274,
+      10411,
+      10549,
+      10686,
+      10823,
+      10960
+     ],
+     "3": [
+      10000,
+      10111,
+      10223,
+      10334,
+      10446,
+      10557,
+      10669,
+      10780
+     ],
+     "5": [
+      10000,
+      10094,
+      10189,
+      10283,
+      10377,
+      10471,
+      10566,
+      10660
+     ],
+     "10": [
+      10000,
+      10063,
+      10126,
+      10189,
+      10251,
+      10314,
+      10377,
+      10440
+     ],
+     "15": [
+      10000,
+      10039,
+      10077,
+      10116,
+      10154,
+      10193,
+      10231,
+      10270
+     ],
+     "30": [
+      10000,
+      9984,
+      9969,
+      9953,
+      9937,
+      9921,
+      9906,
+      9890
+     ],
+     "60": [
+      10000,
+      9906,
+      9811,
+      9717,
+      9623,
+      9529,
+      9434,
+      9340
+     ]
+    }
+   }
+  },
+  {
+   "id": "day",
+   "label": "Day trades",
+   "testable": true,
+   "by_delay": {
+    "1": {
+     "end": 10620,
+     "ret_pct": 6.2,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 52,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 1.6,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "3": {
+     "end": 10420,
+     "ret_pct": 4.2,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 51,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 1.1,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "5": {
+     "end": 10270,
+     "ret_pct": 2.7,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 50,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 0.7,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "10": {
+     "end": 10010,
+     "ret_pct": 0.1,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 49,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 0.0,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "15": {
+     "end": 9820,
+     "ret_pct": -1.8,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 48,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": -0.5,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "30": {
+     "end": 9370,
+     "ret_pct": -6.3,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 43,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": -1.6,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "60": {
+     "end": 8730,
+     "ret_pct": -12.7,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 377,
+     "not_triggered": 0,
+     "won_pct": 34,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": -3.2,
+      "hold_ret_pct": 3.1
+     }
+    }
+   },
+   "series": {
+    "dates": [
+     "2024-08-15",
+     "2024-10-01",
+     "2024-12-02",
+     "2025-02-03",
+     "2025-04-01",
+     "2025-06-02",
+     "2025-08-01",
+     "2025-09-12"
+    ],
+    "hold": [
+     10000,
+     10350,
+     10900,
+     11300,
+     10600,
+     11400,
+     11800,
+     11890
+    ],
+    "by_delay": {
+     "1": [
+      10000,
+      10089,
+      10177,
+      10266,
+      10354,
+      10443,
+      10531,
+      10620
+     ],
+     "3": [
+      10000,
+      10060,
+      10120,
+      10180,
+      10240,
+      10300,
+      10360,
+      10420
+     ],
+     "5": [
+      10000,
+      10039,
+      10077,
+      10116,
+      10154,
+      10193,
+      10231,
+      10270
+     ],
+     "10": [
+      10000,
+      10001,
+      10003,
+      10004,
+      10006,
+      10007,
+      10009,
+      10010
+     ],
+     "15": [
+      10000,
+      9974,
+      9949,
+      9923,
+      9897,
+      9871,
+      9846,
+      9820
+     ],
+     "30": [
+      10000,
+      9910,
+      9820,
+      9730,
+      9640,
+      9550,
+      9460,
+      9370
+     ],
+     "60": [
+      10000,
+      9819,
+      9637,
+      9456,
+      9274,
+      9093,
+      8911,
+      8730
+     ]
+    }
+   }
+  },
+  {
+   "id": "swing",
+   "label": "Swing trades",
+   "testable": true,
+   "by_delay": {
+    "1": {
+     "end": 11970,
+     "ret_pct": 19.7,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 52,
+     "worst_drop_pct": -22,
+     "word": "Barely",
+     "sealed": {
+      "ret_pct": 4.9,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "3": {
+     "end": 11910,
+     "ret_pct": 19.1,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 51,
+     "worst_drop_pct": -22,
+     "word": "Barely",
+     "sealed": {
+      "ret_pct": 4.8,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "5": {
+     "end": 11870,
+     "ret_pct": 18.7,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 50,
+     "worst_drop_pct": -22,
+     "word": "Barely",
+     "sealed": {
+      "ret_pct": 4.7,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "10": {
+     "end": 11800,
+     "ret_pct": 18.0,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 49,
+     "worst_drop_pct": -22,
+     "word": "Barely",
+     "sealed": {
+      "ret_pct": 4.5,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "15": {
+     "end": 11740,
+     "ret_pct": 17.4,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 48,
+     "worst_drop_pct": -22,
+     "word": "Barely",
+     "sealed": {
+      "ret_pct": 4.3,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "30": {
+     "end": 11610,
+     "ret_pct": 16.1,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 43,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 4.0,
+      "hold_ret_pct": 3.1
+     }
+    },
+    "60": {
+     "end": 11430,
+     "ret_pct": 14.3,
+     "hold_end": 11890,
+     "hold_ret_pct": 18.9,
+     "trades": 35,
+     "not_triggered": 0,
+     "won_pct": 34,
+     "worst_drop_pct": -22,
+     "word": "No",
+     "sealed": {
+      "ret_pct": 3.6,
+      "hold_ret_pct": 3.1
+     }
+    }
+   },
+   "series": {
+    "dates": [
+     "2024-08-15",
+     "2024-10-01",
+     "2024-12-02",
+     "2025-02-03",
+     "2025-04-01",
+     "2025-06-02",
+     "2025-08-01",
+     "2025-09-12"
+    ],
+    "hold": [
+     10000,
+     10350,
+     10900,
+     11300,
+     10600,
+     11400,
+     11800,
+     11890
+    ],
+    "by_delay": {
+     "1": [
+      10000,
+      10281,
+      10563,
+      10844,
+      11126,
+      11407,
+      11689,
+      11970
+     ],
+     "3": [
+      10000,
+      10273,
+      10546,
+      10819,
+      11091,
+      11364,
+      11637,
+      11910
+     ],
+     "5": [
+      10000,
+      10267,
+      10534,
+      10801,
+      11069,
+      11336,
+      11603,
+      11870
+     ],
+     "10": [
+      10000,
+      10257,
+      10514,
+      10771,
+      11029,
+      11286,
+      11543,
+      11800
+     ],
+     "15": [
+      10000,
+      10249,
+      10497,
+      10746,
+      10994,
+      11243,
+      11491,
+      11740
+     ],
+     "30": [
+      10000,
+      10230,
+      10460,
+      10690,
+      10920,
+      11150,
+      11380,
+      11610
+     ],
+     "60": [
+      10000,
+      10204,
+      10409,
+      10613,
+      10817,
+      11021,
+      11226,
+      11430
+     ]
+    }
+   }
+  },
+  {
+   "id": "options",
+   "label": "Options",
+   "testable": false,
+   "count": 37,
+   "why": "No free options price history"
+  }
+ ],
+ "rules": [
+  {
+   "id": "R1",
+   "text": "Sample rule: buy the first break of the morning high",
+   "quote": "sample quote",
+   "testable": true,
+   "cite": {
+    "source_id": "yt:SAMPLE",
+    "locator": "t=754s",
+    "label": "Live session, 2024-08-15, 12:34"
+   }
+  },
+  {
+   "id": "R2",
+   "text": "Sample rule: trust your gut on the exit",
+   "quote": "sample quote",
+   "testable": false,
+   "cite": {
+    "source_id": "yt:SAMPLE",
+    "locator": "t=1320s",
+    "label": "Live session, 2024-09-03, 22:00"
+   }
+  }
+ ],
+ "trades": [
+  {
+   "trade_id": "lpp-SAMPLE-1",
+   "portfolio": "day",
+   "ticker": "NVDA",
+   "side": "long",
+   "posted_at": "2024-08-15T13:41:12Z",
+   "quote": "sample quote",
+   "cite": {
+    "source_id": "yt:SAMPLE",
+    "locator": "t=702s",
+    "label": "Live session, 2024-08-15, 11:42"
+   },
+   "by_delay": {
+    "1": {
+     "entry_at": "2024-08-15T13:42:00Z",
+     "entry": 120.08,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": 1.42
+    },
+    "3": {
+     "entry_at": "2024-08-15T13:44:00Z",
+     "entry": 120.24,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": 1.28
+    },
+    "5": {
+     "entry_at": "2024-08-15T13:46:00Z",
+     "entry": 120.4,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": 1.15
+    },
+    "10": {
+     "entry_at": "2024-08-15T13:51:00Z",
+     "entry": 120.8,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": 0.81
+    },
+    "15": {
+     "entry_at": "2024-08-15T13:56:00Z",
+     "entry": 121.2,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": 0.48
+    },
+    "30": {
+     "entry_at": "2024-08-15T13:59:00Z",
+     "entry": 122.4,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": -0.51
+    },
+    "60": {
+     "entry_at": "2024-08-15T13:59:00Z",
+     "entry": 124.8,
+     "exit_at": "2024-08-15T14:20:00Z",
+     "exit": 121.9,
+     "ret_pct": -2.42
+    }
+   }
+  }
+ ],
+ "days": {
+  "2024-08-15": [
+   {
+    "time_et": "09:41",
+    "course": "lpp",
+    "ticker": "NVDA",
+    "action": "open",
+    "quote": "sample quote"
+   }
+  ]
+ },
+ "unknown": [
+  "Sample data: made-up numbers to build the screens.",
+  "Exit time assumed at 15:55 when he didn't say he closed.",
+  "Costs are estimates."
+ ],
+ "checks": {
+  "events_total": 0,
+  "events_ok": 0,
+  "needs_review": 0
+ }
+}
