@@ -1,0 +1,80 @@
+[
+ {
+  "id": "ZIPTRADER-STOP-1",
+  "theme": "stop",
+  "rule": "Stop loss set 15% to 20% below entry",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-STOP-2",
+  "theme": "stop",
+  "rule": "Cut losing trades quickly when price turns down",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-EXIT-1",
+  "theme": "exit",
+  "rule": "Hold positions with no price-based exit",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-EXIT-2",
+  "theme": "exit",
+  "rule": "Sell or trim once the company's value is judged realized",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-EXIT-3",
+  "theme": "exit",
+  "rule": "Lock in profits quickly when a winning trade turns down",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-ENTRY-1",
+  "theme": "entry",
+  "rule": "Buy when the stock is in a dip, i.e. oversold",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-ENTRY-2",
+  "theme": "entry",
+  "rule": "Buy stocks showing price momentum, i.e. trading above their trend",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-OTHER-1",
+  "theme": "other",
+  "rule": "Only trade stocks the author has high conviction in",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-OTHER-2",
+  "theme": "other",
+  "rule": "Keep holding while the company continues to earn conviction",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-OTHER-3",
+  "theme": "other",
+  "rule": "Stocks with rapid business model growth",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-OTHER-4",
+  "theme": "other",
+  "rule": "Stay in the trade while momentum persists",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-OTHER-5",
+  "theme": "other",
+  "rule": "Apply options only to high conviction stocks",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ },
+ {
+  "id": "ZIPTRADER-OTHER-6",
+  "theme": "other",
+  "rule": "Use options to accelerate momentum gains",
+  "locator": "dc:1387103286389243985/1458657028481220719"
+ }
+]

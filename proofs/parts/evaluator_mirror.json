@@ -1,0 +1,47 @@
+{
+ "inputs": "The same 29 LPP sessions (proof set of 30; both versions extracted these)",
+ "sessions": [
+  "3akuq5hWrHk",
+  "4BBRXqBYIfg",
+  "5xvxykJ1W7Y",
+  "73uzVNLB5rg",
+  "7hETukUoqWI",
+  "8KBf9GxBdpU",
+  "8bG7TPrnj5E",
+  "A4929OT4Jls",
+  "Bj-MhZD4O2Y",
+  "E_sa74f6Ctw",
+  "ObT5nOcb574",
+  "R6Ut-VkHOD4",
+  "RHCJnvb9YhY",
+  "Snc5oy9rrn4",
+  "USz4bs8Q7eI",
+  "V8Hedo8avRw",
+  "XQ8DS0EnyXY",
+  "_8ipOkrMiHo",
+  "_CDLe_xymXI",
+  "euYcAcGKIgU",
+  "h7qumTF3ImI",
+  "lPhT0CwBFfs",
+  "orHocpjx3Z8",
+  "pDa6rq_UW2M",
+  "pSALKx-kWuA",
+  "wavVrUl3IL4",
+  "xrjbRC0t_T4",
+  "ysnSNg2xMf0",
+  "zSJD7GANqwo"
+ ],
+ "at": "2026-10-17T18:36:38Z",
+ "v1": {
+  "agent_id": "extract-lpp-v1",
+  "runs": 29,
+  "runs_pass": 15,
+  "pass_pct": 52
+ },
+ "v2": {
+  "agent_id": "extract-lpp-v2",
+  "runs": 29,
+  "runs_pass": 17,
+  "pass_pct": 59
+ }
+}

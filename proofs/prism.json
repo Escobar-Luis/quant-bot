@@ -1,0 +1,54 @@
+{
+ "schema": "proofs/1",
+ "updated_at": "2026-10-17T18:37:42Z",
+ "prism_app": "https://prism.blockconvey.com",
+ "knowledge_base": {
+  "agent_id": null,
+  "run_id": null,
+  "run_url": null,
+  "docs": [],
+  "query": null,
+  "hits": [],
+  "answer": null,
+  "cites": []
+ },
+ "root_cause": {
+  "agent_id": "extract-lpp-v1",
+  "failed_runs": null,
+  "cluster": null,
+  "tier": null,
+  "prism_cause": null,
+  "our_sentence": null,
+  "url": null
+ },
+ "evaluator": {
+  "name": "Numbers grounded",
+  "checks": "Every price, level and quantity appears in the quote it cites",
+  "inputs": "The same 29 LPP sessions (proof set of 30; both versions extracted these)",
+  "v1": {
+   "agent_id": "extract-lpp-v1",
+   "pass_pct": null
+  },
+  "v2": {
+   "agent_id": "extract-lpp-v2",
+   "pass_pct": null
+  },
+  "code_mirror": {
+   "v1_pass_pct": 52,
+   "v2_pass_pct": 59,
+   "what": "The same rule run by our code on the same sessions, as a cross-check"
+  },
+  "url": null
+ },
+ "evaluator_verdict": null,
+ "bonus": {
+  "alert": null,
+  "guardrail": null
+ },
+ "credits": {
+  "budget": 200,
+  "cap": 150,
+  "spent": 0,
+  "log": "proofs/README.md"
+ }
+}
