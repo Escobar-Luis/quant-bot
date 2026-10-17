@@ -61,7 +61,7 @@ Results today:
 8. **Fake money, not advice**, on every verdict.
 
 ## Built with
-PRISM by Block Convey (`prismtrace-sdk`: traces, Knowledge Base, Root Cause, Evaluators) · Nicrron API (Claude Sonnet 5.5 and Haiku 5.5) · ElevenLabs (demo narration) · Clerk (Google sign-in) · Vercel · Vite · TradingView Lightweight Charts · Python and uv · Alpaca market data · Binance market data · Claude Code (parallel agents, one git worktree per story) · BMAD Method (spec and stories)
+PRISM by Block Convey (`prismtrace-sdk`: traces, Knowledge Base, Root Cause, Evaluators) · Nicrron API (Claude Sonnet 5.5 and Haiku 5.5) · Nicrron text-to-speech (demo narration, `openai/tts-1-hd`) · Clerk (Google sign-in) · Vercel · Vite · TradingView Lightweight Charts · Python and uv · Alpaca market data · Binance market data · Claude Code (parallel agents, one git worktree per story) · BMAD Method (spec and stories)
 
 ## Team
 - **Luis Escobar**: product owner and the user. Picked the question, the courses and the rules for "worked"; gave read access to his own courses; made every call.
