@@ -120,7 +120,7 @@ def main():
     for p in positions:
         p.scale = a.scale
     prefetch(positions)
-    hold, dates, hold_series = hold_numbers(mod.MARKET, mod.HOLD["symbol"], mod.WINDOW)
+    hold, dates, hold_series = hold_numbers(mod.MARKET, getattr(mod, "HOLD_BARS", mod.HOLD["symbol"]), mod.WINDOW)
     by_pos: dict[str, dict[int, engine.Result]] = {}
     for i, p in enumerate(positions):
         by_pos[p.pid] = {d: engine.simulate(p, d) for d in DELAYS_MIN}
@@ -146,7 +146,7 @@ def main():
 
     d5 = DEFAULT_DELAY_MIN
     same = None
-    if a.version != "v1" and not a.limit:   # the fix vs the failure in money: v1 priced on this version's sessions
+    if a.course == "lpp" and a.version != "v1" and not a.limit:   # the fix vs the failure in money: v1 priced on this version's sessions
         srcs = {e["source_id"] for e in mod.load(a.version)}
         base = [p for p in mod.build("v1")["positions"] if p.cite["source_id"] in srcs]
         for p in base:
@@ -168,12 +168,13 @@ def main():
                       if d == d5 and r.assumed_exit for p in [r.position])
     unknown = mod.unknown(st, assumed, len(positions), len(built["positions"]), status) \
         if hasattr(mod, "unknown") else []
+    unknown.append("Worst drop counts closed trades only, not open ones.")
     if not a.scale:
         unknown = [u for u in unknown if "scaled" not in u]
     head = portfolios[0]["by_delay"][str(d5)]
     if head["sized_down"] or head["couldnt_copy"]:
         unknown.insert(0, f"At {d5} min, {head['sized_down']} trades were sized down and {head['couldnt_copy']} "
-                          "skipped: open trades already used the $10k.")
+                          "not copied: no cash left, or too late in the day.")
     if same:
         unknown.insert(0, f"{a.version} re-read only {same['sessions']} sessions; compare it with v1 on the same "
                           "sessions, not with the full year.")

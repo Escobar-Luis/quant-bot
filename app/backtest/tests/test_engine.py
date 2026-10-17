@@ -96,7 +96,7 @@ def test_word_rule():
 def test_scaled_sizing_keeps_his_ratios(fake):
     p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
     r = engine.simulate(p, 1)
-    assert r.fills[0].qty * r.fills[0].px == pytest.approx(1000)
+    assert r.fills[0].qty * r.fills[0].px == pytest.approx(250)    # 100 of his 400 shares -> a quarter of $1,000
     assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
 
 
@@ -123,3 +123,34 @@ def test_day_trade_too_late_to_copy_that_session(fake):
     fake[nxt] = {bars.et_at(nxt, 9, 30) + 60 * i: [100.0, 101.0, 99.0, 100.5, 1] for i in range(390)}
     r = engine.simulate(pos([Leg("a", late, "open", 1)]), 30)   # 16:00: market closed
     assert r.status == "too_late"
+
+
+def test_full_trim_then_add_re_enters(fake):
+    r = engine.simulate(pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "trim", 100),
+                             Leg("c", T0 + 600, "add", 50), Leg("d", T0 + 900, "close")]), 1)
+    assert [f.kind for f in r.fills] == ["entry", "exit", "entry", "exit"]
+
+
+def test_day_trade_legs_after_1555_leave_at_1555(fake):
+    r = engine.simulate(pos([Leg("a", T0, "open", 1), Leg("b", bars.et_at(DAY, 15, 58), "close")]), 1)
+    assert r.assumed_exit and r.last_exit.ts == bars.et_at(DAY, 15, 55)
+
+
+def test_target_ladder_and_break_even(fake):
+    book = fake[DAY]
+    for i in range(390):
+        book[T0 + 60 * i] = [100.0, 100.4, 99.6, 100.0, 1]
+    book[T0 + 300] = [100.0, 102.2, 99.9, 102.0, 1]    # trades TP1 (101) and TP2 (102)
+    book[T0 + 600] = [100.5, 100.6, 99.5, 100.0, 1]    # back through the entry: break-even stop
+    p = pos([Leg("a", T0, "open", 10)], stop=95.0, targets=[101.0, 102.0, 110.0], target_fracs=[0.25, 0.3, 0.45],
+            be_after_target=2)
+    r = engine.simulate(p, 1)
+    kinds = [(f.kind, round(f.qty, 2), f.px) for f in r.fills]
+    assert kinds == [("entry", 10, 100.0), ("target", 2.5, 101.0), ("target", 3.0, 102.0), ("stop", 4.5, 100.0)]
+
+
+def test_portfolio_stats_reports_money_in_use_not_account_value():
+    rs = [_r(0, 100, 1000, 50), _r(200, 300, 1000, 50)]
+    row, series = engine.portfolio_stats(rs, ["1970-01-01"], {"end": 1, "ret_pct": 0, "sealed_ret_pct": 0},
+                                         "1970-01-01")
+    assert row["peak_invested_usd"] == 1000 and row["end"] == 10100 and row["trades"] == 2

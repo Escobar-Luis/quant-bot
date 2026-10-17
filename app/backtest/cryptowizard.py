@@ -14,7 +14,8 @@ from .engine import Leg, Position
 
 COURSE, NAME, MARKET = "cryptowizard", "Crypto Wizard", "crypto"
 WINDOW = {"start": "2025-10-17", "end": "2026-10-16", "sealed_from": "2026-07-16"}
-HOLD = {"symbol": "BTCUSDT", "label": "Just holding", "what": "Buy and keep Bitcoin (BTC)"}
+HOLD = {"symbol": "BTC", "label": "Just holding", "what": "Buy and keep Bitcoin (BTC)"}
+HOLD_BARS = "BTCUSDT"
 SIZING = "$1,000 per setup (they never state a size)"
 CHANNEL = "#wzrd-chat-crypto"
 
@@ -50,8 +51,13 @@ def build(version: str) -> dict:
     for e in evs:
         if e["type"] == "trade" and e.get("links_to") and e["status"] == "ok":
             follow.setdefault(e["links_to"], []).append(e)
-    positions, stats = [], {"no_close_post": 0}
+    positions, stats = [], {"no_close_post": 0, "side_unknown": 0,
+                            "side_inferred": sum(bool((c.get("extra") or {}).get("side_inferred")) for c in calls)}
     for c in sorted(calls, key=lambda e: e["wall_utc"]):
+        side = (c.get("side") or "").lower()
+        if side not in ("long", "short"):
+            stats["side_unknown"] += 1
+            continue
         t0 = bars.to_ts(c["wall_utc"])
         legs = [Leg(c["event_id"], t0, "open")]
         fus = sorted(follow.get(c["event_id"], []), key=lambda e: e["wall_utc"])
@@ -64,7 +70,7 @@ def build(version: str) -> dict:
         pcts = (c.get("extra") or {}).get("close_pcts") or []
         fracs = [p / 100 for p in pcts] if len(pcts) == len(c["targets"]) else []
         p = Position(pid=f"cw-{c['source_id'].rsplit('/', 1)[-1]}", course=COURSE, market=MARKET,
-                     ticker=symbol(c), side=c.get("side") or "long", portfolio="crypto", legs=legs,
+                     ticker=symbol(c), side=side, portfolio="crypto", legs=legs,
                      default_exit=f"hours:{hours}", stop=c.get("stop"), targets=list(c["targets"]),
                      target_fracs=fracs, quote=words(c.get("quote"), 12), cite=cite(c, CHANNEL))
         p.be_after_target = 2
@@ -91,6 +97,10 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     if priced < total:
         out.append(f"Partial: {priced} of {total} setups are priced so far.")
     out.append("Break-even stop assumed once the second target fills.")
+    if stats.get("side_inferred"):
+        out.append(f"Long or short was inferred for {stats['side_inferred']} setups that didn't say.")
+    if stats.get("side_unknown"):
+        out.append(f"{stats['side_unknown']} setups had no direction and were skipped.")
     if assumed.get("crypto"):
         out.append(f"Exit assumed for {assumed['crypto']} setups they never closed (24 h or last update).")
     if status.get("no_bars"):

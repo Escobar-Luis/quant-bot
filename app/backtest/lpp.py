@@ -59,7 +59,7 @@ def build(version: str) -> dict:
     options = [e for e in trades if is_option(e) and e["action"] == "open"]
     trades = [e for e in trades if not is_option(e) and (e.get("side") in ("long", "short")
                                                           or e["action"] in ("trim", "close"))]
-    stats = Counter()
+    stats = Counter(calls_not_copied=sum(e["type"] == "call" and e["status"] == "ok" for e in evs))
     positions, open_pos = [], {}
 
     def finish(key):
@@ -119,8 +119,7 @@ def build(version: str) -> dict:
     for e in trades:
         t = dt.datetime.fromtimestamp(bars.to_ts(e["wall_utc"]), bars.ET)
         days.setdefault(e["session_date"], []).append(
-            {"time_et": t.strftime("%H:%M"), "course": COURSE, "ticker": e["ticker"], "action": e["action"],
-             "quote": words(e["quote"], 12)})
+            {"time_et": t.strftime("%H:%M"), "course": COURSE, "ticker": e["ticker"], "action": e["action"]})
 
     return {
         "positions": positions,
@@ -152,11 +151,13 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"$1,000 assumed on {stats['entry_size_unknown']} entries with no share count.")
     if stats.get("exit_side_unknown"):
         out.append(f"{stats['exit_side_unknown']} exits didn't say which position and were skipped.")
+    if stats.get("calls_not_copied"):
+        out.append(f"{stats['calls_not_copied']} calls (levels he watched, no trade) are not copied.")
     if stats.get("close_without_open"):
         out.append(f"{stats['close_without_open']} exits had no matching entry and were skipped.")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} trade-delays had no price bars and were skipped.")
-    out.append("His positions (often $40k+) are scaled to $1,000 a trade to fit $10k.")
+    out.append("His positions (often $40k+) are scaled to $1,000 a trade, split by his share counts.")
     out.append("Prices are 1-minute market bars, not his own fills.")
     out.append("Costs are estimates: 5 bps per side, 20 under $10.")
     out.append("Just holding SPY leaves out its dividends (about 1% a year).")

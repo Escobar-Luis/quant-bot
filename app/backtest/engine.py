@@ -154,7 +154,7 @@ def _simulate(p: Position, delay_min: int) -> Result:
         """Stops and targets between two moments; returns True when the position went flat."""
         nonlocal stop
         if held <= 0 or (stop is None and not targets) or t1 <= t0:
-            return held <= 0
+            return False   # nothing to watch (already flat after his own trim, or no levels)
         for k, (o, h, l, c, _v) in bars.between(p.market, p.ticker, t0, t1):
             if stop is not None and ((sign > 0 and l <= stop) or (sign < 0 and h >= stop)):
                 px = min(o, stop) if sign > 0 else max(o, stop)
@@ -174,9 +174,16 @@ def _simulate(p: Position, delay_min: int) -> Result:
                         return True
         return False
 
-    clock, factor = None, None
+    clock, factor, cutoff = None, None, None
+    entries = [lg for lg in p.legs if lg.action in ("open", "add")]
+    known = sorted(lg.qty for lg in entries if lg.qty)
+    typical = known[len(known) // 2] if known else 1.0
+    weight = {id(lg): (lg.qty or typical) for lg in entries}   # scaled mode: his legs' shares of one $1,000 trade
+    total_w = sum(weight.values()) or 1.0
     for leg in sorted(p.legs, key=lambda x: x.posted_ts):
         t = leg.posted_ts + d
+        if cutoff is not None and t >= cutoff:   # a day trade's later legs can't be copied after 15:55
+            break
         if leg.action in ("open", "add"):
             if clock is None and p.trigger is not None:
                 hit = _trigger_fill(p, t, default_exit_ts(p, t))
@@ -192,16 +199,18 @@ def _simulate(p: Position, delay_min: int) -> Result:
             if clock is None and p.portfolio == "day" and (
                     bars.et_date(ts) != bars.et_date(leg.posted_ts) or ts >= bars.et_at(bars.et_date(ts), 15, 55)):
                 return Result(p, delay_min, "too_late", why="day trade: no time left that session to copy it")
-            if not leg.qty:
-                qty = PER_TRADE_USD / px
-            elif p.scale:
-                factor = factor or PER_TRADE_USD / (px * leg.qty)
-                qty = leg.qty * factor
-            else:
+            if p.scale:
+                factor = factor or PER_TRADE_USD / (px * total_w)
+                qty = weight[id(leg)] * factor
+            elif leg.qty:
                 qty = leg.qty
+            else:
+                qty = PER_TRADE_USD / px
             book(ts, px, qty, "entry")
             start_qty += qty
             host_held += leg.qty or 0
+            if clock is None and p.portfolio == "day":
+                cutoff = bars.et_at(bars.et_date(ts), 15, 55)
             clock = ts
         else:
             if clock is None:
@@ -221,9 +230,7 @@ def _simulate(p: Position, delay_min: int) -> Result:
                 frac = 0.5
             host_held = max(0.0, host_held - (leg.qty or host_held * frac))
             book(hit[0], hit[1], held * frac if frac < 1 else held, "exit")
-            clock = hit[0]
-            if held <= 1e-12:
-                break
+            clock = hit[0]   # flat after a full trim is not the end: a later add re-enters
     if clock is None:
         return Result(p, delay_min, "no_bars", why="no entry bar")
     if held > 1e-12:
@@ -245,7 +252,7 @@ def word(trades: int, ret_pct: float, hold_ret_pct: float) -> str:
     """contracts.md rule 9."""
     if trades < 30:
         return "Not enough trades"
-    gap = ret_pct - hold_ret_pct
+    gap = round(ret_pct - hold_ret_pct, 2)
     if gap >= 2:
         return "Yes"
     if gap <= -2:
@@ -298,12 +305,12 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
     by_point = [0.0] * len(dates)  # a day off the date list counts on the next listed date (or the last one)
     for day, v in pnl_by_day.items():
         by_point[min(bisect.bisect_left(dates, day), len(dates) - 1)] += v
-    series, money, peak, worst = [], MONEY_START, MONEY_START, 0.0
+    series, money, high, worst = [], MONEY_START, MONEY_START, 0.0
     for v in by_point:
         money += v
         series.append(round(money, 2))
-        peak = max(peak, money)
-        worst = min(worst, (money - peak) / peak * 100 if peak else 0.0)
+        high = max(high, money)
+        worst = min(worst, (money - high) / high * 100 if high else 0.0)
     end = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
     ret = round((end / MONEY_START - 1) * 100, 2)   # the word is decided on the numbers the file shows
     sealed = [(r, f) for r, f in kept if bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed_from]

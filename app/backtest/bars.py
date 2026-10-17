@@ -52,8 +52,14 @@ def _alpaca_get(path: str, params: dict) -> dict:
     key = os.getenv("APCA_API_KEY_ID") or os.getenv("ALPACA_API_KEY")
     sec = os.getenv("APCA_API_SECRET_KEY") or os.getenv("ALPACA_SECRET_KEY")
     for attempt in range(5):
-        r = httpx.get(f"{ALPACA}/{path}", params=params, timeout=30,
-                      headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": sec})
+        try:
+            r = httpx.get(f"{ALPACA}/{path}", params=params, timeout=30,
+                          headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": sec})
+        except httpx.HTTPError as e:
+            if attempt == 4:
+                raise NoBars(f"alpaca {path}: {type(e).__name__}") from e
+            time.sleep(2)
+            continue
         if r.status_code == 429:
             time.sleep(2 + attempt * 3)
             continue
@@ -140,8 +146,11 @@ def crypto_day(symbol: str, day: dt.date) -> dict[int, list]:
         t0 = int(dt.datetime.combine(day, dt.time(0, 0), UTC).timestamp()) * 1000
         raw, start = [], t0
         while start < t0 + 86_400_000:
-            r = httpx.get(BINANCE, params={"symbol": symbol, "interval": "1m", "startTime": start,
-                                           "endTime": t0 + 86_400_000 - 1, "limit": 1000}, timeout=30)
+            try:
+                r = httpx.get(BINANCE, params={"symbol": symbol, "interval": "1m", "startTime": start,
+                                               "endTime": t0 + 86_400_000 - 1, "limit": 1000}, timeout=30)
+            except httpx.HTTPError as e:
+                raise NoBars(f"binance {symbol}: {type(e).__name__}") from e
             if r.status_code != 200:
                 raise NoBars(f"binance {symbol} http {r.status_code}")
             page = [[k[0], float(k[1]), float(k[2]), float(k[3]), float(k[4]), float(k[5])] for k in r.json()]
