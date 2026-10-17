@@ -63,7 +63,10 @@ def main():
     )
     out = HERE / "narration.mp3"
     out.write_bytes(audio)
-    print(f"wrote {out.name}: {len(audio) // 1024} KB, {words} words, voice {'custom' if voice != DEFAULT_VOICE else 'Brian (default)'}")
+    secs = len(audio) / 16000  # 128 kbps mp3
+    print(f"wrote {out.name}: {secs:.0f} s, {words} words, voice {'custom' if voice != DEFAULT_VOICE else 'Brian (default)'}")
+    if secs > 60:
+        print("over 60 s: trim the voiceover block in narration.md")
 
 
 if __name__ == "__main__":

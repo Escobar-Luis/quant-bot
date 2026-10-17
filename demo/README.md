@@ -2,23 +2,25 @@
 
 | File | What | Status |
 |---|---|---|
-| `script.md` | 2:45 live demo on the real app: problem → verdict → slider → failure, fix, score | Draft on real LPP, Crypto Wizard, ZipTrader results; PRISM lines wait on `proofs/prism.json` |
+| `script.md` | ~2:50 live demo on the real app: problem → verdict → slider → failure, fix, score | Ready on today's files; PRISM cluster and pass rates still pending |
 | `narration.md` | ~55 s voice-over text and captions | Ready |
 | `narration.mp3` | ElevenLabs voice-over, made by `python3 demo/narrate.py` | Blocked: the key in `.env` is rejected ("Invalid API key") |
-| `submission.md` | Devpost answers, ready to paste | Draft; **[fill]** marks PRISM values |
-| `check_numbers.py` | Prints every number the script says, from the files | Works |
+| `submission.md` | Devpost answers, ready to paste | Draft; **[fill]** marks PRISM values and the video link |
+| `check_numbers.py` | Prints every number the script says, from the files; exit 1 while anything is pending | Works |
+
+## Before you go on stage (or submit)
+
+```bash
+git -C ~/dev/quant-bot fetch -q origin && python3 demo/check_numbers.py
+```
+
+Compare its output with the "Numbers on screen" table in `script.md`. It finds each file in this checkout, `origin/main`, or the branch that writes it.
 
 ## Recording
 
 - **Video link:** pending.
 - Record the real deployed app (https://day-trader-ai.vercel.app), never the mock. Anything not live gets an on-screen label ("Not live yet").
-- Plan: screen recording of the script's beats (sign-in → LPP verdict → slider → Crypto Wizard and ZipTrader → proof drawer → PRISM tabs) with `narration.mp3` under it; or the architecture-explainer-video skill for a 30 s how-it-works cut.
-- Starts after the 15:30 full-flow test, once PRISM's three proofs show on screen.
-
-## Before you go on stage
-
-```bash
-python3 demo/check_numbers.py --ref origin/main
-```
-
-Compare its output with the "Numbers on screen" table in `script.md`.
+- Plan: a screen recording of the script's beats (LPP verdict → slider → ZipTrader and Crypto Wizard → proof drawer → PRISM tabs) with `narration.mp3` under it, captions from `narration.md`. Optional: a 30 s how-it-works cut with the architecture-explainer-video skill.
+- Upload to YouTube (unlisted) or Loom; don't commit the video file.
+- Timing: right after the 15:30 full-flow test. Deadline 16:15 whatever is live, PRISM cards that aren't live labelled "Pending".
+- If ElevenLabs stays blocked: Luis records the voice-over himself over the same captions, or the free Creator month (ElevenLabs Discord, #coupon-codes) gives a new key.

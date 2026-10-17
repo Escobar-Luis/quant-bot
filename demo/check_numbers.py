@@ -1,9 +1,12 @@
-"""Print every number the demo script says, straight from the committed files, so the talk never drifts.
+"""Print every number the demo script says, straight from the files, so the talk never drifts.
 
-    python3 demo/check_numbers.py                                      # results/ and proofs/ in this checkout
-    python3 demo/check_numbers.py --ref origin/story/1-copy-trade-backtest   # read them from a git ref instead
+    git -C ~/dev/quant-bot fetch -q origin
+    python3 demo/check_numbers.py
 
-Compare the output with the "Numbers on screen" table in demo/script.md before going on stage.
+Each file is read from the first place that has it: this checkout, origin/main, then the branch that writes it
+(results/ from story/1-copy-trade-backtest, proofs/ from story/2-prism-proofs). Pin a place with
+--ref <git ref> (results) and --proofs-ref <git ref> (proofs). Compare the output with the
+"Numbers on screen" table in demo/script.md. Exit code 1 means a PRISM value is still pending or a file is sample data.
 """
 import json
 import pathlib
@@ -11,71 +14,115 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+PLACES = {
+    "results": [None, "origin/main", "origin/story/1-copy-trade-backtest"],
+    "proofs": [None, "origin/main", "origin/story/2-prism-proofs"],
+}
+problems = []
 
 
-def load(path, ref=None):
-    if ref:
-        out = subprocess.run(["git", "-C", str(ROOT), "show", f"{ref}:{path}"], capture_output=True, text=True)
-        return json.loads(out.stdout) if out.returncode == 0 else None
-    p = ROOT / path
-    return json.loads(p.read_text()) if p.exists() else None
+def read(path, ref):
+    if ref is None:
+        p = ROOT / path
+        return json.loads(p.read_text()) if p.exists() else None
+    out = subprocess.run(["git", "-C", str(ROOT), "show", f"{ref}:{path}"], capture_output=True, text=True)
+    if out.returncode == 0:
+        return json.loads(out.stdout)
+    if "invalid object name" in out.stderr or "unknown revision" in out.stderr:
+        sys.exit(f"git ref not found: {ref}")
+    return None
+
+
+def load(path, pinned=None):
+    kind = path.split("/")[0]
+    for ref in ([pinned] if pinned else PLACES[kind]):
+        data = read(path, ref)
+        if data is not None:
+            return data, ref or "this checkout"
+    return None, None
 
 
 def money(x):
     return f"${x:,.0f}"
 
 
-def headline(r, delay, pid="all"):
-    p = next(p for p in r["portfolios"] if p["id"] == pid)
-    return p["by_delay"][str(delay)]
+def by_delay(r, delay, pid="all"):
+    return next(p for p in r["portfolios"] if p["id"] == pid)["by_delay"][str(delay)]
+
+
+def flag(value, what):
+    if value is None:
+        problems.append(what)
+        return "PENDING"
+    return value
+
+
+def course(name, ref):
+    r, where = load(f"results/{name}/v1.json", ref)
+    if r is None:
+        problems.append(f"no results/{name}/v1.json")
+        print(f"{name}: no results/{name}/v1.json anywhere")
+        return None
+    if r.get("sample") or r.get("partial"):
+        problems.append(f"{name} is sample or partial data")
+    print(f"\n{r['course_name']} (v1, from {where}{', SAMPLE' if r.get('sample') else ''}{', PARTIAL' if r.get('partial') else ''})")
+    return r
 
 
 def main():
     ref = sys.argv[sys.argv.index("--ref") + 1] if "--ref" in sys.argv else None
-    proofs_ref = sys.argv[sys.argv.index("--proofs-ref") + 1] if "--proofs-ref" in sys.argv else ref
-    src = ref or "this checkout"
+    pref = sys.argv[sys.argv.index("--proofs-ref") + 1] if "--proofs-ref" in sys.argv else None
 
-    lpp = load("results/lpp/v1.json", ref)
+    lpp = course("lpp", ref)
     if lpp:
         for d in (5, 1, 15):
-            b = headline(lpp, d)
-            print(f"LPP {d:>2} min: {money(b['end'])} vs just holding {money(b['hold_end'])}, {b['word']}, {b['trades']} trades")
-        b = headline(lpp, 5, "day")
-        print(f"LPP day trades 5 min: {money(b['end'])} ({b['ret_pct']:+.1f}%) vs {b['hold_ret_pct']:+.1f}%, {b['word']}")
-        print(f"LPP sample: {lpp.get('sample')}, partial: {lpp.get('partial')}")
-    else:
-        print(f"LPP: no results/lpp/v1.json in {src}")
+            b = by_delay(lpp, d)
+            print(f"  {d:>2} min: {money(b['end'])} vs just holding {money(b['hold_end'])}, {b['word']}, {b['trades']} trades")
+        b = by_delay(lpp, 5, "day")
+        print(f"  day trades 5 min: {money(b['end'])} ({b['ret_pct']:+.1f}%), {b['word']}")
+        print(f"  first unknown: {lpp['unknown'][0]}")
+        v2, _ = load("results/lpp/v2.json", ref)
+        if v2:
+            same = v2.get("same_sessions") or {}
+            a, b = same.get("by_delay", {}).get("5"), by_delay(v2, 5)
+            if a:
+                print(f"  v1 vs v2 on the same {same.get('sessions')} sessions, 5 min: {money(a['end'])} {a['word']} | {money(b['end'])} {b['word']}")
+            print(f"  NOTE: the app shows the highest version per course; if the LPP stamp says {money(b['end'])} "
+                  f"({b['trades']} trades), it is showing v2 ({same.get('sessions')} sessions), not the full year.")
 
-    cw = load("results/cryptowizard/v1.json", ref)
+    cw = course("cryptowizard", ref)
     if cw:
-        b = headline(cw, 5)
+        b = by_delay(cw, 5)
         s = b.get("sealed") or {}
-        print(f"Crypto Wizard 5 min: {money(b['end'])} vs {money(b['hold_end'])}, {b['word']}; "
-              f"sealed {s.get('ret_pct')}% vs {s.get('hold_ret_pct')}% ({s.get('trades')} trades)")
+        print(f"  5 min: {money(b['end'])} vs {money(b['hold_end'])}, {b['word']}; newest months {s.get('ret_pct')}% vs {s.get('hold_ret_pct')}% ({s.get('trades')} trades)")
 
-    zt = load("results/ziptrader/v1.json", ref)
+    zt = course("ziptrader", ref)
     if zt:
-        b = headline(zt, 5)
-        print(f"ZipTrader 5 min: {b['trades']} trade(s), {b['word']}")
+        b = by_delay(zt, 5)
+        print(f"  5 min: {b['trades']} trade(s), {b['word']}")
 
-    v2 = load("results/lpp/v2.json", ref)
-    if v2 and v2.get("same_sessions"):
-        same = v2["same_sessions"]
-        a, b = same["by_delay"]["5"], headline(v2, 5)
-        print(f"LPP same {same['sessions']} sessions, 5 min: v1 {money(a['end'])} {a['word']} | v2 {money(b['end'])} {b['word']}")
-
-    pr = load("proofs/prism.json", proofs_ref)
-    if pr:
+    pr, where = load("proofs/prism.json", pref)
+    if not pr:
+        problems.append("no proofs/prism.json")
+        print("\nProofs: no proofs/prism.json anywhere")
+    else:
+        print(f"\nPRISM proofs (from {where}, updated {pr.get('updated_at')})")
         ev = pr.get("evaluator") or {}
         cm = ev.get("code_mirror") or {}
-        print(f"Evaluator '{ev.get('name')}': PRISM v1 {ev.get('v1', {}).get('pass_pct')} -> v2 {ev.get('v2', {}).get('pass_pct')}; "
-              f"code mirror {cm.get('v1_pass_pct')}% -> {cm.get('v2_pass_pct')}%")
+        print(f"  Evaluator '{ev.get('name')}': PRISM {flag((ev.get('v1') or {}).get('pass_pct'), 'evaluator v1 pass rate')} -> "
+              f"{flag((ev.get('v2') or {}).get('pass_pct'), 'evaluator v2 pass rate')}; our code {cm.get('v1_pass_pct')}% -> {cm.get('v2_pass_pct')}%")
         rc = pr.get("root_cause") or {}
-        print(f"Root Cause: cluster {rc.get('cluster')!r}, failed runs {rc.get('failed_runs')}, ours: {rc.get('our_sentence')!r}, url {rc.get('url')}")
+        print(f"  Root Cause: cluster {flag(rc.get('cluster'), 'root cause cluster')!r}, failed runs {rc.get('failed_runs')}, url {rc.get('url')}")
+        print(f"  Our sentence: {rc.get('our_sentence')!r}")
         kb = pr.get("knowledge_base") or {}
-        print(f"Knowledge Base: run {kb.get('run_url')}, query {kb.get('query')!r}, hits {len(kb.get('hits') or [])}")
-    else:
-        print(f"Proofs: no proofs/prism.json in {proofs_ref or 'this checkout'}")
+        hits = kb.get("hits") or []
+        print(f"  Knowledge Base: run {flag(kb.get('run_url'), 'knowledge base run')}, query {kb.get('query')!r}, "
+              f"{len(hits)} hits, cites {kb.get('cites')}")
+
+    if problems:
+        print("\nNot ready: " + "; ".join(problems))
+        sys.exit(1)
+    print("\nAll values present.")
 
 
 if __name__ == "__main__":
