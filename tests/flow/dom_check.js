@@ -40,10 +40,27 @@ async function flowCheck(EXP, delays = [1, 5, 15]) {
         want(`${w} ${rg} end`, h2, r.end);
         want(`${w} ${rg} holding (anywhere)`, document.body.innerText, r.hold_end);
         want(`${w} ${rg} word`, T('vChip').toLowerCase(), r.word.toLowerCase());
+        if (r.trades) want(`${w} ${rg} trades`, T('vMeta'), r.trades);
+      }
+      for (const m of x.combos || []) {
+        const mx = T('cMix');
+        want(`${w} best mix word`, mx.toLowerCase(), m.word.toLowerCase());
+        want(`${w} best mix past months`, mx, m.dev.find(v => mx.includes(v)) || m.dev[0]);
+        want(`${w} best mix new months`, mx, m.sealed.find(v => mx.includes(v)) || m.sealed[0]);
+        if (!m.dev_beat && /looked good|worked|beat/i.test(mx)) fails.push(`${w} best mix: praises past months that lost to holding: "${mx.slice(0, 90)}"`);
       }
       chip('vRanges', 'All')?.click(); await sleep(250);
       if (overflow()) fails.push(`${w}: page wider than the screen (${document.documentElement.scrollWidth} > ${innerWidth})`);
     }
+  }
+  if (typeof PROOF !== 'undefined') {
+    location.hash = '#proof-lpp'; await sleep(1000);
+    const sh = document.getElementById('sheet'), st = (sh?.innerText || '').replace(/\s+/g, ' ');
+    for (const s of PROOF.text) want(`proof shows ${s}`, st, s);
+    const hrefs = [...(sh?.querySelectorAll('a') || [])].map(a => a.href).join(' ');
+    for (const u of PROOF.links) want('proof links', hrefs, u);
+    if (/\bnull\b|NaN|undefined|0% → 0%/.test(st)) fails.push('proof sheet shows null / NaN / undefined / 0% → 0%');
+    location.hash = '#verdict-lpp'; await sleep(500);
   }
   return { width: innerWidth, pass: passes.length, fail: fails.length, fails: fails.slice(0, 40) };
 }

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121211">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="description" content="Did your trading course actually work? Every trade it posted, copied with $10k of fake money, against just holding.">
+<title>Day Trader AI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231D1D1F'%3E%3Cpath d='M4 17l5.5-5.5 3.5 3.5L20 8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body data-screen="boot">
+
+<header class="top" id="top">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 17l5.5-5.5 3.5 3.5L20 8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Day Trader AI</span>
+  </div>
+  <nav class="seg" id="seg" role="tablist" aria-label="Course"><span class="seg-pill" aria-hidden="true"></span></nav>
+  <div class="top-r">
+    <button class="pill press-fb" type="button" id="dataPill" aria-expanded="false" aria-controls="dataPop" hidden><span data-ic="info"></span><span id="dataPillT">Sample data</span></button>
+    <button class="avatar press-fb" type="button" id="avatarBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" aria-label="Account">ME</button>
+    <div class="pop sample-pop" id="dataPop" role="note" hidden></div>
+    <div class="pop menu" id="menu" role="menu" aria-label="Account" hidden>
+      <div class="menu-who"><span class="avatar" id="menuAvatar" aria-hidden="true">ME</span><span id="menuName">You</span></div>
+      <button type="button" role="menuitem" id="pickAgain"><span data-ic="grid"></span>Change courses</button>
+      <button type="button" role="menuitem" id="signOut"><span data-ic="logout"></span>Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="screen" id="s-boot" aria-label="Loading" hidden></section>
+
+  <section class="screen" id="s-signin" aria-labelledby="siQ" hidden>
+    <div class="col">
+      <h1 class="hero" id="siQ">Did your trading course actually <em>work?</em></h1>
+      <p class="lede">We copy every trade it posted with $10k of fake money, then compare it with just holding.</p>
+      <div class="si-act">
+        <button class="btn press-fb" type="button" id="goBtn"><span id="goIc" data-ic="google"></span><span id="goT">Continue with Google</span></button>
+        <p class="si-err cap" id="siErr" role="alert" hidden></p>
+        <p class="fine cap">Fake money · not advice</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen ob" id="s-onboard-1" aria-labelledby="ob1T" hidden>
+    <div class="col">
+      <h1 class="ob-title" id="ob1T">Which courses did you buy?</h1>
+      <div class="arc" id="arc" role="group" aria-labelledby="ob1T" aria-roledescription="carousel"></div>
+      <div class="arc-nav">
+        <button class="round press-fb" type="button" id="aPrev" aria-label="Previous course"><span data-ic="chevL"></span></button>
+        <button class="round press-fb" type="button" id="aNext" aria-label="Next course"><span data-ic="chevR"></span></button>
+      </div>
+      <div class="ob-foot">
+        <div class="steps cap num" role="img" aria-label="Step 1 of 3"><i class="on"></i><i></i><i></i><span>1/3</span></div>
+        <button class="btn press-fb" type="button" id="ob1Next">Next</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen ob" id="s-onboard-2" aria-labelledby="ob2T" hidden>
+    <div class="col">
+      <h1 class="ob-title" id="ob2T">You’ll get</h1>
+      <ul class="gets">
+        <li><b><span data-ic="check"></span></b><span>A yes or no</span></li>
+        <li><b><span data-ic="trend"></span></b><span>Each kind of trade, tested</span></li>
+        <li><b><span data-ic="doc"></span></b><span>The proof behind it</span></li>
+      </ul>
+      <div class="ob-foot">
+        <div class="steps cap num" role="img" aria-label="Step 2 of 3"><i></i><i class="on"></i><i></i><span>2/3</span></div>
+        <button class="btn press-fb" type="button" id="ob2Next">Run the audit</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen ob" id="s-onboard-3" aria-labelledby="ob3T" hidden>
+    <div class="col">
+      <h1 class="ob-title" id="ob3T">Running the audit</h1>
+      <ol class="run" id="runList" aria-live="polite">
+        <li data-state="wait"><span class="rm"><span data-ic="check"></span></span><span>Reading every post</span></li>
+        <li data-state="wait"><span class="rm"><span data-ic="check"></span></span><span>Copying every trade</span></li>
+        <li data-state="wait"><span class="rm"><span data-ic="check"></span></span><span class="num">Testing with $10,000 fake money</span></li>
+        <li data-state="wait"><span class="rm"><span data-ic="check"></span></span><span>Checking the proof</span></li>
+      </ol>
+      <div class="ob-foot">
+        <div class="steps cap num" role="img" aria-label="Step 3 of 3"><i></i><i></i><i class="on"></i><span>3/3</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-verdict" aria-labelledby="vHead" hidden>
+    <div class="col stack">
+      <div class="card hero-card">
+        <div class="ch"><span class="ch-l"><span class="dot br" id="vDot"></span><span id="vCourse"></span></span><span class="meta mono num" id="vMeta"></span></div>
+        <h1 class="headline num" id="vHead"></h1>
+        <div class="chiprow"><span class="wchip" id="vChip"></span><span class="meta" id="vFine"></span></div>
+        <div class="sec">TIME</div>
+        <div class="chips mono" id="vRanges" role="group" aria-label="Time since you started"></div>
+        <div class="sec">ENTERED AFTER EACH POST</div>
+        <div class="chips mono" id="vDelays" role="group" aria-label="Minutes after each post"></div>
+      </div>
+      <div class="card" id="cChart">
+        <div class="ch"><span>$10k over time</span><span class="meta" id="chartMeta"></span></div>
+        <figure class="vchart" id="vChart"></figure>
+        <p class="stop num" id="vStop"></p>
+      </div>
+      <div class="card" id="cStrat">
+        <div class="ch"><span>What was traded</span><span class="meta" id="stratMeta"></span></div>
+        <ol class="strats" id="strats"></ol>
+      </div>
+      <div class="card bot" id="cBot" hidden></div>
+      <div class="card" id="cMix" hidden></div>
+      <div class="v-act" id="vAct">
+        <button class="btn press-fb" type="button" id="proofBtn">See the proof</button>
+        <button class="link" type="button" id="kindBtn">By kind of trade<span data-ic="chevR"></span></button>
+      </div>
+      <p class="fine cap center">Fake money · not advice</p>
+    </div>
+  </section>
+
+  <section class="screen" id="s-learn" aria-labelledby="lTitle" hidden>
+    <div class="col">
+      <button class="link l-back" type="button" id="backBtn"><span data-ic="chevL"></span>Verdict</button>
+      <h1 class="l-title" id="lTitle">By kind of trade</h1>
+      <p class="l-sub num" id="lSub"></p>
+      <p class="l-set mono num" id="lSet" hidden></p>
+      <div class="delay" id="lDelay"></div>
+      <ol class="kinds" id="kinds"></ol>
+    </div>
+  </section>
+</main>
+
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="scrim" data-close></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <div class="grip" aria-hidden="true"></div>
+    <header class="p-head">
+      <div><h2 class="p-title" id="pTitle">The proof</h2><p class="p-sub cap num" id="pSub"></p></div>
+      <span class="p-word" id="pWord"></span>
+      <button class="x press-fb" type="button" id="pClose" data-close aria-label="Close proof"><span data-ic="x"></span></button>
+    </header>
+    <div class="p-grid">
+      <section class="a-chart">
+        <h3 class="p-h">$10,000 over time</h3>
+        <figure class="chart" id="pChart"></figure>
+        <div class="nums num" id="pNums"></div>
+      </section>
+      <section class="a-kb" id="pKB"></section>
+      <section class="a-rc" id="pRC"></section>
+      <section class="a-ev" id="pEV"></section>
+      <section class="a-new" id="pNew"></section>
+      <section class="a-unk" id="pUnknown"></section>
+    </div>
+    <footer class="p-foot cap"><span>Traced by PRISM · Block Convey</span><span>Models via Nicrron</span><span>Not advice · fake money</span></footer>
+  </section>
+</div>
+
+<div class="sheet-wrap" id="tradeWrap">
+  <div class="scrim" data-close></div>
+  <section class="sheet" id="tSheet" role="dialog" aria-modal="true" aria-labelledby="tTitle">
+    <div class="grip" aria-hidden="true"></div>
+    <header class="p-head">
+      <div><h2 class="p-title" id="tTitle">Check a trade</h2><p class="p-sub cap num" id="tSub"></p></div>
+      <span></span>
+      <button class="x press-fb" type="button" id="tClose" data-close aria-label="Close trades"><span data-ic="x"></span></button>
+    </header>
+    <div class="t-grid">
+      <section>
+        <div class="t-head num" id="tHead"></div>
+        <figure class="t-chart" id="tChart" aria-label="Price after the post"></figure>
+        <p class="t-legend cap" id="tLegend"></p>
+        <blockquote class="t-quote" id="tQuote"></blockquote>
+      </section>
+      <section>
+        <h3 class="p-h" id="tListH">Trades</h3>
+        <ol class="t-list num" id="tList"></ol>
+      </section>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
