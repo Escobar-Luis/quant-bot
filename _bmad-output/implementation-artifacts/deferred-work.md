@@ -29,3 +29,15 @@
 - source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
   summary: List `app/api/` (and later `app/pipeline/`) in AGENTS.md contract 6, "who writes where".
   evidence: AGENTS.md says contracts change there first, by PR; it goes in the backend architecture PR.
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: Merge the backend architecture PR before PR #47, so `app/README.md`, the story context and the `snapshot.py` docstring links resolve.
+  evidence: The spine lives on the architecture branch; bmad-code-review (Blind Hunter, Acceptance Auditor) on PR #47.
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: Typed response models for the API and its shapes written into `contracts.md` (or an OpenAPI file the lanes build against).
+  evidence: `/openapi.json` shows untyped bodies; AGENTS.md says lanes build against contracts written there.
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: CORS allowlist on the API, from the same origins list as Clerk's `authorized_parties`.
+  evidence: A browser client on another origin is blocked today; backend-2 (deploy) owns it.
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: Move `fastapi` and `uvicorn` into an `api` dependency group or extra, so collectors and the backtest don't install them.
+  evidence: They are in the shared main `dependencies` today; harmless but every lane installs them.

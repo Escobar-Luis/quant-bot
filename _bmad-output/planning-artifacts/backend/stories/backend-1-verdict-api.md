@@ -36,12 +36,12 @@ Every response carries `snapshot_id` (AD-1: 12 hex of sha256 over sorted `path:s
 
 ## Implementation Notes
 
-- Built `app/api/` (`snapshot.py`: load, contract checks, AD-1 id, AD-3 headline rule; `main.py`: four routes, error envelope, `X-Snapshot-Id` header, one JSON log line per request) and `app/api/tests/test_api.py` (33 tests, offline).
+- Built `app/api/` (`snapshot.py`: load, contract checks, AD-1 id, AD-3 headline rule; `main.py`: four routes, error envelope, `X-Snapshot-Id` header, one JSON log line per request) and `app/api/tests/test_api.py` (44 tests, offline). Run with `uvicorn --factory api.main:create_app --no-access-log` (no app is built at import).
 - Dependencies in their own commit (shared `pyproject.toml`): `fastapi` 0.143.3, `uvicorn` 0.54.0; dev group `pytest` 9.1.1, `httpx` 0.28.1. This also declares pytest and httpx, which `deferred-work.md` asked for.
-- The snapshot id covers only the files served (`results/<course>/v<n>.json`), as paths relative to the snapshot folder, so the default (the repo root) doesn't hash the whole repo. `results/_sample.json` is never served.
+- The snapshot id hashes every `.json`/`.jsonl` file (no dotfiles) under the snapshot's `results/`, `events/` and `verdicts/`, served or skipped, `_sample.json` included, as paths relative to the snapshot folder; the default root (the repo) isn't hashed whole. Each file is read once, so the hashed bytes are the served bytes. `results/_sample.json` is never served.
 - Files that break what the API relies on (schema, course/version vs path, delays, headline portfolio numbers for every delay) are skipped and listed in `/health.skipped`, never half-served.
 - The results endpoint returns the file's bytes unchanged; the snapshot id rides in the `X-Snapshot-Id` header there, so the contract document isn't altered.
-- Smoke after the rebase: `uvicorn api.main:app` served `/health` (snapshot `646c7375ef10`, three courses, none skipped, `HEAD` 200) and LPP at 15 min (v1, "No", $9,729.38).
+- Smoke after the rebase (before the code-review patches): `uvicorn api.main:app` served `/health` (snapshot `646c7375ef10`, three courses, none skipped, `HEAD` 200) and LPP at 15 min (v1, "No", $9,729.38).
 
 ## Review Triage Log
 
@@ -61,3 +61,30 @@ Blind Hunter, 15 findings (14 verified, 1 not a defect):
 13. Acceptance test picked its expected file with the code under test: medium, patched (the rule is written out again in the test).
 14. No `ETag`/`Cache-Control`, `HEAD /health` 405: low; HEAD patched, caching headers deferred to backend-2 (deploy).
 15. `v01.json` and `v1.json` both accepted: low, patched (`v[1-9]\d*`; test).
+
+### Review Findings (bmad-code-review on PR #47, 2026-10-17)
+
+Layers: Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor (all reported). 0 decision-needed, 17 patched, 4 deferred, 6 rejected.
+
+Patched:
+1. Story note on the snapshot id contradicted the code: low (note fixed above).
+2. Stray files (`.DS_Store`, swap files) changed the id across machines: medium (only `.json`/`.jsonl`, no dotfiles; test).
+3. Privacy scan missed escaped (`youtu\u002ebe`), mixed-case and non-UTF-8 links: medium (scans decoded raw text and the parsed text, case-insensitive; tests). Bare IDs stay a documented server limit.
+4. Building the app at import broke test collection with a bad `SNAPSHOT_DIR`: low (`--factory`, no module-level app).
+5. Hash and served bytes came from two reads: low (one read).
+6. A 500 still produced uvicorn's multi-line traceback, and the access log doubled every line: low (middleware turns errors into the envelope; `--no-access-log` documented; the 500 test now runs with server exceptions raised).
+7. `deferred-work.md` lacked two items: low (added).
+8. A `NaN` in a file passed the checks, then 500'd `/v1/courses` for every course: medium (non-finite numbers refused at parse; test).
+9. A badly named file (`v02.json`) didn't withhold its course, so the API could headline v1 while the web headlines it: low (any skipped file withholds the course; test).
+10. `same_sessions: null` skipped a valid file: low (treated as absent; test).
+11. 405 lost its `Allow` header: low (kept; test).
+12. `/health` answered 200 with no course: low (503; test).
+13. Request log dropped the query string: low (logged).
+14. Acceptance 1 could pass with no files: low (module-level assert).
+15. The id wasn't checked end to end through `load()`: medium, verification gap (known-answer test with two courses, an events file and ignored stray files).
+16. Course/version mismatch, default delay outside `delays_min`, and bad JSON had no skip tests: medium, verification gap (three cases added).
+17. `httpx < 1` from the spine's Stack wasn't encoded; unknown course on the results route untested: low (`httpx>=0.28.1,<1`; test).
+
+Deferred (in `deferred-work.md`): the architecture PR must merge first (links and AGENTS.md "who writes where"); typed response models and the API shapes in `contracts.md`; CORS (backend-2, with the origins list); API dependencies in their own group.
+
+Rejected: HEAD on every route (only `/health` is probed; adds surface); a directory or dangling symlink named `v2.json` crashing startup (fails loudly on a state nothing produces); AC1 naming `portfolios[all]` while the code follows `headline_portfolio` (every file says `all`; the fix would edit the spec); the parity test's name (renamed, not a defect); UTF-16 files (covered by the decoded-text scan); triage wording on HEAD (clarified: `/health` only).

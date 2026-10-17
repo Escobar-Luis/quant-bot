@@ -11,6 +11,7 @@ from api.main import REPO, create_app
 
 RESULTS = REPO / "results"
 REAL = sorted(p for p in RESULTS.glob("*/v*.json"))
+assert REAL, "no results/<course>/v<n>.json files: acceptance 1 would pass without checking anything"
 
 
 @pytest.fixture(scope="module")
@@ -117,6 +118,17 @@ def test_non_integer_delay_is_422_bad_request(client):
     assert r.status_code == 422 and r.json()["error"]["code"] == "bad_request"
 
 
+def test_unknown_course_is_404_on_the_results_route_too(client):
+    r = client.get("/v1/courses/nope/results/v1")
+    assert r.status_code == 404 and r.json()["error"]["code"] == "unknown_course"
+
+
+def test_wrong_method_is_405_with_allow(client):
+    r = client.post("/v1/courses")
+    assert r.status_code == 405 and r.json()["error"]["code"] == "method_not_allowed"
+    assert "GET" in r.headers["allow"]
+
+
 def test_unknown_version_is_404(client):
     r = client.get("/v1/courses/lpp/results/v99")
     assert r.status_code == 404 and r.json()["error"]["code"] == "unknown_version"
@@ -168,7 +180,9 @@ def test_broken_files_are_skipped_and_reported(tmp_path):
 def test_empty_snapshot_starts_but_is_not_ok(tmp_path):
     (tmp_path / "results").mkdir()
     c = TestClient(create_app(tmp_path))
-    assert c.get("/health").json() == {"ok": False, "snapshot_id": snap.snapshot_id({}), "courses": [], "skipped": []}
+    r = c.get("/health")
+    assert r.status_code == 503
+    assert r.json() == {"ok": False, "snapshot_id": snap.snapshot_id({}), "courses": [], "skipped": []}
     assert c.get("/v1/courses").json()["courses"] == []
 
 
@@ -182,9 +196,11 @@ def test_health_answers_head(client):
 
 
 @pytest.mark.parametrize("breakage", ["portfolios_not_objects", "same_sessions_list", "default_delay_bool",
-                                      "row_missing_keys", "private_video_id", "leading_zero_version"])
+                                      "row_missing_keys", "private_video_id", "leading_zero_version",
+                                      "course_mismatch", "default_delay_outside", "not_json", "nan",
+                                      "escaped_youtube_link", "uppercase_youtube_link"])
 def test_malformed_files_are_skipped_not_served(tmp_path, breakage):
-    doc, name = results_doc("lpp", "v1"), None
+    doc, name, raw = results_doc("lpp", "v1"), None, None
     if breakage == "portfolios_not_objects":
         doc["portfolios"] = ["x", None]
     elif breakage == "same_sessions_list":
@@ -197,11 +213,39 @@ def test_malformed_files_are_skipped_not_served(tmp_path, breakage):
         doc["unknown"].append("see yt:A4929OT4Jls")
     elif breakage == "leading_zero_version":
         name = "v01.json"
-    write(tmp_path, doc, name=name)
+    elif breakage == "course_mismatch":     # a ziptrader body saved as results/lpp/v1.json
+        raw = json.dumps({**doc, "course": "ziptrader"})
+    elif breakage == "default_delay_outside":
+        doc["default_delay_min"] = 15
+    elif breakage == "not_json":
+        raw = '{"schema": "results/1",'
+    elif breakage == "nan":
+        raw = json.dumps(doc).replace('"word": "Barely"', '"word": "Barely", "won_pct": NaN', 1)
+    elif breakage == "escaped_youtube_link":
+        raw = json.dumps(doc)[:-1] + ', "link": "https://youtu\\u002ebe/x"}'
+    elif breakage == "uppercase_youtube_link":
+        doc["unknown"].append("https://YouTube.com/watch")
+    path = write(tmp_path, doc, name=name)
+    if raw is not None:
+        path.write_text(raw)
     c = TestClient(create_app(tmp_path))
     body = c.get("/health").json()
     assert body["courses"] == [] and len(body["skipped"]) == 1 and body["ok"] is False
     assert c.get("/v1/courses/lpp/verdict").status_code == 404
+
+
+def test_same_sessions_null_counts_as_absent(tmp_path):
+    write(tmp_path, {**results_doc("lpp", "v1"), "same_sessions": None})
+    assert TestClient(create_app(tmp_path)).get("/health").json()["courses"] == ["lpp"]
+
+
+def test_a_badly_named_file_withholds_its_course(tmp_path):
+    """The web app reads v02.json as version 2 and would headline it; the API must not headline v1 instead."""
+    write(tmp_path, results_doc("lpp", "v1"))
+    write(tmp_path, results_doc("lpp", "v2"), name="v02.json")
+    body = TestClient(create_app(tmp_path)).get("/health").json()
+    assert body["courses"] == [] and {sk["path"] for sk in body["skipped"]} == {
+        "results/lpp/v1.json", "results/lpp/v02.json"}
 
 
 def test_a_skipped_newer_version_withholds_the_whole_course(tmp_path):
@@ -216,7 +260,8 @@ def test_a_skipped_newer_version_withholds_the_whole_course(tmp_path):
     assert {sk["path"] for sk in body["skipped"]} == {"results/lpp/v1.json", "results/lpp/v2.json"}
 
 
-def test_private_url_pattern_matches_the_backtest_guard():
+def test_private_url_pattern_is_the_backtest_pattern():
+    """Same pattern as the backtest guard's regex (the API also ignores case; it can't check bare IDs)."""
     from backtest.common import PRIVATE_URL
     assert snap.PRIVATE_URL.pattern == PRIVATE_URL.pattern
 
@@ -227,6 +272,21 @@ def test_snapshot_id_known_answer():
     digests = {"results/b/v1.json": "22", "results/a/v1.json": "11"}
     want = hashlib.sha256(b"results/a/v1.json:11\nresults/b/v1.json:22").hexdigest()[:12]
     assert snap.snapshot_id(digests) == want
+
+
+def test_snapshot_id_known_answer_through_load(tmp_path):
+    """AD-1 end to end: two courses plus an events file; dotfiles and other suffixes don't count."""
+    import hashlib
+    files = {"results/lpp/v1.json": write(tmp_path, results_doc("lpp", "v1")),
+             "results/ziptrader/v1.json": write(tmp_path, results_doc("ziptrader", "v1"))}
+    ev = tmp_path / "events" / "lpp" / "v1.jsonl"
+    ev.parent.mkdir(parents=True)
+    ev.write_text('{"event_id": "e1"}\n')
+    files["events/lpp/v1.jsonl"] = ev
+    (tmp_path / "results" / ".DS_Store").write_bytes(b"\0junk")
+    (tmp_path / "results" / "lpp" / "v1.json.swp").write_bytes(b"junk")
+    lines = sorted(f"{rel}:{hashlib.sha256(p.read_bytes()).hexdigest()}" for rel, p in files.items())
+    assert snap.load(tmp_path).snapshot_id == hashlib.sha256("\n".join(lines).encode()).hexdigest()[:12]
 
 
 def test_snapshot_id_changes_when_a_skipped_file_changes(tmp_path):
@@ -240,7 +300,7 @@ def test_snapshot_id_changes_when_a_skipped_file_changes(tmp_path):
 
 def test_server_errors_use_the_envelope_and_carry_the_snapshot_id(tmp_path, monkeypatch):
     write(tmp_path, results_doc("lpp", "v1"))
-    c = TestClient(create_app(tmp_path), raise_server_exceptions=False)
+    c = TestClient(create_app(tmp_path))   # raises if an error escaped the middleware to the server
 
     def boom(_self):
         raise RuntimeError("boom")
