@@ -2,6 +2,20 @@
 
 Newest run on top. Screenshots in `tests/flow/shots/`.
 
+## 15:33 · LIVE, bundle index-Dghwpi_b.js (story 3 ba235af), main e97200f
+
+**Call: numbers PASS · proof FAIL (stale proofs in the build)**
+
+| Check | Phone 390 | Notes |
+|---|---|---|
+| Verdict numbers, strategies, best stop | PASS | |
+| Range chips now carry their own trade count (new check) | PASS | LPP 3M 44, 6M 100, 1Y 289; Crypto Wizard 27 / 45 / 122 |
+| Best mix wording (new check) | PASS | "Trailed holding on past months, lost on new ones." |
+| Proof: 52% → 66%, PRISM 50% → 47%, 25 failed runs, links | PASS | |
+| Proof: runs failing a check v1 28 of 30 (#35) | FAIL | Build shows 29 of 30: bundle built before story 3 merged #35. Redeploy from main |
+
+New checks: `check_numbers.py` checks every range's money, word and trade count (and that counts only grow 3M → All); `dom_check.js` checks each range chip's trade count, the Best mix numbers and wording, and the proof sheet's numbers and links.
+
 ## 15:24 · LIVE https://day-trader-ai.vercel.app (bundle index-Db3xMx-B.js, deployed 15:21), main 256018a
 
 **Call: PASS. Demo-ready.**

@@ -57,6 +57,15 @@ def pct(v: float) -> str:
     return sign + (str(int(a)) if a == int(a) else f"{a:.1f}") + "%"
 
 
+def trades_txt(n: int | None) -> str | None:
+    return None if n is None else f"{n:,} trade" + ("" if n == 1 else "s")
+
+
+def pct2(v: float) -> str:
+    """Two decimals, as the Best mix card prints them."""
+    return ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):.2f}%"
+
+
 def word_for(ret: float, hold_ret: float, trades: int | None) -> str:
     if trades is not None and trades < 30:
         return "Not enough trades"
@@ -178,6 +187,7 @@ def check_v2(path: str, r: dict, start: float) -> None:
                 say("FAIL", f"{w} series@{k}m {len(ys)} points ≠ shared dates {len(dates)}")
     rg = r.get("ranges")
     if rg is not None:
+        full = (head.get("by_delay") or {})
         for name in ("3m", "6m", "1y"):
             bd = (rg.get(name) or {}).get("by_delay")
             if not bd:
@@ -187,14 +197,17 @@ def check_v2(path: str, r: dict, start: float) -> None:
             if miss:
                 say("FAIL", f"{path} ranges.{name}: missing delays {miss}")
             for k, m in bd.items():
-                if m.get("end") is None or m.get("hold_end") is None or m.get("word") not in WORDS:
-                    say("FAIL", f"{path} ranges.{name}@{k}m: needs end, hold_end, word")
-                    continue
-                if m["word"] != "Not enough trades":
-                    want = word_for((m["end"] / start - 1) * 100, (m["hold_end"] / start - 1) * 100,
-                                    m.get("trades"))
-                    if m["word"] != want:
-                        say("FAIL", f"{path} ranges.{name}@{k}m: word {m['word']!r}, rule says {want!r}")
+                # Same contract as a portfolio: money, returns, the word rule, and its own trade count.
+                check_metrics(f"{path} ranges.{name}@{k}m", m, start)
+                n, n_all = m.get("trades"), (full.get(k) or {}).get("trades")
+                if n is not None and n_all is not None and n > n_all:
+                    say("FAIL", f"{path} ranges.{name}@{k}m: {n} trades > {n_all} in the whole window")
+        # Ranges run from the window start, so each longer range holds at least as many trades.
+        for k in map(str, DELAYS):
+            ns = [((rg.get(x) or {}).get("by_delay") or {}).get(k, {}).get("trades") for x in ("3m", "6m", "1y")]
+            ns = [n for n in ns if n is not None] + [(full.get(k) or {}).get("trades")]
+            if None not in ns and ns != sorted(ns):
+                say("FAIL", f"{path} ranges@{k}m: trade counts 3m/6m/1y/all {ns} should only grow")
     for cb in r.get("combos") or []:
         w, se = f"{path} combo {'+'.join(cb.get('ids', []))}", cb.get("sealed") or {}
         if cb.get("picked_on") != "dev":
@@ -251,7 +264,7 @@ def screen_table(files: dict) -> dict:
             by[k] = {
                 "word": m["word"], "end": money(m["end"]), "hold_end": money(m["hold_end"]),
                 "ret": pct(m["ret_pct"]), "hold_ret": pct(m["hold_ret_pct"]),
-                "trades": f"{m['trades']:,} trade" + ("" if m["trades"] == 1 else "s"),
+                "trades": trades_txt(m["trades"]),
                 "couldnt_copy": m.get("couldnt_copy") or 0, "sized_down": m.get("sized_down") or 0,
                 "not_triggered": m.get("not_triggered") or 0,
             }
@@ -259,7 +272,13 @@ def screen_table(files: dict) -> dict:
                 x = (v.get("by_delay") or {}).get(k)
                 if x:
                     by[k].setdefault("ranges", {})[rg] = {"end": money(x["end"]), "hold_end": money(x["hold_end"]),
-                                                          "word": x["word"]}
+                                                          "word": x["word"], "trades": trades_txt(x.get("trades"))}
+            mix = [{"word": cb["word"], "dev": [pct(cb["dev"]["ret_pct"]), pct2(cb["dev"]["ret_pct"])],
+                    "sealed": [pct(cb["sealed"]["ret_pct"]), pct2(cb["sealed"]["ret_pct"])],
+                    "dev_beat": cb["dev"]["ret_pct"] - cb["dev"]["hold_ret_pct"] >= 2}
+                   for cb in (r.get("combos") or []) if str(cb.get("delay_min", 5)) == k and cb.get("dev")]
+            if mix:
+                by[k]["combos"] = mix
             b = ((r.get("best_stop") or {}).get("by_delay") or {}).get(k)
             if b:
                 by[k]["best_stop"] = {"date": b["date"], "end": money(b["end"])}
@@ -273,6 +292,22 @@ def screen_table(files: dict) -> dict:
                                                                     if not p.get("testable")},
                          "by_delay": by}
     return table
+
+
+def proof_table(p: dict | None) -> dict:
+    """Strings and links the LPP proof sheet must show (null values are left out: the UI says pending)."""
+    if not p:
+        return {"text": [], "links": []}
+    ev, rc, kb = p.get("evaluator") or {}, p.get("root_cause") or {}, p.get("knowledge_base") or {}
+    mirror, fr = ev.get("code_mirror") or {}, ev.get("failed_runs") or {}
+    text = [f"{v}%" for v in (mirror.get("v1_pass_pct"), mirror.get("v2_pass_pct"),
+                              (ev.get("v1") or {}).get("pass_pct"), (ev.get("v2") or {}).get("pass_pct")) if v is not None]
+    if fr.get("v1") is not None:
+        text += [f"{fr['v1']} of {fr.get('of', 30)}", f"{fr['v2']} of {fr.get('of', 30)}"]
+    if rc.get("failed_runs"):
+        text.append(f"{rc['failed_runs']} failed runs")
+    links = [u for u in (kb.get("run_url"), rc.get("url")) if u]
+    return {"text": text, "links": links}
 
 
 # ---------- live build ----------
@@ -450,6 +485,7 @@ def main() -> int:
         print(f"  screen table → {a.expect}")
     if a.dom_js:
         Path(a.dom_js).write_text(f"const EXPECTED = {json.dumps(table, ensure_ascii=False)};\n"
+                                  f"const PROOF = {json.dumps(proof_table(proofs), ensure_ascii=False)};\n"
                                   + (HERE / "dom_check.js").read_text())
         print(f"  browser check → {a.dom_js} (paste into the signed-in page)")
     print()
