@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v2",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T19:03:56Z",
- "git_sha": "5cd9d36a368bd0d8f2b29443d0959b09ffc77512",
+ "generated_at": "2026-10-17T19:08:51Z",
+ "git_sha": "25e584790e5666b9d841e1fd12d8ccf1f8f89216",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -30,7 +30,7 @@
   "stocks_under_10": 20,
   "crypto": 25
  },
- "sizing": "His share counts scaled so each trade starts at $1,000; $1,000 when he gave none",
+ "sizing": "His share counts, scaled to $1,000 per trade",
  "hold": {
   "symbol": "SPY",
   "label": "Just holding",
@@ -14103,7 +14103,6 @@
   "$1,000 assumed on 22 entries with no share count.",
   "81 calls (levels he watched, no trade) are not copied.",
   "11 exits had no matching entry and were skipped.",
-  "His positions (often $40k+) are scaled to $1,000 a trade, split by his share counts.",
   "Prices are 1-minute market bars, not his own fills.",
   "Costs are estimates: 5 bps per side, 20 under $10.",
   "Just holding SPY leaves out its dividends (about 1% a year).",
@@ -14134,7 +14133,7 @@
     "buy": "Short after a fast run-up he calls overbought",
     "sell": "Covers in pieces as it fades; 93% never closed (assumed)",
     "stop": "None stated",
-    "size": "His size, median 500 shares; copied at $1,000",
+    "size": "His share count (median 500), scaled to $1,000",
     "time": "Mostly 09:49-10:20 ET"
    },
    "quotes": [
@@ -16221,7 +16220,7 @@
     "buy": "Short as it stalls at a prior high",
     "sell": "Covers into the next drop; 57% never closed (assumed)",
     "stop": "None stated",
-    "size": "His size, median 100 shares; copied at $1,000",
+    "size": "His share count (median 100), scaled to $1,000",
     "time": "Mostly 09:37-10:06 ET"
    },
    "quotes": [
@@ -18308,7 +18307,7 @@
     "buy": "Short when support breaks or it looks weak",
     "sell": "Covers after the flush; 50% never closed (assumed)",
     "stop": "None stated",
-    "size": "His size, median 100 shares; copied at $1,000",
+    "size": "His share count (median 100), scaled to $1,000",
     "time": "Mostly 09:59-10:26 ET"
    },
    "quotes": [
@@ -20395,7 +20394,7 @@
     "buy": "Buy a sharp dip near support",
     "sell": "Sells the bounce in pieces; 17% never closed (assumed)",
     "stop": "None stated",
-    "size": "His size, median 125 shares; copied at $1,000",
+    "size": "His share count (median 125), scaled to $1,000",
     "time": "Mostly 09:45-10:04 ET"
    },
    "quotes": [
@@ -22482,7 +22481,7 @@
     "buy": "Shorts with no repeatable reason given",
     "sell": "Covers when it feels done; 53% never closed (assumed)",
     "stop": "None stated",
-    "size": "His size, median 100 shares; copied at $1,000",
+    "size": "His share count (median 100), scaled to $1,000",
     "time": "Mostly 09:39-09:55 ET"
    },
    "quotes": [
@@ -24569,7 +24568,7 @@
     "buy": "Longs with no repeatable reason given",
     "sell": "Sells when it feels done",
     "stop": "None stated",
-    "size": "His size, median 75 shares; copied at $1,000",
+    "size": "His share count (median 75), scaled to $1,000",
     "time": "Mostly 09:38-10:00 ET"
    },
    "quotes": [
