@@ -13,7 +13,12 @@ Tags: **[V]** verified live today, **[D]** docs only, **[?]** unverified, test f
 4. Code checks every kept item.
 5. Replay trades on minute bars.
 
-**Decisions for you** (details in section 8)
+**PRISM proofs** (section 7)
+1. KB: course cards → verdict agent.
+2. Root Cause: failed extraction runs.
+3. Evaluator: v1 vs v2, 60 sessions.
+
+**Decisions for you** (details in section 9)
 1. Alpaca paper keys: blocking.
 2. Review 5 gold sessions?
 3. "Worked" = copy-trading beats SPY?
@@ -32,10 +37,10 @@ Tags: **[V]** verified live today, **[D]** docs only, **[?]** unverified, test f
 7. **Unlisted means Discord is the only index.** Older years need more Discord search pages (about 60 more); see decision 4.
 
 ### ZipTrader+ (`634553688605851658`)
-Luis: the YouTube lessons he wants are LPP's, not ZipTrader's. The channel walk is now the `collect-ziptrader` agent's first step (section 7), in Luis's signed-in Chrome (the built-in pane was logged out). Seen earlier today by the parent session, channel names only: `👶🏻start-here`, `🚨big-tip`, `🧨morning-briefing`, `💡stock-briefs`, `🥜strategy-explained`, categories `Alerts & Ideas` and `📈Classrooms`. From the brief: `#morning-briefing` = daily PNG screenshots by staff; `#strategy-explained` = one "ZipTrader Strategy Nutshell" graphic; member chat channels = low value. Inventory lands in `data/ziptrader/inventory.md` and the agent's PR.
+Luis: the YouTube lessons he wants are LPP's, not ZipTrader's. The channel walk is now the `collect-ziptrader` agent's first step (section 8), in Luis's signed-in Chrome (the built-in pane was logged out). Seen earlier today by the parent session, channel names only: `👶🏻start-here`, `🚨big-tip`, `🧨morning-briefing`, `💡stock-briefs`, `🥜strategy-explained`, categories `Alerts & Ideas` and `📈Classrooms`. From the brief: `#morning-briefing` = daily PNG screenshots by staff; `#strategy-explained` = one "ZipTrader Strategy Nutshell" graphic; member chat channels = low value. Inventory lands in `data/ziptrader/inventory.md` and the agent's PR.
 
 ### Crypto Wizard (`639275844795367454`, "CRYPTOWZRD")
-Added by Luis today: trade setups with the reasoning behind each, plus explanations of the overall strategy. Every setup becomes a call event (a test set); the strategy explanations become rules. Inventory and setup format: the `collect-cryptowizard` agent (section 7), starting from channel `639277011164200960`.
+Added by Luis today: trade setups with the reasoning behind each, plus explanations of the overall strategy. Every setup becomes a call event (a test set); the strategy explanations become rules. Inventory and setup format: the `collect-cryptowizard` agent (section 8), starting from channel `639277011164200960`.
 
 Public context **[V]** (yt-dlp, no login): the public `@ZipTrader` channel has 892 videos and two playlists, "Getting Started" (28) and "Trading Tutorials" (46). Lessons linked from Discord may be unlisted copies or members-only; the inventory decides which.
 
@@ -148,7 +153,7 @@ Images go in as `{"type": "image_url", "image_url": {"url": "data:image/png;base
 
 ## 4. LPP live sessions: keep, drop, store, test
 
-A session is ~45 minutes of the host trading live at the open: he narrates the tape, announces entries and exits, explains setups, reads news, answers chat and chats. Built by the `extract-lpp` agent (section 7).
+A session is ~45 minutes of the host trading live at the open: he narrates the tape, announces entries and exits, explains setups, reads news, answers chat and chats. Built by the `extract-lpp` agent (section 8).
 
 ### What the prototype showed (one session, 2025-09-12, 44 min, ~3,300 words) [V]
 | Try | Result |
@@ -156,7 +161,7 @@ A session is ~45 minutes of the host trading live at the open: he narrates the t
 | Haiku 5.5, per 2-minute chunk | 21 of 23 chunks had a keep-worthy label; 30 events; all 30 quotes exact; 27 of 30 numbers found in the source; one JSON parse error |
 | Sonnet 5.5, per 2-minute chunk | 26 events (13 trades); all quotes exact; 23 of 26 numbers found |
 | Both | trades split across chunk edges lost their ticker ("it", "that one"); Haiku read a dollar P&L as a price level; "open" is also a ticker (OPEN) |
-| Sonnet 5.5, whole session in one call | Nicrron 502 "upstream timeout", then an empty streamed reply: to debug (section 7) |
+| Sonnet 5.5, whole session in one call | Nicrron 502 "upstream timeout", then an empty streamed reply: to debug (section 8) |
 
 **Conclusion:** filter at the **event** level, not the chunk level, and extract from the whole session (about 10k tokens, so one call fits), so the model can track open positions.
 
@@ -207,7 +212,7 @@ Needs 1-min bars for 2024-25: yfinance only reaches back ~30 days, so this needs
 
 Gotcha **[V]**: the python.org Python 3.13 that `app/.venv` uses has no `enable_load_extension`, so sqlite-vec can't load there. uv-managed Python works (`uv run --python-preference only-managed --python 3.13 --with sqlite-vec`: sqlite 3.47.1, vec v0.1.9, KNN query returned). Fallback without the extension: store vectors as BLOBs and do numpy cosine; same tables.
 
-**Where:** `DATA_DIR=~/dev/quant-bot/data` (the main checkout's gitignored `data/`, same pattern as the shared `.env`). One subfolder per course, one agent per subfolder, so two agents never write the same file. Every course writes the same `sources.jsonl` and `events.jsonl` shapes (hand-over note, section 7); one loader builds `data/daytrader.db` from them.
+**Where:** `DATA_DIR=~/dev/quant-bot/data` (the main checkout's gitignored `data/`, same pattern as the shared `.env`). One subfolder per course, one agent per subfolder, so two agents never write the same file. Every course writes the same `sources.jsonl` and `events.jsonl` shapes (hand-over note, section 8); one loader builds `data/daytrader.db` from them.
 
 ```
 data/lpp/discord/youtube_links.jsonl          # 247 sessions (done)
@@ -284,7 +289,54 @@ Also shown: Sharpe vs buy-and-hold Sharpe (day trades sit in cash most of the ti
 4. Budget: about 12 trials per strategy (Bailey et al.: 7 configs can overfit 2 years of data). Proposer: `anthropic/claude-sonnet-5-5`.
 5. PRISM: one agent run per trial; `final_status="error"` when it loses to buy-and-hold or is rejected, which feeds Root Cause. Evaluators: "every rule cites its source" and "every number in the verdict comes from the backtest".
 
-## 7. Work split: one agent per course (started 2026-10-17, Luis's ask)
+## 7. PRISM proof plan (Money Intelligence)
+
+One storyline for the demo: **the failure** (extraction misreads), **the fix** (prompt v2), **the score that proves it** (our evaluator, v1 vs v2 on the same sessions), with the verdict agent's Knowledge Base retrieval on screen. Facts about PRISM below come from `notes/sponsors.md`. Needs the Builder plan (`MONEYTALKS#2`) active before evaluators can run.
+
+### Agents (one stable `agent_id` per version, never renamed)
+| `agent_id` | What one run is | Steps logged |
+|---|---|---|
+| `extract-lpp-v1`, `extract-lpp-v2` | Extract events from one LPP session | `load_captions` (locator only) → `llm_extract` → `check_events` → final answer = events JSON |
+| `daytrader-verdict-v1`, `daytrader-verdict-v2` | Answer "did this course work, and what's a better version?" for one course | `kb_search` → `load_events` → `backtest` (as taught) → `baseline` → `propose_change` (Nicrron) → `backtest` (proposal) → `accept_rules` → final answer |
+| `extract-ziptrader-v1`, `extract-cryptowizard-v1` | One post or setup | same as LPP; no proof depends on them |
+
+Each run: `submit_trajectory(agent_id, conversation_id, steps, final_status)`, with `metadata.agent_version`. Inputs are locators, never transcript text.
+
+### Proof 1: Knowledge Base
+1. Upload derived notes only: `lpp-strategy-cards.md`, `lpp-events-summary.md` (per-month counts, tickers, round-trip stats), `lpp-untestable.md`; same three for ZipTrader and Crypto Wizard as they land. Paraphrase, locators, quotes of 12 words max.
+2. Assign them to `daytrader-verdict-v1` (it must have sent one trace first, or it isn't listed); reassign to `-v2` before v2 runs.
+3. The verdict run's first step calls `kb_search("<course> entry, exit and sizing rules")` and logs it as a `tool_call` step named `kb_search` with the query and returned doc ids and snippets, since `kb_search` records no step itself. The retrieved text becomes the evaluator's `{context}`.
+4. Show: the run's Steps tab with that retrieval step, and the answer citing a card.
+
+### Proof 2: Root Cause (a cluster of 3+ failed runs)
+1. Failed run = an `extract-lpp-v1` session where any event fails a code check (section 4); `final_status="error"`, with the failing event's check name and its quote (12 words max) in the output, so the cluster has something to read.
+2. Expected cause, from the prototype: dollar P&L read as a price or level, and misheard tickers ("open" vs OPEN). Each showed up in one session already; across 60 sessions they should repeat.
+3. Run v1 on a fixed **proof set of 60 sessions** (the gold 5 plus 55 spread over the year), then "Analyze now" (5 credits).
+4. Our one sentence for the demo: live-stream captions mix P&L talk with prices, and a chunked reader can't tell them apart.
+5. The fix: v2 prompt (P&L is never a price; resolve "it" from the position ledger) on the same 60 sessions.
+
+### Proof 3: Evaluator, v1 vs v2 on the same inputs
+1. Evaluator "numbers grounded" (LLM judge over `{output}` and `{context}`): pass when every price, level and quantity in the output appears in the quote the same event cites. Labels pass / fail, threshold 1.0 per run.
+2. Score `extract-lpp-v1` and `extract-lpp-v2` on the same 60 sessions (datasets are off on our plan, so the replay is ours).
+3. Second evaluator, if credits allow: "every rule cites its source", on `daytrader-verdict-v1` vs `-v2` for the three courses.
+4. Demo line: v1 pass rate, v2 pass rate, same 60 sessions.
+
+### Budget (Builder: 400 + 100 welcome credits; 200 analysed runs a day)
+| Item | Runs | Credits |
+|---|---|---|
+| `extract-lpp-v1` + `-v2` on the proof set | 120 | 120 Intelligence + 120 evaluator |
+| Root Cause, twice | 2 | 10 |
+| `daytrader-verdict` v1 and v2, 3 courses, a few tries | ~20 | ~40 |
+| **Total** | ~140 | ~290 |
+
+So trace only the 60-session proof set to PRISM; run the other 187 LPP sessions untraced (or under a separate project).
+
+### Bonus (only after the three proofs)
+1. Verdict runs already have 7+ tool steps.
+2. Alert: `evaluation_failed` above 5 on `extract-lpp-v1`, fires during the v1 batch.
+3. Guardrail (Regex, block): "guaranteed", "can't lose", "risk-free" in a verdict answer, since course marketing uses that language.
+
+## 8. Work split: one agent per course (started 2026-10-17, Luis's ask)
 
 All three read `AGENTS.md`, this file, and the hand-over note `pipeline-handover.md` in the shared notes folder (common record shapes, data folder, Discord rules). Each writes raw data only under its own `data/<course>/`, works in its own worktree and branch, opens a PR for code, and asks Luis directly before any image download or a wider Discord window. Discord reads use Luis's signed-in Chrome (the built-in pane is logged out), via Discord's own search, never by scrolling whole histories.
 
@@ -298,7 +350,7 @@ All three read `AGENTS.md`, this file, and the hand-over note `pipeline-handover
 - `story/loader`: JSONL from all three → SQLite (+ sqlite-vec under uv-managed Python), embeddings, PRISM KB docs.
 - `story/backtest-engine`: bars cache, engine, verdict rules, call and copy-trade scoring, trial log.
 
-## 8. Decisions for Luis
+## 9. Decisions for Luis
 
 | # | Decision | My pick | Why |
 |---|---|---|---|
