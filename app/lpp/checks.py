@@ -49,6 +49,17 @@ def build(tr: Transcript, raw: dict, src_id: str, carry_in: set | None = None) -
         quote = " ".join((e.get("quote") or "").split())
         t_model = _num(e.get("t"))
         t_quote = tr.find(quote, near=t_model) if quote else None
+        qty, price, level = _num(e.get("qty")), _num(e.get("price")), _num(e.get("level"))
+        numbers = [n for n in (qty, price, level) if n is not None]
+        trimmed = False
+        if VERSION != "v1" and t_quote is not None and _words(quote) > 12:
+            # v2: the model can't count to 12, so code keeps the 12-word window of its (verified) quote that holds
+            # the most of the event's numbers; a consecutive slice of a caption span is still exact caption words
+            w = quote.split()
+            best = max(range(len(w) - 11), key=lambda j: (sum(_said(n, _nums_in(norm(" ".join(w[j:j + 12]))))
+                                                             for n in numbers), -j))
+            quote, trimmed = " ".join(w[best:best + 12]), True
+            t_quote = tr.find(quote, near=t_model)
         quote_ok = bool(quote) and _words(quote) <= 12 and t_quote is not None
         if not quote:
             fail.append("quote_missing")
@@ -62,8 +73,6 @@ def build(tr: Transcript, raw: dict, src_id: str, carry_in: set | None = None) -
             wall = dt.datetime.fromtimestamp(tr.release_ts + t_s, dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # every number the event carries must be said within 3 minutes before / 1 minute after the quote
-        qty, price, level = _num(e.get("qty")), _num(e.get("price")), _num(e.get("level"))
-        numbers = [n for n in (qty, price, level) if n is not None]
         numbers_ok = None
         if numbers:
             win = _nums_in(tr.window((t_s or 0) - 180, (t_s or 0) + 60)) if t_s is not None else _nums_in(ntext)
@@ -114,7 +123,7 @@ def build(tr: Transcript, raw: dict, src_id: str, carry_in: set | None = None) -
             "horizon": None, "why": e.get("why"), "rule": e.get("rule") if typ == "rule" else None,
             "quote": " ".join(quote.split()[:12]),
             "checks": {"quote_ok": quote_ok, "numbers_ok": numbers_ok, "ticker_ok": ticker_ok, "price_ok": price_ok,
-                       "ledger_ok": None},
+                       "ledger_ok": None, "quote_trimmed": trimmed},
             "fail": fail, "status": status, "model": raw.get("model"), "prompt_version": PROMPT_VERSION,
         })
     out.sort(key=lambda e: (e["t_s"] is None, e["t_s"] or 0))
