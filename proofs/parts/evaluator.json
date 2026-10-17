@@ -1,0 +1,19 @@
+{
+ "evaluator": "Numbers grounded",
+ "inputs": "The same 30 LPP sessions (proof set), scored by PRISM",
+ "task_id": "0d49e34b-f693-4e41-bead-029b790b030d",
+ "at": "2026-10-17T19:29:10Z",
+ "v1": 50,
+ "v1_counts": {
+  "grounded": 15,
+  "ungrounded": 15,
+  "judge_saw_cut_off_output": 24
+ },
+ "v2": 47,
+ "v2_counts": {
+  "grounded": 14,
+  "ungrounded": 16,
+  "judge_saw_cut_off_output": 24
+ },
+ "url": "https://prism.blockconvey.com/evaluators"
+}
