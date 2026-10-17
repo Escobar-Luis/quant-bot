@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 
-from .common import DATA, PROOFS, now, read_jsonl
+from .common import DATA, PROOFS, now, read_jsonl, write_public
 
 NUMBERS_GROUNDED = {
     "name": "Numbers grounded",
@@ -171,7 +171,7 @@ def main():
                    f"- Pass label: {ev['pass_label']} (threshold {ev['pass_threshold']})",
                    f"- Score runs of: {', '.join(ev['scope'])}", f"- Description: {ev['description']}", "",
                    "Rubric:", "", "```", ev["template_prompt"], "```", ""]
-        (PROOFS / "evaluators.md").write_text("\n".join(md))
+        write_public(PROOFS / "evaluators.md", "\n".join(md))
         print("\n".join(md))
     elif a.cmd == "create":
         create()
@@ -179,13 +179,11 @@ def main():
         ev = prism_scores()
         old = json.loads((PROOFS / "parts" / "evaluator.json").read_text()) if (PROOFS / "parts" / "evaluator.json").exists() else {}
         ev["url"] = old.get("url") or "https://prism.blockconvey.com/evaluators"
-        (PROOFS / "parts").mkdir(parents=True, exist_ok=True)
-        (PROOFS / "parts" / "evaluator.json").write_text(json.dumps(ev, indent=1))
+        write_public(PROOFS / "parts" / "evaluator.json", json.dumps(ev, indent=1))
         print(json.dumps(ev, indent=1))
     else:
         m = mirror()
-        (PROOFS / "parts").mkdir(parents=True, exist_ok=True)
-        (PROOFS / "parts" / "evaluator_mirror.json").write_text(json.dumps(m, indent=1))
+        write_public(PROOFS / "parts" / "evaluator_mirror.json", json.dumps(m, indent=1))
         print(json.dumps({k: m[k] for k in ("inputs", "v1", "v2")}, indent=1))
 
 
