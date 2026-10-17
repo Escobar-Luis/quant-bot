@@ -16,7 +16,7 @@ Code: `app/lpp/`. Data (gitignored): `~/dev/quant-bot/data/lpp/`. Design: `notes
 **Your call**
 1. Review 5 gold checklists.
 2. Send v2 runs to PRISM?
-3. Story 1: price v2, not v1?
+3. Story 1 prices v2?
 
 ## 1. Source
 1. Discord `#morning-live-trading` (LPP server), one YouTube link per trading day; 247 sessions, 2024-08-15 to 2025-09-12 (collected by the strategy-pipeline session).
@@ -72,7 +72,7 @@ Sessions: 247 linked, 246 extracted (all `anthropic/claude-sonnet-5-5`, no fallb
 4. Most traded: TSLA 443, NVDA 245, PLTR 236, HIMS 154, MSTR 126, HOOD 125, SOUN 98, SOFI 76.
 5. Trades per month rise from 60 (2024-08) to 228 (2025-07).
 
-{{V2_ALL}}
+**v2 on all 246 sessions** (`data/lpp/v2/`, same check code): 4,128 events (1,768 trades, 771 calls, 1,589 rules); `needs_review` 355 (v1: 1,313); 93 sessions fully clean (v1: 12). Remaining v2 failures: `close_without_open` 107, `call_without_side` 78, `number_not_near_quote` 63, `number_not_in_source` 42, `rule_number_not_in_source` 22, `qty_exceeds_position` 19, `quote_not_in_source` 19, `trade_without_side` 16, `price_off_minute_bar` 16, `ticker_unresolved` 9, `quote_too_long` 8, `ticker_unknown` 7. 193 round trips close on air; 218 positions are open at stream end.
 
 ## 5. Metrics vs gold (5 sessions spread over the year)
 Gold was drafted by this session from the captions before it saw the extractor's output: 36 trades (28 sure, 8 unsure), 28 calls (16 sure), 62 rules (46 sure), 126 events in 5 sessions (2024-09-24, 2024-12-04, 2025-02-18, 2025-05-13, 2025-07-29). Two sessions have no host trades at all, which tests "a viewer's trade read out loud". Luis's review is pending, so every number here is **provisional**.
@@ -145,8 +145,15 @@ v1, all 246 sessions (an event can fail more than one check):
 1. **Host's round trips**: the shared ledger over trades that pass the validity checks; legs priced at the 1-min bar at each `wall_utc` (his stated fill when it sits inside that bar).
 2. **Copy the host** (`contracts.md` rules 2-5): each entry and each announced trim or close copied 60 s later at the open of the first 1-min bar at or after announce + delay; same share counts; costs 5 bps per side (20 under $10); SPY over the same minutes.
 3. **Calls**: did the level trade after the call, before 16:00 ET that session (1-min bars).
-4. **First pass, v1** (`data/lpp/tests/`): 362 round trips; 50 can be priced end to end (closed on air with every share count stated): host +$9,620 gross, copy +$4,499 net, copy positive on 33 of 50 and ahead of SPY over the same minutes on 32 of 50; 38 of the 50 are shorts. 90 trips lack a share count, 200 are open at stream end, 21 have counts that don't add up. Small, selected sample: story 1's verdict decides.
-5. Calls: 636 judged on minute bars after the call; the level traded on 372 (58%): support 190/260, resistance 67/96, entry 29/45, stop 10/15, target 76/220.
+4. **First pass** (`data/lpp/tests/`, `data/lpp/v2/tests/`): 362 round trips in each version; 50 can be priced end to end (closed on air with every share count stated).
+
+| | Host, gross | Copy 60 s later, net | Copy positive | Copy ahead of SPY, same minutes |
+|---|---|---|---|---|
+| v1 | +$9,620 | +$4,499 | 33 of 50 | 32 of 50 |
+| v2 | +$10,963 | +$7,002 | 35 of 50 | 35 of 50 |
+
+   The rest: ~90 trips lack a share count, ~200 are open at stream end, ~20 have counts that don't add up. 50 hand-picked-by-completeness trips is a small, selected sample: story 1's verdict decides.
+5. Calls (minute bars after the call): v1 372 of 636 levels traded that session (58%; support 190/260, resistance 67/96, entry 29/45, stop 10/15, target 76/220); v2 394 of 664 (59%).
 6. Not here: the sealed window (`contracts.md` rule 10) and the per-delay portfolios; both are story 1's.
 
 ## 10. Not verified
