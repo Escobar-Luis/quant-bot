@@ -269,19 +269,37 @@ function stratName(ref, c) {
   const name = st?.name || port?.label || sid;
   return course.key === c.key ? name : `${course.name}: ${name}`;
 }
+// Plain words for small changes: the code decides, the copy only reports it.
+const pct2 = v => { const r = Math.round(v * 100) / 100, a = Math.abs(r).toFixed(2); return (r > 0 ? '+' : r < 0 ? '−' : '') + a + '%'; };
+const moved = (before, after, where) => { const d = after - before; return (d > 0.05 ? 'Helped' : d < -0.05 ? 'Hurt' : 'No change') + ' on ' + where; };
 function renderBotMix(c) {
-  const bot = extra(c, 'suggestion'), mix = extra(c, 'combos');
-  const sb = bot?.v;
+  const sb = c.r?.suggestion, m = Array.isArray(c.r?.combos) ? c.r.combos[0] : null;
   $('#cBot').hidden = !sb;
-  if (sb) $('#cBot').innerHTML = `<div class="ch"><span>Bot suggests</span>${bot.sample ? '<span class="tagS">Sample</span>' : '<span class="meta">PRISM-traced</span>'}</div>
-    <p class="bot-change">${esc(sb.change)}${sb.applies_to ? ` <span class="meta">on ${esc(stratName(sb.applies_to, c))}</span>` : ''}</p>
-    <div class="bot-nums">${sb.dev ? `<span>Tuned on: <b>${pct(sb.dev.before_pct)} → ${pct(sb.dev.after_pct)}</b></span>` : ''}${sb.sealed ? `<span>Months it never saw: <b>${pct(sb.sealed.before_pct)} → ${pct(sb.sealed.after_pct)}</b></span>` : ''}</div>
-    <p class="meta">${sb.kept ? 'Kept: code tested it and it held up.' : 'Dropped: it didn’t hold up.'}${sb.prism_url ? ` ${link(sb.prism_url, 'See the run')}` : ''}</p>`;
-  const m = Array.isArray(mix?.v) ? mix.v[0] : null;
+  if (sb) {
+    const url = sb.prism_url || (sb.trajectory_id ? `https://prism.blockconvey.com/trajectories/${encodeURIComponent(sb.trajectory_id)}` : null);
+    const past = sb.dev ? moved(sb.dev.before_pct, sb.dev.after_pct, 'past months') : '';
+    const fresh = sb.sealed ? moved(sb.sealed.before_pct, sb.sealed.after_pct, 'new months').replace(/^./, ch => ch.toLowerCase()) : '';
+    $('#cBot').innerHTML = `<div class="ch"><span>Bot suggests</span><span class="meta">PRISM-traced</span></div>
+      <p class="bot-change">${esc(sb.change)}${sb.applies_to ? ` <span class="meta">on ${esc(stratName(sb.applies_to, c))}</span>` : ''}</p>
+      ${sb.why ? `<p class="meta">${esc(sb.why)}</p>` : ''}
+      <div class="bot-rows mono num">
+        ${sb.dev ? `<div><span>Past months</span><b>${pct2(sb.dev.before_pct)} → ${pct2(sb.dev.after_pct)}</b></div>` : ''}
+        ${sb.sealed ? `<div><span>New months${sb.sealed.trades != null ? ` · ${sb.sealed.trades} trades` : ''}</span><b>${pct2(sb.sealed.before_pct)} → ${pct2(sb.sealed.after_pct)}</b></div>` : ''}
+      </div>
+      <p class="bot-say">${[past, fresh].filter(Boolean).join(', ')}.${sb.kept != null ? ` ${sb.kept ? 'Kept.' : 'Not kept.'}` : ''}</p>
+      ${link(url, 'See the run in PRISM')}`;
+  }
   $('#cMix').hidden = !m;
-  if (m) $('#cMix').innerHTML = `<div class="ch"><span>Best mix <span class="meta">within this course</span></span>${mix.sample ? '<span class="tagS">Sample</span>' : `<span class="wchip" style="--word:${WORD_COLOR[wcls(m.word)]}">${esc(m.word || '')}</span>`}</div>
-    <p class="bot-change">${m.ids.map(id => esc(stratName(id, c))).join(' + ')}</p>
-    <div class="bot-nums">${m.dev ? `<span>Picked on earlier months: <b>${pct(m.dev.ret_pct)}</b> vs holding ${pct(m.dev.hold_ret_pct)}</span>` : ''}${m.sealed ? `<span>Then, on ${m.window ? `${month(m.window.start)} – ${month(m.window.end)}` : 'months it never saw'}: <b>${pct(m.sealed.ret_pct)}</b> vs holding <b>${pct(m.sealed.hold_ret_pct)}</b></span>` : ''}</div>`;
+  if (m) {
+    const say = m.dev && m.sealed ? `${m.dev.ret_pct >= 0 ? 'Looked good' : 'Lost money'} on past months, ${m.sealed.ret_pct < 0 ? 'lost on new ones' : m.sealed.ret_pct >= m.sealed.hold_ret_pct ? 'held up on new ones' : 'trailed holding on new ones'}.` : '';
+    $('#cMix').innerHTML = `<div class="ch"><span>Best mix <span class="meta">within this course</span></span><span class="wchip" style="--word:${WORD_COLOR[wcls(m.word)]}">${esc(m.word || '')}</span></div>
+      <p class="bot-change">${m.ids.map(id => esc(stratName(id, c))).join(' + ')}</p>
+      <div class="bot-rows mono num">
+        ${m.dev ? `<div><span>Past months${m.dev.pairs_tried ? ` · best of ${m.dev.pairs_tried} pairs` : ''}</span><b>${pct2(m.dev.ret_pct)} <small>vs ${pct2(m.dev.hold_ret_pct)} holding</small></b></div>` : ''}
+        ${m.sealed ? `<div><span>New months${m.window ? ` · ${month(m.window.start)}–${month(m.window.end)}` : ''}</span><b>${pct2(m.sealed.ret_pct)} <small>vs ${pct2(m.sealed.hold_ret_pct)} holding</small></b></div>` : ''}
+      </div>
+      ${say ? `<p class="bot-say">${say}</p>` : ''}`;
+  }
 }
 let shownWord = null;
 function renderVerdict(fresh) {
