@@ -19,6 +19,6 @@ function clerkKey(mode) {
 export default defineConfig(({ mode }) => ({
   define: { __CLERK_PK__: JSON.stringify(clerkKey(mode)) },
   // results/ and proofs/ live at the repo root, one level up.
-  server: { fs: { allow: ['..'] } },
+  server: { fs: { allow: ['.', '../results', '../proofs'] } },
   build: { target: 'es2022' }
 }));

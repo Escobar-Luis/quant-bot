@@ -11,7 +11,7 @@ cp -R index.html package.json package-lock.json vite.config.js src "$app/"
 mkdir -p "$app/results" "$app/proofs"
 (cd .. && find results -name '*.json' | while read -r f; do mkdir -p "$app/$(dirname "$f")"; cp "$f" "$app/$f"; done)
 [ -f ../proofs/prism.json ] && cp ../proofs/prism.json "$app/proofs/"
-key="${CLERK_PUBLISHABLE_KEY:-$(grep -E '^CLERK_PUBLISHABLE_KEY=' "$HOME/dev/quant-bot/.env" 2>/dev/null | head -1 | cut -d= -f2- || true)}"
+key="${CLERK_PUBLISHABLE_KEY:-$(grep -E '^(VITE_)?CLERK_PUBLISHABLE_KEY=' "$HOME/dev/quant-bot/.env" 2>/dev/null | head -1 | cut -d= -f2- || true)}"
 [ -n "$key" ] && printf 'CLERK_PUBLISHABLE_KEY=%s\n' "$key" > "$app/.env"
 printf 'node_modules/\ndist/\n' > "$app/.gitignore"
 rm -f "$out/day-trader-ai.zip"

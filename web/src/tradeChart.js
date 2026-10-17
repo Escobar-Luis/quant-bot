@@ -49,8 +49,9 @@ function uniq(pts) {
 
 const nearest = (pts, t) => pts.reduce((best, p) => (Math.abs(p.time - t) < Math.abs(best.time - t) ? p : best), pts[0]).time;
 
-export function drawTrade(el, trade, delay, color) {
+export function drawTrade(el, trade, delay, color, priceFmt) {
   ensure(el);
+  if (priceFmt) chart.applyOptions({ localization: { priceFormatter: priceFmt } });
   if (series) { chart.removeSeries(series); series = null; marks = null; }
   const bars = Array.isArray(trade.bars) && trade.bars.length
     ? uniq(trade.bars.map(b => ({ time: sec(b.t || b.time), open: b.o ?? b.open, high: b.h ?? b.high, low: b.l ?? b.low, close: b.c ?? b.close })))

@@ -22,8 +22,8 @@ export async function initAuth(onChange) {
   if (qs.has(CALLBACK)) {
     try {
       await clerk.handleRedirectCallback({
-        signInFallbackRedirectUrl: home('#onboard-1'),
-        signUpFallbackRedirectUrl: home('#onboard-1')
+        signInFallbackRedirectUrl: home(''),
+        signUpFallbackRedirectUrl: home('')
       });
     } catch (e) {
       console.warn('Sign-in callback failed', e);
@@ -34,7 +34,14 @@ export async function initAuth(onChange) {
   onChange(currentUser());
 }
 
-const home = hash => location.origin + location.pathname + hash;
+// Keep the page's own query (e.g. ?still=1) through the Google round trip.
+function home(hash) {
+  const q = new URLSearchParams(location.search);
+  q.delete(CALLBACK);
+  [...q.keys()].filter(k => k.startsWith('__clerk')).forEach(k => q.delete(k));
+  const s = q.toString();
+  return location.origin + location.pathname + (s ? '?' + s : '') + hash;
+}
 
 export function currentUser() {
   if (!PK) return fakeUser;
@@ -57,8 +64,8 @@ export async function signInWithGoogle() {
   }
   await clerk.client.signIn.authenticateWithRedirect({
     strategy: 'oauth_google',
-    redirectUrl: location.origin + location.pathname + '?' + CALLBACK,
-    redirectUrlComplete: home('#onboard-1')
+    redirectUrl: (() => { const u = new URL(home('')); u.searchParams.set(CALLBACK, ''); return u.toString(); })(),
+    redirectUrlComplete: home('')
   });
   return null;
 }
