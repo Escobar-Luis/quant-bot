@@ -18,9 +18,8 @@ Compare its output with the "Numbers on screen" table in `script.md`. It finds e
 
 ## Recording
 
-- **Video link:** pending.
-- Record the real deployed app (https://day-trader-ai.vercel.app), never the mock. Anything not live gets an on-screen label ("Not live yet").
-- Plan: a screen recording of the script's beats (LPP verdict → slider → ZipTrader and Crypto Wizard → proof drawer → PRISM tabs) with `narration.mp3` under it, captions from `narration.md`. Optional: a 30 s how-it-works cut with the architecture-explainer-video skill.
-- Upload to YouTube (unlisted) or Loom; don't commit the video file.
-- Timing: right after the 15:30 full-flow test. Deadline 16:15 whatever is live, PRISM cards that aren't live labelled "Pending".
+- **Video:** https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi (private until Luis shares it). File: `demo/out/demo.mp4` (gitignored, 4 MB, 1440×810, 58.6 s).
+- Recorded 15:27 ET on the live app, the same build story 5 passed at 15:24 (bundle `index-Db3xMx-B.js`). Real clicks on the deployed app, never the mock.
+- Made by `node demo/record.mjs`: Playwright drives Google Chrome along `tests/flow/demo-run.md`, timed to `narration.mp3`; frames come from Chrome's screencast with their own timestamps, so voice and picture stay in sync. Captions and a corner label ("Live app · recorded … · AI voice") are an overlay added for the recording.
+- Re-record after a redeploy: `node demo/record.mjs` (needs `playwright`, local or global, and ffmpeg), then republish the page with the new `demo/out/demo.mp4`.
 - ElevenLabs keys (today's and yesterday's) are rejected, so the narration runs through Nicrron. A fresh ElevenLabs key in `.env` makes `narrate.py` switch back automatically.

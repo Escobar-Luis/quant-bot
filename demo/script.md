@@ -11,8 +11,8 @@ git -C ~/dev/quant-bot fetch -q origin && python3 demo/check_numbers.py
 
 ## Before you walk up (2 minutes)
 
-1. **Tab 1 (app):** signed out. Shows "Did your trading course actually **work?**"
-2. Delay chip on **5m**, time chip on **All** (set once signed in, then sign out).
+1. **Tab 1 (app):** a **fresh private window** (onboarding shows only on a browser's first visit; a fresh window opens on 5m and All). Shows "Did your trading course actually **work?**"
+2. Used this browser before? Avatar → **Change courses** reopens onboarding; set the delay chip back to **5m**.
 3. **Tab 2 (PRISM, project "bot"):** Root Cause page, the `extract-lpp-v1` cluster.
 4. **Tab 3 (PRISM):** the verdict run from `proofs/prism.json` → `knowledge_base.run_url`, Steps tab.
 5. Window size fixed. Don't resize on stage: the chart doesn't redraw.
@@ -50,7 +50,7 @@ git -C ~/dev/quant-bot fetch -q origin && python3 demo/check_numbers.py
 | Breaks | Do |
 |---|---|
 | Numbers differ from this file | Read the check's 5-minute numbers aloud instead |
-| App won't load | Phone backup, or the recording (`demo/README.md`) |
+| App won't load | Phone backup, or the recording (https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi) |
 | Proof sheet won't open | `#proof-lpp` in the address bar |
 | Stuck on onboarding | `#verdict-lpp` in the address bar |
 
