@@ -85,6 +85,7 @@ def test_suggestion_is_the_improver_picked_on_dev(path):
     s = json.loads(path.read_text()).get("suggestion")
     if s:
         assert s["agent_id"] == "daytrader-improver-v1" and s["picked_on"] == "dev"
-        assert s["kept"] == (s["dev"]["after_pct"] > s["dev"]["before_pct"])
+        assert s["kept"] == (s["dev"]["after_pct"] > s["dev"]["before_pct"]
+                             and s["sealed"]["after_pct"] > s["sealed"]["before_pct"]) and s["kept_reason"]
         if s.get("trajectory_id"):
             assert s["prism_url"] == f"https://prism.blockconvey.com/trajectories/{s['trajectory_id']}"
