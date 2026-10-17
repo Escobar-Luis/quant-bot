@@ -15,7 +15,7 @@ import argparse
 import json
 import sys
 
-from .common import APP_URL, KB, PROOFS, now, read_jsonl, words
+from .common import APP_URL, KB, PROOFS, RESULTS, now, read_jsonl, words
 
 PARTS = PROOFS / "parts"
 OUT = PROOFS / "prism.json"
@@ -90,6 +90,41 @@ def knowledge_base() -> dict:
             "v1_run_per_course": per_course}
 
 
+def _results(course: str, version: str) -> dict:
+    p = RESULTS / course / f"{version}.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+def money_same_sessions() -> dict | None:
+    """v1 vs v2 money on the same proof-set sessions, from story 1's results/lpp/v2.json (`same_sessions`)."""
+    r = _results("lpp", "v2")
+    d = str(r.get("default_delay_min", 5))
+    v2 = next((p["by_delay"].get(d) for p in r.get("portfolios", []) if p["id"] == r.get("headline_portfolio")), None)
+    v1 = ((r.get("same_sessions") or {}).get("by_delay") or {}).get(d)
+    if not (v1 and v2):
+        return None
+    return {"delay_min": int(d), "sessions": (r.get("same_sessions") or {}).get("sessions"),
+            "v1_end": v1["end"], "v2_end": v2["end"], "v1_trades": v1["trades"], "v2_trades": v2["trades"],
+            "source": "results/lpp/v2.json"}
+
+
+def failed_runs() -> dict | None:
+    log = _load("extract_traces.json", {})
+    out = {v: sum(t["final_status"] == "error" for t in (log.get(f"extract-lpp-{v}") or {}).get("traces", []))
+           for v in ("v1", "v2")}
+    n = len((log.get("extract-lpp-v1") or {}).get("traces", []))
+    return {**out, "of": n, "what": "Runs where any event failed a code check"} if n else None
+
+
+def improver() -> dict | None:
+    s = _results("lpp", "v1").get("suggestion")
+    if not s:
+        return None
+    return {"agent_id": s.get("agent_id"), "run_url": run_url(s.get("trajectory_id")), "applies_to": s.get("applies_to"),
+            "change": s.get("change"), "why": s.get("why"), "dev": s.get("dev"), "sealed": s.get("sealed"),
+            "kept": s.get("kept"), "source": "results/lpp/v1.json"}
+
+
 def evaluator() -> dict:
     ev = _load("evaluator.json", {})
     mirror = _load("evaluator_mirror.json", {})
@@ -101,6 +136,10 @@ def evaluator() -> dict:
             "code_mirror": {"v1_pass_pct": (mirror.get("v1") or {}).get("pass_pct"),
                             "v2_pass_pct": (mirror.get("v2") or {}).get("pass_pct"),
                             "what": "The same rule run by our code on the same sessions, as a cross-check"} if mirror else None,
+            "failed_runs": failed_runs(),
+            "money_same_sessions": money_same_sessions(),
+            "framing": "The v2 fix shows in extraction quality (grounded numbers, fewer failed runs), not in money: "
+                       "on the same sessions both versions end within a few dollars.",
             "url": ev.get("url")}
 
 
@@ -141,6 +180,7 @@ def build() -> dict:
                        "our_sentence": rc.get("our_sentence"), "url": rc.get("url")},
         "evaluator": evaluator(),
         "evaluator_verdict": evaluator_verdict(),
+        "improver": improver(),
         "bonus": _load("bonus.json", {"alert": None, "guardrail": None}),
         "credits": credits(),
     }
