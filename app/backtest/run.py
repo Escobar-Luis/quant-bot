@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 from . import bars, engine, extras
-from .common import (COSTS_BPS, DATA, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha)
+from .common import (COSTS_BPS, DATA, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha, public_json)
 
 LABELS = {"all": "Everything he traded", "day": "Day trades", "swing": "Swing trades", "crypto": "Crypto setups",
           "options": "Options"}
@@ -216,7 +216,7 @@ def main():
               f"sealed {c['sealed']['ret_pct']}% vs {c['sealed']['hold_ret_pct']}% ({c['sealed']['trades']} trades) {c['word']}")
     path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(out, indent=1, ensure_ascii=False))
+    path.write_text(public_json(out))
     al = portfolios[0]["by_delay"]
     for d in DELAYS_MIN:
         r = al[str(d)]
