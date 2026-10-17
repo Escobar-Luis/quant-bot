@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T19:03:02Z",
- "git_sha": "1ecd5cdf7943b718fcaa95926e0e2b761a3da778",
+ "generated_at": "2026-10-17T19:03:55Z",
+ "git_sha": "5cd9d36a368bd0d8f2b29443d0959b09ffc77512",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -48974,6 +48974,32 @@
    }
   }
  },
+ "combos": [
+  {
+   "ids": [
+    "lpp:short-overbought",
+    "lpp:short-resistance"
+   ],
+   "delay_min": 5,
+   "picked_on": "dev",
+   "window": {
+    "start": "2025-06-12",
+    "end": "2025-09-12"
+   },
+   "dev": {
+    "ret_pct": 1.46,
+    "hold_ret_pct": 9.44,
+    "trades": 101,
+    "pairs_tried": 15
+   },
+   "sealed": {
+    "ret_pct": -2.52,
+    "hold_ret_pct": 9.56,
+    "trades": 41
+   },
+   "word": "No"
+  }
+ ],
  "best_stop": {
   "by_delay": {
    "1": {

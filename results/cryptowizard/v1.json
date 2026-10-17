@@ -6,8 +6,8 @@
  "source_agent_id": "extract-cryptowizard-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T19:03:04Z",
- "git_sha": "1ecd5cdf7943b718fcaa95926e0e2b761a3da778",
+ "generated_at": "2026-10-17T19:03:57Z",
+ "git_sha": "5cd9d36a368bd0d8f2b29443d0959b09ffc77512",
  "window": {
   "start": "2025-10-17",
   "end": "2026-10-16",
@@ -26758,6 +26758,32 @@
    }
   }
  },
+ "combos": [
+  {
+   "ids": [
+    "cryptowizard:btc-eth-scalps",
+    "cryptowizard:short-scalps"
+   ],
+   "delay_min": 5,
+   "picked_on": "dev",
+   "window": {
+    "start": "2026-07-16",
+    "end": "2026-10-16"
+   },
+   "dev": {
+    "ret_pct": -2.71,
+    "hold_ret_pct": -40.15,
+    "trades": 42,
+    "pairs_tried": 3
+   },
+   "sealed": {
+    "ret_pct": -0.36,
+    "hold_ret_pct": 26.04,
+    "trades": 12
+   },
+   "word": "Not enough trades"
+  }
+ ],
  "best_stop": {
   "by_delay": {
    "1": {
