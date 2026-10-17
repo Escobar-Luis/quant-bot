@@ -26,7 +26,7 @@ The exact clicks for the live demo, walked by story 5 so no click lands on a bro
 | 0:10 | **Next** → **Run the audit** | "You'll get" list, then "Running the audit" (about 3 s), lands on LPP |
 | 0:20 | (LPP verdict) | "$10k became **$9,766**. Holding SPY made **$11,964**." · chip **No** · 315 trades |
 | 0:35 | Delay chips **1m**, then **15m**, then **5m** | $9,945 · $9,729 · back to $9,766. Word stays **No** |
-| 0:45 | Time chip **3M**, then **All** | 3M: $9,994 vs $10,798, **No** |
+| 0:45 | Time chip **3M**, then **All** | 3M = the **first** three months (Aug 15 – Nov 14, 2024): $9,994 vs $10,798, **No**. Say "quit after three months", not "the last three months" |
 | 0:50 | (point at the chart) | "Best day to stop: **Jan 10, 2025**, with **$10,416**." |
 | 0:55 | **What was traded** → tap **Short the overbought run** | 95 trades, −1.6%, **No**; opens BUY / SELL / STOP / SIZE / TIME and two short quotes. Tap again to close |
 | 1:05 | Course tab **Crypto Wizard** | "$10k became **$9,221**. It beat holding Bitcoin." · chip **Yes** |
@@ -40,7 +40,7 @@ The exact clicks for the live demo, walked by story 5 so no click lands on a bro
 1. Real Google sign-in: shows Luis's account picker. If the button opens Google, start signed in on LPP instead.
 2. ZipTrader's "By kind of trade": one trade; say "Not enough trades" and move on.
 3. A PRISM card that says "pending": skip to the PRISM tab for that beat.
-4. Counts: say "29 of 30 runs failed a check; v2: 18" and "PRISM grouped 25 of them". The Root Cause sentence may still say 28 (story 2 fixing); don't read it aloud.
+4. Counts: say "29 of 30 runs failed a check; v2: 18" and "PRISM grouped 25 of them" (the Root Cause sentence no longer carries its own count, #30).
 5. The bot suggestion (if its card shows): its change didn't hold on the sealed months (kept: no). Say so, or skip it.
 
 ## If something breaks
