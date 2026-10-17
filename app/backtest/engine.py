@@ -43,6 +43,7 @@ class Position:
     scale: bool = False             # True: his share counts scaled so the first entry is $1,000 (keeps his ratios)
     quote: str | None = None
     cite: dict | None = None
+    why: str | None = None          # the course's stated reason (paraphrase), used to name the strategy
     notes: list[str] = field(default_factory=list)            # assumptions made while building it
 
 

@@ -6,8 +6,8 @@
  "source_agent_id": "extract-ziptrader-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T18:56:19Z",
- "git_sha": "8fd8d7860a0f42f291f764b89bd97f3f1655a5a6",
+ "generated_at": "2026-10-17T19:03:57Z",
+ "git_sha": "5cd9d36a368bd0d8f2b29443d0959b09ffc77512",
  "window": {
   "start": "2026-10-01",
   "end": "2026-10-16",
@@ -1103,6 +1103,45 @@
   "positions_priced": 1,
   "results_by_status": {
    "priced": 7
+  }
+ },
+ "best_stop": {
+  "by_delay": {
+   "1": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   },
+   "3": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   },
+   "5": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   },
+   "10": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   },
+   "15": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   },
+   "30": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   },
+   "60": {
+    "date": "2026-10-14",
+    "end": 10007.02,
+    "hold_end": 10068.69
+   }
   }
  }
 }
