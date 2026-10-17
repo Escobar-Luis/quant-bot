@@ -19,23 +19,24 @@ const { chromium } = (() => {
 const OUT = join(HERE, 'out');
 const URL = process.argv[2] || 'https://day-trader-ai.vercel.app/';
 const W = 1440, H = 810;
-const END = 58.6; // seconds: narration is 57.1 s, then a short hold
+const END = 59.5; // seconds: narration is 58.0 s, then a short hold
 const STAMP = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
 // [start, end, text]: the narration's words, timed by Whisper.
 const CUES = [
-  [0.0, 3.8, 'Luis paid for three day-trading courses. None shows a full record.'],
-  [4.3, 7.7, 'Would copying every trade they posted have worked?'],
-  [7.9, 13.9, 'It copies every trade with $10,000 of fake money, after costs, vs just holding the market.'],
-  [14.1, 19.5, 'Learn Plan Profit: No. $10,000 became $9,766.'],
-  [19.6, 24.8, 'Just holding the S&P 500 made $11,964.'],
-  [25.0, 27.6, 'Crypto Wizard: Yes. It lost less than Bitcoin.'],
-  [27.7, 29.3, 'ZipTrader: not enough trades.'],
-  [29.4, 34.9, 'An AI, through Nicrron, reads every session. Code checks every number.'],
-  [35.1, 41.5, 'v1 failed our checks in 29 of 30 runs: long quotes, lost track of open trades.'],
-  [41.7, 44.6, 'PRISM grouped 25 of them into one cluster.'],
-  [44.7, 50.6, 'v2 cut failures to 18. Numbers grounded: 52% → 66%.'],
-  [50.7, 54.2, 'Every answer cites the course notes it found in PRISM.'],
+  [0.0, 4.0, 'Luis paid for three day-trading courses. None shows a full record.'],
+  [4.1, 7.4, 'Would copying every trade they posted have worked?'],
+  [7.5, 14.5, 'It copies every trade with $10,000 of fake money, after costs, vs just holding the market.'],
+  [14.6, 20.2, 'Learn Plan Profit: No. $10,000 became $9,766.'],
+  [20.3, 24.8, 'Just holding the S&P 500 made $11,964.'],
+  [24.9, 27.8, 'Crypto Wizard: Yes. It lost less than Bitcoin.'],
+  [27.9, 29.6, 'ZipTrader: not enough trades.'],
+  [29.7, 34.1, 'An AI, through Nicrron, reads every session. Code checks every number.'],
+  [34.2, 40.7, 'v1 failed our checks in 28 of 30 runs: long quotes, lost track of open trades.'],
+  [40.8, 44.0, 'PRISM grouped 25 of them into one cluster.'],
+  [44.1, 47.8, 'v2, partly a code fix, cut failures to 18.'],
+  [47.9, 51.3, 'Our numbers check: 52% → 66%.'],
+  [51.4, 54.3, 'Every answer cites the course notes it found in PRISM.'],
   [54.4, END, 'The model proposes. The code decides.'],
 ];
 
@@ -98,20 +99,20 @@ async function main() {
   const delay = label => clickText('#vDelays button', label);
   const tab = name => clickText('button[role=tab]', name);
 
-  await step(6.4, 'Continue', () => click('#goBtn'));
-  await step(9.0, 'Next', () => click('#ob1Next'));
-  await step(10.6, 'Run the audit', () => click('#ob2Next'));
-  await step(20.0, 'delay 1m', () => delay('1m'));
-  await step(21.6, 'delay 15m', () => delay('15m'));
-  await step(23.2, 'delay 5m', () => delay('5m'));
-  await step(24.8, 'tab Crypto Wizard', () => tab('Crypto Wizard'));
-  await step(27.6, 'tab ZipTrader', () => tab('ZipTrader'));
-  await step(29.4, 'tab Learn Plan Profit', () => tab('Learn Plan Profit'));
-  await step(30.8, 'See the proof', () => click('#proofBtn'));
-  await step(36.5, 'scroll Root Cause', () => scrollSheet('#pRC'));
-  await step(44.6, 'scroll Evaluator', () => scrollSheet('#pEV'));
-  await step(50.6, 'scroll Knowledge Base', () => scrollSheet('#pKB'));
-  await step(54.3, 'close sheet', () => click('#pClose'));
+  await step(6.6, 'Continue', () => click('#goBtn'));
+  await step(9.2, 'Next', () => click('#ob1Next'));
+  await step(10.8, 'Run the audit', () => click('#ob2Next'));
+  await step(20.6, 'delay 1m', () => delay('1m'));
+  await step(22.0, 'delay 15m', () => delay('15m'));
+  await step(23.6, 'delay 5m', () => delay('5m'));
+  await step(24.9, 'tab Crypto Wizard', () => tab('Crypto Wizard'));
+  await step(27.9, 'tab ZipTrader', () => tab('ZipTrader'));
+  await step(29.7, 'tab Learn Plan Profit', () => tab('Learn Plan Profit'));
+  await step(31.0, 'See the proof', () => click('#proofBtn'));
+  await step(35.5, 'scroll Root Cause', () => scrollSheet('#pRC'));
+  await step(44.2, 'scroll Evaluator', () => scrollSheet('#pEV'));
+  await step(51.4, 'scroll Knowledge Base', () => scrollSheet('#pKB'));
+  await step(54.4, 'close sheet', () => click('#pClose'));
   await at(END);
 
   const headline = await page.locator('#vHead').innerText().catch(() => '');

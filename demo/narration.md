@@ -11,7 +11,7 @@ Day Trader AI copies every trade with ten thousand fake dollars, after costs, ag
 
 Learn Plan Profit: no. Ten thousand dollars became nine thousand seven hundred sixty-six. Just holding the S and P five hundred made eleven thousand nine hundred sixty-four. Crypto Wizard: yes, it lost less than Bitcoin. ZipTrader: not enough trades.
 
-An AI, through Nicrron, reads every session, and code checks every number. Version one failed our checks in twenty-nine of thirty runs: it quoted long stretches and lost track of open trades. PRISM grouped twenty-five of them into one cluster. Version two cut failures to eighteen, and its numbers-grounded score rose from fifty-two to sixty-six percent. Every answer cites the course notes it found in PRISM.
+An AI, through Nicrron, reads every session, and code checks every number. Version one failed our checks in twenty-eight of thirty runs: it quoted long stretches and lost track of open trades. PRISM grouped twenty-five of them into one cluster. Version two, partly a code fix, cut failures to eighteen. Our numbers check rose from fifty-two to sixty-six percent. Every answer cites the course notes it found in PRISM.
 
 The model proposes. The code decides.
 <!-- voiceover:end -->
@@ -24,8 +24,8 @@ The model proposes. The code decides.
 4. Learn Plan Profit: No. $10k → $9,766. Holding: $11,964.
 5. Crypto Wizard: Yes (lost less than Bitcoin).
 6. ZipTrader: not enough trades.
-7. v1 failed our checks in 29 of 30 runs; PRISM clustered 25.
-8. v2: 18 failures; numbers grounded 52% → 66%.
+7. v1 failed our checks in 28 of 30 runs; PRISM clustered 25.
+8. v2 (prompt + code fixes): 18 failures; our numbers check 52% → 66%.
 9. Answers cite course notes in PRISM.
 10. The model proposes. The code decides.
 
