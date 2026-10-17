@@ -2,7 +2,7 @@
 
 The exact clicks for the live demo, walked by story 5 so no click lands on a broken screen. The words to say are in `demo/script.md` (story 4); this file is the path under them.
 
-**Walked on:** story 3's build c4408eb (local, phone 390 and desktop 1440, 153/153 numbers match main 28e3f2e). Re-walked on the public URL after each redeploy: see `report.md`.
+**Walked on:** the live URL at 15:24 (bundle index-Db3xMx-B.js), phone 390 and desktop 1440, 150/150 numbers match main 256018a. Re-walked on the public URL after each redeploy: see `report.md`.
 
 ## Before you walk up (2 minutes)
 
@@ -10,8 +10,8 @@ The exact clicks for the live demo, walked by story 5 so no click lands on a bro
    ```bash
    ~/dev/quant-bot/app/.venv/bin/python tests/flow/check_numbers.py
    ```
-2. **Tab 1 (app):** https://day-trader-ai.vercel.app, signed out (avatar → Sign out). Shows "Did your trading course actually work?"
-3. Delay chip on **5m**, time chip on **All** (the app remembers the delay; set it once, signed in, then sign out).
+2. **Tab 1 (app):** https://day-trader-ai.vercel.app in a **fresh private window**. Onboarding shows only on a browser's first visit, and a fresh window opens on 5m and All. Shows "Did your trading course actually work?"
+3. Used this browser before? Avatar → **Change courses** reopens onboarding; set the delay chip back to **5m**.
 4. **Tab 2 (PRISM, project "bot"):** Root Cause page, the `extract-lpp-v1` cluster.
 5. **Tab 3 (PRISM):** the verdict run https://prism.blockconvey.com/trajectories/aaf87897-9169-4c07-81de-83f2d7945192, Steps tab.
 6. Window size fixed now. Don't resize on stage: the chart doesn't redraw.
