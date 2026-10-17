@@ -145,6 +145,20 @@ def main():
                            "count": built["options_count"], "why": "No free options price history"})
 
     d5 = DEFAULT_DELAY_MIN
+    same = None
+    if a.version != "v1" and not a.limit:   # the fix vs the failure in money: v1 priced on this version's sessions
+        srcs = {e["source_id"] for e in mod.load(a.version)}
+        base = [p for p in mod.build("v1")["positions"] if p.cite["source_id"] in srcs]
+        for p in base:
+            p.scale = a.scale
+        prefetch(base)
+        rows = {}
+        for d in DELAYS_MIN:
+            rs = [engine.simulate(p, d) for p in base]
+            rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
+        same = {"version": "v1", "sessions": len(srcs), "portfolio": "all", "by_delay": rows,
+                "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
+        print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
     priced = [rs for rs in by_pos.values() if rs[d5].status == "priced"]
     priced.sort(key=lambda rs: -abs(rs[d5].pnl))
     trades = [trade_row(rs) for rs in priced[:SAMPLE_TRADES]]
@@ -160,6 +174,9 @@ def main():
     if head["sized_down"] or head["couldnt_copy"]:
         unknown.insert(0, f"At {d5} min, {head['sized_down']} trades were sized down and {head['couldnt_copy']} "
                           "skipped: open trades already used the $10k.")
+    if same:
+        unknown.insert(0, f"{a.version} re-read only {same['sessions']} sessions; compare it with v1 on the same "
+                          "sessions, not with the full year.")
 
     out = {
         "schema": "results/1", "course": a.course, "course_name": mod.NAME, "version": a.version,
@@ -169,7 +186,8 @@ def main():
         "window": mod.WINDOW, "money_start": int(MONEY_START), "course_fee_usd": None,
         "delays_min": DELAYS_MIN, "default_delay_min": DEFAULT_DELAY_MIN, "costs_bps_per_side": COSTS_BPS,
         "sizing": getattr(mod, "SIZING_SCALED", mod.SIZING) if a.scale else mod.SIZING, "hold": mod.HOLD, "headline_portfolio": "all",
-        "portfolios": portfolios, "rules": built["rules"], "trades": trades,
+        "portfolios": portfolios, **({"same_sessions": same} if same else {}),
+        "rules": built["rules"], "trades": trades,
         **({"days": built["days"]} if built["days"] else {}),
         "unknown": unknown, "checks": {**built["checks"], "positions": len(built["positions"]),
                                        "positions_priced": len(positions),
