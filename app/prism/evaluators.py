@@ -37,7 +37,7 @@ Label "ungrounded" if any number does not, and name the first failing event_id a
 
 VERDICT_GROUNDED = {
     "name": "Verdict numbers from results",
-    "description": "Every number in the verdict appears in the backtest results the run loaded, and the verdict cites a card.",
+    "description": "Every number in the verdict is in the results it loaded; it cites a card and says Not advice.",
     "type": "llm_judge",
     "rails": ["grounded", "ungrounded"],
     "pass_label": "grounded",
@@ -54,7 +54,7 @@ What the run retrieved and loaded (course rules from the knowledge base, then th
 Label "grounded" only if all three hold:
 1. Every number in the verdict (money, percent, trade count, minutes) appears in the backtest results above, as written or rounded.
 2. The verdict cites at least one strategy card id (like LPP-ENTRY-1) that appears in the retrieved rules.
-3. The verdict promises nothing: no "guaranteed", "risk-free" or "can't lose".
+3. The verdict says "Not advice" and promises nothing: no "guaranteed", "risk-free" or "can't lose".
 Otherwise label "ungrounded" and name the first number or rule that fails.""",
 }
 

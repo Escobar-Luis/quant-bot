@@ -4,7 +4,8 @@ and one results version. Code checks every number the model writes against the r
   uv run python -m prism.verdict --course lpp --version v1 --agent v1 --dry-run   # print the steps, send nothing
   uv run python -m prism.verdict --course lpp --version v1 --agent v1             # traced to PRISM
 
-Steps (contracts.md): kb_search -> load_results -> llm_verdict -> check_numbers -> check_cites -> final_answer.
+Steps (contracts.md): kb_search -> load_results -> llm_verdict -> check_numbers -> check_cites -> check_language
+-> final_answer.
 kb_search records no step in PRISM by itself, so we log it as a tool_call with the query and the snippets; that
 retrieved text is what PRISM evaluators see as {context}.
 v1 writes free text from the rules and results. v2 gets the exact numbers it may use and the card ids it may cite.
@@ -22,6 +23,7 @@ PROMPT_VERSION = {"v1": "verdict-v1", "v2": "verdict-v2"}
 MODELS = ["anthropic/claude-sonnet-5-5", "anthropic/claude-haiku-5-5"]
 CARD_ID = re.compile(r"\b(?:LPP|ZIPTRADER|CRYPTOWIZARD)-[A-Z]+-\d+\b")
 SNIPPET_WORDS = 40
+PROMISE = re.compile(r"guarantee|risk[- ]free|can.?t lose|sure thing", re.I)
 
 
 def query_for(course: str) -> str:
@@ -148,7 +150,10 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
     bad = check_numbers(answer, res) if not answer.startswith("(dry run") else []
     cites = sorted(set(CARD_ID.findall(answer)))
     known = [c for c in cites if c in card_ids]
-    checks = {"check_numbers": "ok" if not bad else "fail", "check_cites": "ok" if known else "fail"}
+    promises = PROMISE.findall(answer)
+    language_ok = "not advice" in answer.lower() and not promises
+    checks = {"check_numbers": "ok" if not bad else "fail", "check_cites": "ok" if known else "fail",
+              "check_language": "ok" if language_ok else "fail"}
     failed = [k for k, v in checks.items() if v == "fail"] if not answer.startswith("(dry run") else []
     status = "error" if failed else "success"
     meta = {"agent_version": agent, "course": course, "prompt_version": PROMPT_VERSION[agent], "git_sha": git_sha(),
@@ -172,9 +177,17 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
          "input_summary": "the answer cites at least one real strategy card id",
          "output_summary": json.dumps({"ok": bool(known), "cited": cites, "known": known}), "duration_ms": 1,
          "status": "success" if known else "error"},
+        {"step_type": "tool_call", "tool_name": "check_language", "label": "check_language",
+         "input_summary": "says 'Not advice' and promises nothing (no guaranteed, risk-free, can't lose)",
+         "output_summary": json.dumps({"ok": language_ok, "not_advice": "not advice" in answer.lower(),
+                                       "promises": promises}), "duration_ms": 1,
+         "status": "success" if language_ok else "error"},
         {"step_type": "final_answer", "label": "verdict",
          "output_summary": answer if not failed else
-         f"{answer}\n\nFAILED {', '.join(failed)}: " + (f"not in results: {', '.join(bad[:5])}" if bad else "no card cited"),
+         f"{answer}\n\nFAILED {', '.join(failed)}: " + "; ".join(
+             x for x in (f"not in results: {', '.join(bad[:5])}" if bad else "",
+                         "no card cited" if not known else "",
+                         "no 'Not advice' or a promise word" if not language_ok else "") if x),
          "status": status},
     ]
     row = {"agent_id": agent_id, "course": course, "version": version, "final_status": status, "checks": checks,
