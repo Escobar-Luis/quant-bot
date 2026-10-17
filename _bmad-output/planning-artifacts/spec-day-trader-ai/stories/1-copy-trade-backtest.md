@@ -58,7 +58,7 @@ Blind Hunter, 19 findings:
 
 Layers: Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor (all reported). 1 decision-needed, 16 patched, 9 deferred, 4 rejected.
 
-- [ ] [Review][Decision] LPP sizing departs from contracts.md rule 6: his share counts are scaled so each trade is $1,000 (`--literal` keeps raw counts); the orchestrator agreed, Luis has not, and the contract text still says "the host's share counts". Needs Luis's yes and an AGENTS.md/contracts.md PR.
+- [x] [Review][Decision] (resolved 2026-10-17: Luis kept $1,000 per trade; contracts.md rule 6 updated in #27) LPP sizing departs from contracts.md rule 6: his share counts are scaled so each trade is $1,000 (`--literal` keeps raw counts); the orchestrator agreed, Luis has not, and the contract text still says "the host's share counts". Needs Luis's yes and an AGENTS.md/contracts.md PR.
 - [x] [Review][Patch] `peak_invested_usd` was overwritten by the account high [app/backtest/engine.py:portfolio_stats]
 - [x] [Review][Patch] Scaled trades grew with his adds past $1,000 (one SOFI trade ~$111k) [app/backtest/engine.py:_simulate]
 - [x] [Review][Patch] A full trim ended the copy; later adds were dropped [app/backtest/engine.py:_simulate]
