@@ -109,6 +109,16 @@ def money_same_sessions() -> dict | None:
 
 
 def failed_runs() -> dict | None:
+    """Failed agent runs per version, as PRISM's Agent Runs page shows them: extract-lpp's own run log
+    (data/lpp/prism_runs.jsonl, the latest run per session), else our trace records."""
+    from .common import DATA
+    last = {(r["agent_id"], r["video_id"]): r for r in read_jsonl(DATA / "lpp" / "prism_runs.jsonl")}
+    if {a for a, _ in last} >= {"extract-lpp-v1", "extract-lpp-v2"}:
+        out = {v: sum(r["final_status"] == "error" for (a, _), r in last.items() if a == f"extract-lpp-{v}")
+               for v in ("v1", "v2")}
+        n = sum(a == "extract-lpp-v1" for a, _ in last)
+        return {**out, "of": n, "what": "Agent runs in PRISM where any event failed a code check",
+                "source": "PRISM agent runs (extract-lpp-v1, -v2)"}
     log = _load("extract_traces.json", {})
     out = {v: sum(t["final_status"] == "error" for t in (log.get(f"extract-lpp-{v}") or {}).get("traces", []))
            for v in ("v1", "v2")}
@@ -150,7 +160,8 @@ def evaluator() -> dict:
             "failed_runs": failed_runs(),
             "money_same_sessions": money_same_sessions(),
             "framing": "The v2 fix shows in extraction quality (grounded numbers, fewer failed runs), not in money: "
-                       "on the same sessions both versions end within a few dollars.",
+                       "on the same sessions both versions end within a few dollars. Part of v2's gain is code "
+                       "(quote trimming, a position-ledger rule), not only the prompt.",
             "url": ev.get("url")}
 
 
