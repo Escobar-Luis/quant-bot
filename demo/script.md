@@ -2,7 +2,7 @@
 
 App: https://day-trader-ai.vercel.app · Track: Money Intelligence · Story: the failure → the fix → the score.
 
-Numbers move while the lanes finish. Every number below comes from a file (see "Numbers on screen"). Before going on stage, run `python3 demo/check_numbers.py` and fix any line that differs.
+The UI is being redone (15:05): the "On screen" column follows the app as of 15:00; re-walk it after the redeploy and rename buttons to match. Numbers move while the lanes finish. Every number below comes from a file (see "Numbers on screen"). Before going on stage, run `python3 demo/check_numbers.py` and fix any line that differs.
 
 ## Before you walk up (3 minutes)
 
