@@ -1,0 +1,169 @@
+"""1-minute and daily price bars, cached under data/bars/ (gitignored).
+
+Stocks: Alpaca 1-minute bars, regular session 09:30-16:00 ET, cached per ticker and ET date in
+data/bars/alpaca_1m/<T>/<date>.json as {unix_s: [o, h, l, c, v]} (the same cache app/lpp/bars.py writes).
+Needs APCA_API_KEY_ID / APCA_API_SECRET_KEY in ~/dev/quant-bot/.env; without them stock minutes are None.
+Crypto: Binance spot 1-minute klines (keyless data-api.binance.vision), cached per symbol and UTC date in
+data/bars/binance/<SYM>/1m/<date>.json as [[open_ms, o, h, l, c, v], ...] (the Crypto Wizard collector's cache).
+
+Every bar is keyed by its open time (unix seconds). A copier acting at time t can only get the open of the first
+bar whose open time is >= t: that is `first_at_or_after`.
+"""
+import datetime as dt
+import json
+import os
+import time
+from functools import lru_cache
+from zoneinfo import ZoneInfo
+
+import httpx
+
+from .common import BARS, has_alpaca
+
+ET = ZoneInfo("America/New_York")
+UTC = dt.UTC
+BINANCE = "https://data-api.binance.vision/api/v3/klines"
+ALPACA = "https://data.alpaca.markets/v2/stocks"
+
+
+class NoBars(Exception):
+    """Raised when bars for a symbol cannot be loaded (no keys, unknown symbol, outside the data)."""
+
+
+def to_ts(iso: str) -> int:
+    return int(dt.datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp())
+
+
+def to_iso(ts: int) -> str:
+    return dt.datetime.fromtimestamp(ts, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def et_date(ts: int) -> dt.date:
+    return dt.datetime.fromtimestamp(ts, ET).date()
+
+
+def et_at(day: dt.date, hh: int, mm: int) -> int:
+    return int(dt.datetime.combine(day, dt.time(hh, mm), ET).timestamp())
+
+
+# ---- stocks (Alpaca) -------------------------------------------------------------------------------------------
+
+def _alpaca_get(path: str, params: dict) -> dict:
+    key = os.getenv("APCA_API_KEY_ID") or os.getenv("ALPACA_API_KEY")
+    sec = os.getenv("APCA_API_SECRET_KEY") or os.getenv("ALPACA_SECRET_KEY")
+    for attempt in range(5):
+        r = httpx.get(f"{ALPACA}/{path}", params=params, timeout=30,
+                      headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": sec})
+        if r.status_code == 429:
+            time.sleep(2 + attempt * 3)
+            continue
+        if r.status_code != 200:
+            raise NoBars(f"alpaca {path} http {r.status_code}")
+        return r.json()
+    raise NoBars(f"alpaca {path} rate limited")
+
+
+@lru_cache(maxsize=4096)
+def stock_day(ticker: str, day: dt.date) -> dict[int, list]:
+    """{unix_s: [o, h, l, c, v]} for one regular session; {} on weekends, holidays or no trading."""
+    if day.weekday() >= 5:
+        return {}
+    d = BARS / "alpaca_1m" / ticker
+    p = d / f"{day.isoformat()}.json"
+    if p.exists():
+        return {int(k): v for k, v in json.loads(p.read_text()).items()}
+    if not has_alpaca():
+        raise NoBars("no Alpaca keys in .env (APCA_API_KEY_ID / APCA_API_SECRET_KEY)")
+    rows, token = {}, None
+    while True:
+        params = {"timeframe": "1Min", "start": to_iso(et_at(day, 9, 30)), "end": to_iso(et_at(day, 16, 0) - 1),
+                  "limit": 10000, "feed": os.getenv("ALPACA_FEED", "sip"), "adjustment": "raw"}
+        if token:
+            params["page_token"] = token
+        js = _alpaca_get(f"{ticker}/bars", params)
+        for b in js.get("bars") or []:
+            rows[to_ts(b["t"])] = [b["o"], b["h"], b["l"], b["c"], b["v"]]
+        token = js.get("next_page_token")
+        if not token:
+            break
+    d.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(rows))
+    return rows
+
+
+# ---- crypto (Binance) ------------------------------------------------------------------------------------------
+
+@lru_cache(maxsize=4096)
+def crypto_day(symbol: str, day: dt.date) -> dict[int, list]:
+    """{unix_s: [o, h, l, c, v]} for one UTC day of Binance spot 1-minute klines."""
+    d = BARS / "binance" / symbol / "1m"
+    p = d / f"{day.isoformat()}.json"
+    if p.exists():
+        raw = json.loads(p.read_text())
+    else:
+        if day >= dt.datetime.now(UTC).date():
+            raise NoBars(f"{symbol} {day} not closed yet")
+        t0 = int(dt.datetime.combine(day, dt.time(0, 0), UTC).timestamp()) * 1000
+        raw, start = [], t0
+        while start < t0 + 86_400_000:
+            r = httpx.get(BINANCE, params={"symbol": symbol, "interval": "1m", "startTime": start,
+                                           "endTime": t0 + 86_400_000 - 1, "limit": 1000}, timeout=30)
+            if r.status_code != 200:
+                raise NoBars(f"binance {symbol} http {r.status_code}")
+            page = [[k[0], float(k[1]), float(k[2]), float(k[3]), float(k[4]), float(k[5])] for k in r.json()]
+            if not page:
+                break
+            raw += page
+            start = page[-1][0] + 60_000
+        d.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(raw))
+    return {int(k[0] // 1000): list(k[1:]) for k in raw}
+
+
+# ---- one API for both markets ----------------------------------------------------------------------------------
+
+def day_of(market: str, ts: int) -> dt.date:
+    return et_date(ts) if market == "us_equities" else dt.datetime.fromtimestamp(ts, UTC).date()
+
+
+def day_bars(market: str, symbol: str, day: dt.date) -> dict[int, list]:
+    return stock_day(symbol, day) if market == "us_equities" else crypto_day(symbol, day)
+
+
+def first_at_or_after(market: str, symbol: str, ts: int, max_days: int = 7) -> tuple[int, list] | None:
+    """The first bar whose open time is >= ts (rolling into later sessions), as (bar_ts, [o, h, l, c, v])."""
+    day = day_of(market, ts)
+    for _ in range(max_days + 1):
+        bars = day_bars(market, symbol, day)
+        later = [k for k in bars if k >= ts]
+        if later:
+            k = min(later)
+            return k, bars[k]
+        day += dt.timedelta(days=1)
+    return None
+
+
+def between(market: str, symbol: str, t0: int, t1: int):
+    """Bars with t0 <= open time < t1, in time order."""
+    day, last = day_of(market, t0), day_of(market, t1)
+    while day <= last:
+        bars = day_bars(market, symbol, day)
+        for k in sorted(bars):
+            if t0 <= k < t1:
+                yield k, bars[k]
+        day += dt.timedelta(days=1)
+
+
+def sessions(start: dt.date, end: dt.date, market: str, symbol: str) -> list[dt.date]:
+    """Days in [start, end] that have bars for symbol (trading sessions for stocks, every day for crypto)."""
+    out, day = [], start
+    while day <= end:
+        if day_bars(market, symbol, day):
+            out.append(day)
+        day += dt.timedelta(days=1)
+    return out
+
+
+def last_close_on(market: str, symbol: str, day: dt.date) -> float | None:
+    bars = day_bars(market, symbol, day)
+    return bars[max(bars)][3] if bars else None
