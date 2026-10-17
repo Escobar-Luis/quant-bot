@@ -1,0 +1,94 @@
+/* Additions to stamp-v2 for the real app: Google button, delay slider,
+   by-kind bands as buttons, proof links, the trade sheet. Same tokens. */
+
+body[data-screen=signin] .bar-right,body[data-screen=boot] .bar-right,body[data-screen^=onboard] .vseg{display:none}
+#s-boot{background:transparent}
+.btn .ic{width:20px;height:20px}
+.si-err{margin-top:14px;color:var(--d-on);font-weight:600}
+.si-foot{display:flex;align-items:center;min-height:44px}
+
+/* avatar with a Google photo */
+.avatar.has-img{background-size:cover;background-position:center;color:transparent}
+
+/* ---------- delay slider ---------- */
+.v-left{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.delay{width:min(100%,420px);color:var(--on)}
+.dl-label{display:block;font-size:15px;color:var(--on2);text-align:center}
+.dl-label b{color:var(--on);font-weight:700}
+.dl-range{--p:33%;-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;background:transparent;cursor:pointer;touch-action:pan-y}
+.dl-range::-webkit-slider-runnable-track{height:6px;border-radius:9px;background:linear-gradient(to right,var(--on) 0 var(--p),color-mix(in srgb,var(--on) 24%,transparent) var(--p) 100%)}
+.dl-range::-moz-range-track{height:6px;border-radius:9px;background:color-mix(in srgb,var(--on) 24%,transparent)}
+.dl-range::-moz-range-progress{height:6px;border-radius:9px;background:var(--on)}
+.dl-range::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.24);transition:transform 160ms var(--ease-out)}
+.dl-range::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.24)}
+.dl-range:active::-webkit-slider-thumb{transform:scale(1.1)}
+.dl-range:focus-visible{outline:none}
+.dl-range:focus-visible::-webkit-slider-thumb{outline:3px solid var(--on);outline-offset:2px}
+.dl-ticks{display:flex;justify-content:space-between;margin-top:-6px;padding:0 6px;color:var(--on2)}
+.dl-ticks span{min-width:14px;text-align:center}
+.v-foot{width:100%;padding-bottom:4px}
+.l-top{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px 16px;color:var(--d-on)}
+.l-top .l-head{padding:8px 0 0}
+.l-top .delay{--on:var(--d-on);--on2:var(--d-on2)}
+
+/* ---------- by kind of trade: bands are buttons ---------- */
+.band{display:block;min-height:0}
+.band-btn{display:flex;align-items:center;width:100%;min-height:104px;text-align:left;background:var(--field);color:var(--on)}
+.band>.band-in{background:var(--field)}
+.band:not(:has(.band-btn)){display:flex;align-items:center;min-height:104px;background:var(--field);color:var(--on)}
+.b-tag{margin-left:2px}
+.b-prism{display:inline-flex;align-items:center;gap:2px}
+.b-prism .ic{width:14px;height:14px}
+@media (hover:hover){.band-btn:hover{filter:brightness(1.06)}}
+
+/* ---------- proof additions ---------- */
+.p-link{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid rgba(0,0,0,.2)}
+.p-link .ic{width:14px;height:14px}
+.kb-q{margin-top:10px;color:var(--ink2);display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.kb-q .p-link{margin-top:0}
+.hits{display:grid;gap:10px;margin-top:12px}
+.hits li{padding-left:12px;border-left:3px solid rgba(0,0,0,.12)}
+.p-h4{font-size:15px;font-weight:600;margin-top:22px}
+.r-quote{color:var(--ink2);font-style:italic;margin-top:2px}
+.ev small{margin-left:8px}
+.ev-t b{font-weight:600}
+.p-sub{max-width:52ch}
+
+/* ---------- trade sheet ---------- */
+.t-grid{display:grid;gap:28px;margin-top:20px}
+.t-head{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tick res" "side res";align-items:center;column-gap:12px}
+.t-tick{grid-area:tick;font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.t-side{grid-area:side;color:var(--ink2)}
+.t-res{grid-area:res;font-size:34px;font-weight:700;letter-spacing:-.02em}
+.t-chart{height:260px;margin-top:14px;position:relative}
+.t-legend{color:var(--ink2);margin-top:8px}
+.t-quote{margin:16px 0 0;padding:12px 16px;border-radius:16px;background:rgba(0,0,0,.04)}
+.t-quote:empty{display:none}
+.t-quote p{font-size:17px;font-weight:600}
+.t-quote footer{display:flex;align-items:center;gap:6px;margin-top:6px;color:var(--ink2)}
+.t-quote footer .ic{width:14px;height:14px}
+.t-list{display:grid;gap:4px;margin-top:10px;max-height:340px;overflow-y:auto}
+.t-row{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 12px;border-radius:12px;text-align:left}
+.t-row b{font-weight:600}
+.t-row .cap{color:var(--ink2)}
+.t-ret{font-weight:600}
+.t-row.on{background:rgba(0,0,0,.06)}
+@media (hover:hover){.t-row:hover{background:rgba(0,0,0,.04)}}
+
+@media (min-width:960px){
+  .v-left{align-items:flex-start;width:auto;flex:1 1 auto}
+  .dl-label{text-align:left}
+  .delay{width:min(100%,380px)}
+  .l-top{flex-direction:row;justify-content:space-between;align-items:center;max-width:1200px;width:100%;margin:0 auto;padding:12px 32px 20px}
+  .l-top .l-head{padding:0}
+  .band-btn{min-height:120px}
+  .band:not(:has(.band-btn)){min-height:120px}
+  .t-grid{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);column-gap:40px}
+  .t-chart{height:320px}
+  .t-list{max-height:420px}
+}
+@media (max-width:959px){
+  /* phone: the stamp yields room so the stub fits above the fold */
+  .v-main{padding-top:8px}
+  .stub{margin:12px 16px 92px}
+}
