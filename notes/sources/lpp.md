@@ -152,7 +152,7 @@ v1, all 246 sessions (an event can fail more than one check):
 | v1 | +$9,620 | +$4,499 | 33 of 50 | 32 of 50 |
 | v2 | +$10,963 | +$7,002 | 35 of 50 | 35 of 50 |
 
-   The rest: ~90 trips lack a share count, ~200 are open at stream end, ~20 have counts that don't add up. 50 hand-picked-by-completeness trips is a small, selected sample: story 1's verdict decides.
+   The rest: ~90 trips lack a share count, ~200 are open at stream end, ~20 have counts that don't add up. These 50 are picked by completeness, a small and selected sample: story 1's verdict decides.
 5. Calls (minute bars after the call): v1 372 of 636 levels traded that session (58%; support 190/260, resistance 67/96, entry 29/45, stop 10/15, target 76/220); v2 394 of 664 (59%).
 6. Not here: the sealed window (`contracts.md` rule 10) and the per-delay portfolios; both are story 1's.
 
