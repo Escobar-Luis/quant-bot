@@ -1,0 +1,128 @@
+[
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "lpp-strategy-cards.md",
+  "id": "9af41cd0-be4e-4198-9b7d-eeb11da43eab",
+  "chunks": 3,
+  "at": "2026-10-17T18:50:07Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "lpp-events-summary.md",
+  "id": "90801799-0bfa-4312-a10b-13e429c5b9f7",
+  "chunks": 1,
+  "at": "2026-10-17T18:50:09Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "lpp-untestable.md",
+  "id": "21ad096b-e377-4545-b800-fc7df2c76069",
+  "chunks": 1,
+  "at": "2026-10-17T18:50:10Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "ziptrader-strategy-cards.md",
+  "id": "3838ec7a-1e8e-4681-b7b3-3183b6c34449",
+  "chunks": 1,
+  "at": "2026-10-17T18:50:52Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "ziptrader-events-summary.md",
+  "id": "0860d454-107b-400a-a30f-d6d17590e738",
+  "chunks": 1,
+  "at": "2026-10-17T18:50:54Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "ziptrader-untestable.md",
+  "id": "3af48c22-dda1-4a92-a343-0191858e0cca",
+  "chunks": 1,
+  "at": "2026-10-17T18:50:55Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "cryptowizard-strategy-cards.md",
+  "id": "584a3620-3bb9-4ef6-8156-f8ed7845f10c",
+  "chunks": 3,
+  "at": "2026-10-17T18:50:57Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "cryptowizard-events-summary.md",
+  "id": "1f9842d4-491d-4fa1-b0ea-6967018db329",
+  "chunks": 2,
+  "at": "2026-10-17T18:50:59Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v1",
+  "doc": "cryptowizard-untestable.md",
+  "id": "74390c02-1665-4764-a92a-d0d67c0adc0b",
+  "chunks": 1,
+  "at": "2026-10-17T18:51:00Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "lpp-strategy-cards.md",
+  "id": "3654d61e-0326-45ff-af99-fd11802d31c8",
+  "chunks": 3,
+  "at": "2026-10-17T18:52:38Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "lpp-events-summary.md",
+  "id": "4204291e-2cfd-48d2-bdc4-f87789291333",
+  "chunks": 1,
+  "at": "2026-10-17T18:52:39Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "lpp-untestable.md",
+  "id": "eb231b48-c4bc-4a01-a370-37b0b340ca38",
+  "chunks": 1,
+  "at": "2026-10-17T18:52:41Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "ziptrader-strategy-cards.md",
+  "id": "072153c1-ebb3-4cfd-9b3a-fdbc3d58ee9e",
+  "chunks": 1,
+  "at": "2026-10-17T18:52:42Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "ziptrader-events-summary.md",
+  "id": "a4287247-f1ed-41c8-af33-18e796c4ee02",
+  "chunks": 1,
+  "at": "2026-10-17T18:52:44Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "ziptrader-untestable.md",
+  "id": "a9305723-8726-46dd-9f44-83e45e25b343",
+  "chunks": 1,
+  "at": "2026-10-17T18:52:45Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "cryptowizard-strategy-cards.md",
+  "id": "ec8cdb35-d7eb-427b-a5c6-53af1929c798",
+  "chunks": 3,
+  "at": "2026-10-17T18:52:47Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "cryptowizard-events-summary.md",
+  "id": "0fa4fc8c-9c7f-46e9-b592-23bfcb519e6e",
+  "chunks": 2,
+  "at": "2026-10-17T18:52:49Z"
+ },
+ {
+  "agent_id": "daytrader-verdict-v2",
+  "doc": "cryptowizard-untestable.md",
+  "id": "aedc3a3a-ed1a-4a38-8a20-f9dd47c2b9b5",
+  "chunks": 1,
+  "at": "2026-10-17T18:52:50Z"
+ }
+]
