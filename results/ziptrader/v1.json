@@ -6,8 +6,8 @@
  "source_agent_id": "extract-ziptrader-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T18:36:03Z",
- "git_sha": "655cd31c5acf8b340d6d1c5a21db17beb999da00",
+ "generated_at": "2026-10-17T18:37:33Z",
+ "git_sha": "84a0906996112d35275ed03bd34f55c456fd28d4",
  "window": {
   "start": "2026-10-01",
   "end": "2026-10-16",
@@ -1026,7 +1026,8 @@
   "Only 12 briefings (Oct 1-16, 2026): too few to judge.",
   "Exit assumed after 5 sessions for 1 calls with no exit.",
   "$1,000 per call: they never state a size.",
-  "Prices are Yahoo 1-minute bars; costs 5 bps per side."
+  "Prices are Yahoo 1-minute bars; costs 5 bps per side.",
+  "Just holding SPY leaves out its dividends (about 1% a year)."
  ],
  "checks": {
   "events_total": 86,

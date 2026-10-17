@@ -64,4 +64,5 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"Exit assumed at 15:55 for {assumed['day']} calls with no exit.")
     out.append("$1,000 per call: they never state a size.")
     out.append("Prices are Yahoo 1-minute bars; costs 5 bps per side.")
+    out.append("Just holding SPY leaves out its dividends (about 1% a year).")
     return out

@@ -150,4 +150,5 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     out.append("His positions (often $40k+) are scaled to $1,000 a trade to fit $10k.")
     out.append("Prices are 1-minute market bars, not his own fills.")
     out.append("Costs are estimates: 5 bps per side, 20 under $10.")
+    out.append("Just holding SPY leaves out its dividends (about 1% a year).")
     return out
