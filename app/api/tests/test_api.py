@@ -19,7 +19,10 @@ def client():
 
 
 def headline_file(course: str) -> dict:
-    return json.loads(snap.load(REPO).headline(course).raw)
+    """The AD-3 rule written out again here, so the tests don't check the code against itself."""
+    docs = [json.loads(p.read_text()) for p in (RESULTS / course).glob("v*.json")]
+    docs.sort(key=lambda d: int(d["version"][1:]), reverse=True)
+    return next((d for d in docs if not (d.get("same_sessions") or {}).get("proof_set")), docs[0])
 
 
 def results_doc(course: str, version: str, *, proof_set: bool = False, delays=(1, 5)) -> dict:
@@ -156,12 +159,92 @@ def test_broken_files_are_skipped_and_reported(tmp_path):
     write(tmp_path, results_doc("cryptowizard", "v1"), name="latest.json")
     (tmp_path / "results" / "_sample.json").write_text(json.dumps(results_doc("lpp", "v9")))
     body = TestClient(create_app(tmp_path)).get("/health").json()
-    assert body["courses"] == ["lpp"]
+    assert body["courses"] == []          # lpp withheld (its v2 was skipped); the others have no v<n> file left
     assert sorted(sk["path"] for sk in body["skipped"]) == [
-        "results/cryptowizard/latest.json", "results/lpp/v2.json", "results/ziptrader/v1.json"]
+        "results/cryptowizard/latest.json", "results/lpp/v1.json", "results/lpp/v2.json",
+        "results/ziptrader/v1.json"]
 
 
-def test_empty_snapshot_still_starts(tmp_path):
+def test_empty_snapshot_starts_but_is_not_ok(tmp_path):
+    (tmp_path / "results").mkdir()
     c = TestClient(create_app(tmp_path))
-    assert c.get("/health").json()["courses"] == []
+    assert c.get("/health").json() == {"ok": False, "snapshot_id": snap.snapshot_id({}), "courses": [], "skipped": []}
     assert c.get("/v1/courses").json()["courses"] == []
+
+
+def test_missing_results_folder_refuses_to_start(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        create_app(tmp_path / "typo")
+
+
+def test_health_answers_head(client):
+    assert client.head("/health").status_code == 200
+
+
+@pytest.mark.parametrize("breakage", ["portfolios_not_objects", "same_sessions_list", "default_delay_bool",
+                                      "row_missing_keys", "private_video_id", "leading_zero_version"])
+def test_malformed_files_are_skipped_not_served(tmp_path, breakage):
+    doc, name = results_doc("lpp", "v1"), None
+    if breakage == "portfolios_not_objects":
+        doc["portfolios"] = ["x", None]
+    elif breakage == "same_sessions_list":
+        doc["same_sessions"] = ["x"]
+    elif breakage == "default_delay_bool":
+        doc["delays_min"], doc["default_delay_min"] = [1, 5], True
+    elif breakage == "row_missing_keys":
+        doc["portfolios"][0]["by_delay"]["5"] = {"end": 1}
+    elif breakage == "private_video_id":
+        doc["unknown"].append("see yt:A4929OT4Jls")
+    elif breakage == "leading_zero_version":
+        name = "v01.json"
+    write(tmp_path, doc, name=name)
+    c = TestClient(create_app(tmp_path))
+    body = c.get("/health").json()
+    assert body["courses"] == [] and len(body["skipped"]) == 1 and body["ok"] is False
+    assert c.get("/v1/courses/lpp/verdict").status_code == 404
+
+
+def test_a_skipped_newer_version_withholds_the_whole_course(tmp_path):
+    """Else the API would headline v1 while the web app's latest() picks v2."""
+    write(tmp_path, results_doc("lpp", "v1"))
+    broken = results_doc("lpp", "v2")
+    del broken["portfolios"][0]["by_delay"]["1"]
+    write(tmp_path, broken)
+    write(tmp_path, results_doc("ziptrader", "v1"))
+    body = TestClient(create_app(tmp_path)).get("/health").json()
+    assert body["courses"] == ["ziptrader"]
+    assert {sk["path"] for sk in body["skipped"]} == {"results/lpp/v1.json", "results/lpp/v2.json"}
+
+
+def test_private_url_pattern_matches_the_backtest_guard():
+    from backtest.common import PRIVATE_URL
+    assert snap.PRIVATE_URL.pattern == PRIVATE_URL.pattern
+
+
+def test_snapshot_id_known_answer():
+    """AD-1's formula pinned: sha256 over sorted "path:sha256" lines, first 12 hex."""
+    import hashlib
+    digests = {"results/b/v1.json": "22", "results/a/v1.json": "11"}
+    want = hashlib.sha256(b"results/a/v1.json:11\nresults/b/v1.json:22").hexdigest()[:12]
+    assert snap.snapshot_id(digests) == want
+
+
+def test_snapshot_id_changes_when_a_skipped_file_changes(tmp_path):
+    write(tmp_path, results_doc("lpp", "v1"))
+    bad = tmp_path / "results" / "lpp" / "notes.json"
+    bad.write_text("{}")
+    before = snap.load(tmp_path).snapshot_id
+    bad.write_text('{"x": 1}')
+    assert snap.load(tmp_path).snapshot_id != before
+
+
+def test_server_errors_use_the_envelope_and_carry_the_snapshot_id(tmp_path, monkeypatch):
+    write(tmp_path, results_doc("lpp", "v1"))
+    c = TestClient(create_app(tmp_path), raise_server_exceptions=False)
+
+    def boom(_self):
+        raise RuntimeError("boom")
+    monkeypatch.setattr(snap.Snapshot, "courses", boom)
+    r = c.get("/v1/courses")
+    assert r.status_code == 500 and r.json()["error"]["code"] == "internal_error"
+    assert r.headers["X-Snapshot-Id"] == c.get("/v1/courses/lpp/verdict").headers["X-Snapshot-Id"]

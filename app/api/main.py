@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import time
+import traceback
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -32,26 +33,29 @@ class ApiError(Exception):
         self.status, self.code, self.message = status, code, message
 
 
-def envelope(status: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse({"error": {"code": code, "message": message}}, status_code=status)
-
-
 def create_app(snapshot_dir: Path | str | None = None) -> FastAPI:
     root = Path(snapshot_dir or os.getenv("SNAPSHOT_DIR") or REPO)
     s = snap.load(root)
     for sk in s.skipped:
-        log.warning("skipped %s: %s", sk["path"], sk["why"])
+        log.warning(json.dumps({"skipped": sk["path"], "why": sk["why"], "snapshot_id": s.snapshot_id}))
     app = FastAPI(title="Day Trader AI API", version="0.1.0")
     app.state.snapshot = s
 
+    def line(request: Request, status: int, t0: float) -> dict:
+        return {"method": request.method, "path": request.url.path, "status": status,
+                "ms": round((time.perf_counter() - t0) * 1000, 1), "snapshot_id": s.snapshot_id}
+
     @app.middleware("http")
     async def stamp_and_log(request: Request, call_next):
-        t0 = time.perf_counter()
+        request.state.t0 = t0 = time.perf_counter()
         response = await call_next(request)
         response.headers["X-Snapshot-Id"] = s.snapshot_id
-        log.info(json.dumps({"method": request.method, "path": request.url.path, "status": response.status_code,
-                             "ms": round((time.perf_counter() - t0) * 1000, 1), "snapshot_id": s.snapshot_id}))
+        log.info(json.dumps(line(request, response.status_code, t0)))
         return response
+
+    def envelope(status: int, code: str, message: str) -> JSONResponse:
+        return JSONResponse({"error": {"code": code, "message": message}}, status_code=status,
+                            headers={"X-Snapshot-Id": s.snapshot_id})
 
     @app.exception_handler(ApiError)
     async def api_error(_req, e: ApiError):
@@ -69,8 +73,11 @@ def create_app(snapshot_dir: Path | str | None = None) -> FastAPI:
         return envelope(e.status_code, code, str(e.detail))
 
     @app.exception_handler(Exception)
-    async def internal_error(_req, e: Exception):
-        log.exception("unhandled error")
+    async def internal_error(request: Request, e: Exception):
+        # Runs outside the middleware above, so it stamps and logs itself; the traceback rides inside the one line.
+        t0 = getattr(request.state, "t0", time.perf_counter())
+        log.error(json.dumps({**line(request, 500, t0), "error": type(e).__name__,
+                              "trace": "".join(traceback.format_exception(e))}))
         return envelope(500, "internal_error", "Something broke on our side.")
 
     def course_or_404(course: str) -> None:
@@ -88,9 +95,10 @@ def create_app(snapshot_dir: Path | str | None = None) -> FastAPI:
                 "headline": port["by_delay"][str(delay)],
                 "generated_at": d.get("generated_at"), "git_sha": d.get("git_sha")}
 
-    @app.get("/health")
+    @app.api_route("/health", methods=["GET", "HEAD"])
     def health():
-        return {"ok": True, "snapshot_id": s.snapshot_id, "courses": s.courses(), "skipped": s.skipped}
+        """ok is false when no course can be served (an empty or fully skipped snapshot)."""
+        return {"ok": bool(s.files), "snapshot_id": s.snapshot_id, "courses": s.courses(), "skipped": s.skipped}
 
     @app.get("/v1/courses")
     def courses():

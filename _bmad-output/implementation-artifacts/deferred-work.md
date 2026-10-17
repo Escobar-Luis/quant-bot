@@ -18,3 +18,14 @@
 - Tests for trigger fills and lpp.build ledger rules.
 - Bar cache robustness: empty weekday answers cached forever, non-atomic writes.
 - handcheck: check exits and P&L, clear errors.
+
+## Deferred from: story backend-1-verdict-api (2026-10-17)
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: Send `ETag` (the file's sha256) and `Cache-Control` on the results endpoint; answer 304.
+  evidence: The files are immutable per snapshot and their hashes are already computed at load; backend-2 (deploy) is where caching headers start to matter.
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: Add a supply-chain cooldown (uv `exclude-newer`) so new dependency releases wait about a week.
+  evidence: The lock took fastapi 0.143.3 a day after release; a repo-wide setting affects every lane's dependencies.
+- source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
+  summary: List `app/api/` (and later `app/pipeline/`) in AGENTS.md contract 6, "who writes where".
+  evidence: AGENTS.md says contracts change there first, by PR; it goes in the backend architecture PR.
