@@ -11,12 +11,11 @@ Code: `app/lpp/`. Data (gitignored): `~/dev/quant-bot/data/lpp/`. Design: `notes
 4. v1 misses precision by one.
 5. Trading is 38% of airtime.
 6. PRISM v1: 28 of 30 failed.
-7. v2, same 30: 18 fail.
+7. PRISM v2, same 30: 18.
 
 **Your call**
 1. Review 5 gold checklists.
-2. Send v2 runs to PRISM?
-3. Story 1 prices v2?
+2. Story 1 prices v2?
 
 ## 1. Source
 1. Discord `#morning-live-trading` (LPP server), one YouTube link per trading day; 247 sessions, 2024-08-15 to 2025-09-12 (collected by the strategy-pipeline session).
@@ -139,7 +138,7 @@ v1, all 246 sessions (an event can fail more than one check):
 | `extract-lpp-v2` | 18 | 30 | 94.4% (236/250) | 66.7% (20/30) |
 
 5. What v2 changes, and how much of the gain is code: (a) the prompt asks the quote to include the event's numbers; (b) **code** trims a verified quote to its 12-word window holding the most of those numbers, because the prompt alone made quotes longer (84 → 100 too-long quotes); (c) the v2 **ledger rules** carry positions across sessions and stop failing a position still open at stream end. (b) and (c) are code, not a better model, and (c) is a rule change; the demo should say so. The local re-check of v1 counts 29 error runs vs the 28 traced because the review added checks (side, level).
-6. v2 is not in PRISM yet. Root Cause should cluster the v1 runs first (story 2), then `LPP_VERSION=v2 uv run python -m lpp.prism --proof-set`.
+6. `extract-lpp-v2`: the same 30 sessions sent ~15:30 ET at the orchestrator's request, 18 `error`, 12 `success`, with `metadata`; `conversation_id` reuses v1's (`lpp-<video_id>-lpp-v1`, via `--conversation-id`) so each v1/v2 pair groups together.
 
 ## 9. Test design (`copytest.py`; the full engine is story 1)
 1. **Host's round trips**: the shared ledger over trades that pass the validity checks; legs priced at the 1-min bar at each `wall_utc` (his stated fill when it sits inside that bar).

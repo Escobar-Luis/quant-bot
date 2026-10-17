@@ -72,9 +72,9 @@ def steps_for(sess: dict, events: list[dict]) -> list[dict]:
     ]
 
 
-def payload(vid: str, sess: dict, events: list[dict], proof: set, sha: str) -> dict:
+def payload(vid: str, sess: dict, events: list[dict], proof: set, sha: str, conv: str = "lpp-{vid}") -> dict:
     """One trajectory, as printed by --dry-run and as sent (contracts.md, trace conventions)."""
-    return {"agent_id": AGENT_ID, "agent_name": f"LPP session extractor {VERSION}", "conversation_id": f"lpp-{vid}",
+    return {"agent_id": AGENT_ID, "agent_name": f"LPP session extractor {VERSION}", "conversation_id": conv.format(vid=vid),
             "model": sess["model"], "final_status": "error" if sess["needs_review"] else "success",
             "metadata": {"agent_version": VERSION, "course": "lpp", "prompt_version": PROMPT_VERSION, "git_sha": sha,
                          "proof_set": vid in proof},
@@ -101,6 +101,8 @@ def main():
     ap.add_argument("--proof-set", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", action="store_true", help="send again even if prism_runs.jsonl says it was sent")
+    ap.add_argument("--conversation-id", default="lpp-{vid}",
+                    help='template; "lpp-{vid}-lpp-v1" pairs v2 runs with the 30 v1 runs already in PRISM')
     a = ap.parse_args()
     ids = a.ids or (proof_set() if a.proof_set else [])
     if not ids:
@@ -123,7 +125,7 @@ def main():
         if s is None or s["status"] in ("no_captions", "extract_failed"):
             print(vid, "skipped:", "not extracted" if s is None else s["status"])
             continue
-        p = payload(vid, s, events.get(s["source_id"], []), proof, sha)
+        p = payload(vid, s, events.get(s["source_id"], []), proof, sha, a.conversation_id)
         if a.dry_run:
             print(json.dumps(p, indent=1)[:3000])
             continue
