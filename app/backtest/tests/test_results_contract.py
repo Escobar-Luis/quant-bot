@@ -84,3 +84,5 @@ def test_suggestion_is_the_improver_picked_on_dev(path):
     if s:
         assert s["agent_id"] == "daytrader-improver-v1" and s["picked_on"] == "dev"
         assert s["kept"] == (s["dev"]["after_pct"] > s["dev"]["before_pct"])
+        if s.get("trajectory_id"):
+            assert s["prism_url"] == f"https://prism.blockconvey.com/trajectories/{s['trajectory_id']}"
