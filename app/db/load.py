@@ -1,7 +1,7 @@
 """Load every course's JSONL (and LPP captions) into SurrealDB. Safe to re-run.
 
     uv run python -m db.load            # schema + sources + events + caption segments
-    uv run python -m db.load --embed    # also embed rule/why text with voyage-finance-2 (Nicrron)
+    uv run python -m db.load --embed    # also embed rule text with voyage-finance-2 (Nicrron)
     uv run python -m db.load --stats    # print counts and one call of each agent function
 
 Embedded on disk by default (surrealkv:// under ~/dev/quant-bot/data/surreal). Set SURREALDB_URL
@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -24,6 +25,8 @@ DATA = pathlib.Path(os.environ.get("DATA_DIR", ROOT / "data"))
 LOCAL_URL = f"surrealkv://{DATA / 'surreal' / 'daytrader'}"
 EMBEDDED = ("mem://", "memory://", "surrealkv://", "file://")
 SCHEMA = pathlib.Path(__file__).with_name("schema.surql")
+INDEXES = pathlib.Path(__file__).with_name("indexes.surql")
+BATCH = 250  # rows per query: few round trips to a Cloud instance, well under its 4 MiB RPC cap
 
 COURSES = {
     "lpp": {"name": "Learn Plan Profit", "market": "us_equities"},
@@ -47,6 +50,15 @@ def connect(url: str | None = None) -> Surreal:
         db.signin({"username": os.environ["SURREALDB_USER"], "password": os.environ["SURREALDB_PASS"]})
     db.use(os.environ.get("SURREALDB_NAMESPACE", "daytrader"), os.environ.get("SURREALDB_DATABASE", "courses"))
     return db
+
+
+def dialect(db: Surreal, sql: str) -> str:
+    """schema.surql is written for SurrealDB 2.x; Surreal Cloud data tools need 3.1+, which renamed a few words."""
+    major = int(re.search(r"(\d+)\.", str(db.version())).group(1))
+    if major < 3:
+        return sql
+    sql = re.sub(r"FLEXIBLE TYPE ([^\s;]+)", r"TYPE \1 FLEXIBLE", sql)
+    return sql.replace("SEARCH ANALYZER", "FULLTEXT ANALYZER").replace("type::thing(", "type::record(")
 
 
 def when(value: str | None) -> datetime | None:
@@ -73,9 +85,14 @@ def rows(path: pathlib.Path):
             continue
 
 
+def batches(items: list, size: int = BATCH):
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+
+
 def load_sources(db: Surreal, course: str) -> int:
     stats = {r["source_id"]: r for r in rows(DATA / course / "sessions.jsonl")}
-    n = 0
+    docs = []
     for r in rows(DATA / course / "sources.jsonl"):
         doc = {k: r.get(k) for k in SOURCE_FIELDS if r.get(k) is not None}
         doc.update(course=RecordID("course", course), posted_at=when(r["posted_at"]))
@@ -83,13 +100,14 @@ def load_sources(db: Surreal, course: str) -> int:
             doc["live_start"] = when(r["release_utc"])
         if s := stats.get(r["source_id"]):
             doc["stats"] = {k: v for k, v in s.items() if k not in ("source_id", "video_id", "posted_at", "release_utc")}
-        db.query("UPSERT $id CONTENT $doc", {"id": RecordID("source", r["source_id"]), "doc": doc})
-        n += 1
-    return n
+        docs.append({"id": RecordID("source", r["source_id"]), "doc": doc})
+    for b in batches(docs):
+        db.query("FOR $r IN $rows { UPSERT $r.id CONTENT $r.doc; };", {"rows": b})
+    return len(docs)
 
 
 def load_events(db: Surreal, course: str) -> int:
-    n = 0
+    docs, edges, tickers = [], [], {}
     for r in rows(DATA / course / "events.jsonl"):
         doc = {k: r.get(k) for k in EVENT_TEXT if r.get(k) is not None}
         doc.update({k: num(r.get(k)) for k in EVENT_NUM if num(r.get(k)) is not None})
@@ -98,17 +116,22 @@ def load_events(db: Surreal, course: str) -> int:
                    checks=r.get("checks") or {}, fail=r.get("fail") or [])
         if r.get("wall_utc"):
             doc["wall"] = when(r["wall_utc"])
-        ticker = (r.get("ticker") or "").upper().strip() or None
-        if ticker:
-            doc["ticker"] = ticker
         eid = RecordID("event", r["event_id"])
-        # MERGE keeps an embedding computed on an earlier run
-        db.query("UPSERT $id MERGE $doc; DELETE mentions WHERE in = $id;", {"id": eid, "doc": doc})
-        if ticker:
-            db.query("UPSERT $t MERGE {market: $m}; RELATE $e->mentions->$t;",
-                     {"t": RecordID("ticker", ticker), "m": r.get("market"), "e": eid})
-        n += 1
-    return n
+        if ticker := (r.get("ticker") or "").upper().strip() or None:
+            doc["ticker"] = ticker
+            tickers[ticker] = r.get("market")
+            edges.append({"in": eid, "out": RecordID("ticker", ticker)})
+        docs.append({"id": eid, "doc": doc})
+    tick = [{"id": RecordID("ticker", t), "market": m} for t, m in tickers.items()]
+    for b in batches(tick):
+        db.query("FOR $t IN $rows { UPSERT $t.id MERGE {market: $t.market}; };", {"rows": b})
+    for b in batches(docs):
+        # MERGE keeps an embedding computed on an earlier run; edges are rebuilt
+        db.query("FOR $r IN $rows { UPSERT $r.id MERGE $r.doc; }; DELETE mentions WHERE in IN $ids;",
+                 {"rows": b, "ids": [d["id"] for d in b]})
+    for b in batches(edges):
+        db.query("INSERT RELATION INTO mentions $rows;", {"rows": b})
+    return len(docs)
 
 
 def caption_words(path: pathlib.Path) -> list[tuple[float, str]]:
@@ -141,7 +164,9 @@ def load_segments(db: Surreal, course: str) -> int:
         docs = [{"id": RecordID("segment", f"{r['source_id']}:{start:05d}"), "source": src, "start_s": start,
                  "end_s": start + SEGMENT_S, "text": " ".join("".join(parts).split())}
                 for start, parts in sorted(buckets.items())]
-        db.query("DELETE segment WHERE source = $s; INSERT INTO segment $docs;", {"s": src, "docs": docs})
+        db.query("DELETE segment WHERE source = $s;", {"s": src})
+        for b in batches(docs):
+            db.query("INSERT INTO segment $docs;", {"docs": b})
         n += len(docs)
     return n
 
@@ -151,13 +176,12 @@ def embed_events(db: Surreal, batch: int = 96) -> int:
 
     client = OpenAI(base_url=os.environ.get("NICRRON_BASE_URL") or "https://api.nicrron.ai/v1",
                     api_key=os.environ["NICRRON_API_KEY"])
-    todo = db.query("SELECT id, rule, why FROM event WHERE embedding = NONE AND (rule != NONE OR why != NONE)")
-    for i in range(0, len(todo), batch):
-        chunk = todo[i:i + batch]
-        texts = [(e.get("rule") or e.get("why"))[:2000] for e in chunk]
-        vecs = client.embeddings.create(model="voyage/voyage-finance-2", input=texts).data
-        for e, v in zip(chunk, vecs):
-            db.query("UPDATE $id SET embedding = $v", {"id": e["id"], "v": v.embedding})
+    # rules only: what fn::similar_rules searches; keeps the free instance small (~8 KB per vector)
+    todo = db.query("SELECT id, rule FROM event WHERE type = 'rule' AND rule != NONE AND embedding = NONE")
+    for chunk in batches(todo, batch):
+        vecs = client.embeddings.create(model="voyage/voyage-finance-2", input=[e["rule"][:2000] for e in chunk]).data
+        db.query("FOR $u IN $rows { UPDATE $u.id SET embedding = $u.v; };",
+                 {"rows": [{"id": e["id"], "v": v.embedding} for e, v in zip(chunk, vecs)]})
     return len(todo)
 
 
@@ -176,20 +200,21 @@ def stats(db: Surreal) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", help="override SURREALDB_URL")
-    ap.add_argument("--embed", action="store_true")
+    ap.add_argument("--embed", action="store_true", help="embed rule text with voyage-finance-2 (Nicrron)")
     ap.add_argument("--stats", action="store_true", help="only print counts")
     ap.add_argument("--no-segments", action="store_true")
     a = ap.parse_args()
     db = connect(a.url)
     if not a.stats:
-        db.query(SCHEMA.read_text())
+        db.query(dialect(db, SCHEMA.read_text()))
         for course, meta in COURSES.items():
             db.query("UPSERT $id CONTENT $doc", {"id": RecordID("course", course), "doc": meta})
             s, e = load_sources(db, course), load_events(db, course)
             g = 0 if a.no_segments else load_segments(db, course)
             print(f"{course}: {s} sources, {e} events, {g} caption segments")
+        db.query(dialect(db, INDEXES.read_text()))  # rule full-text and vector indexes, built once at the end
         if a.embed:
-            print("embedded", embed_events(db), "events")
+            print("embedded", embed_events(db), "rules")
     stats(db)
 
 

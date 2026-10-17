@@ -1,5 +1,6 @@
 -- Day Trader AI: SurrealDB schema (SurrealDB 2.x). Namespace `daytrader`, database `courses`.
 -- Loaded by app/db/load.py; re-running it is safe (DEFINE ... OVERWRITE, UPSERT by fixed ids).
+-- The full-text and vector indexes live in indexes.surql and are built after the data is in (cheaper on a small instance).
 -- Layout and the reasons behind it: notes/storage-surrealdb.md.
 
 DEFINE ANALYZER OVERWRITE english TOKENIZERS blank, class FILTERS lowercase, ascii, snowball(english);
@@ -36,7 +37,6 @@ DEFINE FIELD OVERWRITE start_s ON segment TYPE number;
 DEFINE FIELD OVERWRITE end_s ON segment TYPE number;
 DEFINE FIELD OVERWRITE text ON segment TYPE string;
 DEFINE INDEX OVERWRITE segment_at ON segment FIELDS source, start_s;
-DEFINE INDEX OVERWRITE segment_text ON segment FIELDS text SEARCH ANALYZER english BM25;
 
 -- Tickers: ticker:TSLA, ticker:BTCUSD
 DEFINE TABLE OVERWRITE ticker SCHEMAFULL;
@@ -75,8 +75,6 @@ DEFINE FIELD OVERWRITE prompt_version ON event TYPE option<string>;
 DEFINE FIELD OVERWRITE embedding ON event TYPE option<array<float>>;      -- voyage-finance-2 (1024) of rule or why
 DEFINE INDEX OVERWRITE event_lookup ON event FIELDS course, type, ticker, wall;
 DEFINE INDEX OVERWRITE event_status ON event FIELDS status;
-DEFINE INDEX OVERWRITE event_rule_text ON event FIELDS rule SEARCH ANALYZER english BM25;
-DEFINE INDEX OVERWRITE event_vec ON event FIELDS embedding HNSW DIMENSION 1024 DIST COSINE;
 
 -- Graph: event -> mentions -> ticker (cross-course "who traded TSLA and why")
 DEFINE TABLE OVERWRITE mentions TYPE RELATION FROM event TO ticker;
