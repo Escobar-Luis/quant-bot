@@ -30,7 +30,7 @@ Source: the ZipTrader+ Discord, read-only in Luis's signed-in Chrome. Raw posts,
 | `#big-tip` | How-to: notification settings | 1 | No |
 | Classrooms: `#momentum-plays`, `#biotech-plays`, `#etf-plays`, `#dividends`, `#crypto-plays` | Member chat | 495, 1,005, 6, 6, 6 | No |
 | `#brokers`, `main square` chats, `#reflection`, admin channels | Member chat, admin | not counted | No |
-| `#day-trade-ideas` | Not checked | not counted | Unknown |
+| `#day-trade-ideas` | Member chat; latest 30 messages: 0 staff | not counted | No |
 
 ## 2. What was collected (all in `data/ziptrader/`)
 
@@ -39,10 +39,12 @@ Source: the ZipTrader+ Discord, read-only in Luis's signed-in Chrome. Raw posts,
 | `sources.jsonl` | 13 | 1 Nutshell + 12 October briefings (Oct 1-16, every trading day), all staff, one PNG each |
 | `discord/img/` | 13 PNG, 12.7 MB | Downloaded with Luis's OK from the open Discord tab |
 | `discord/transcripts/` | 26 | Every image read by two models (Haiku + Sonnet for briefings; Sonnet + GPT-5.4-mini for the Nutshell) |
-| `events.jsonl` | 85 | 7 `call`, 65 `setup`, 13 `rule`; all pass the code checks |
+| `events.jsonl` | 86 | 7 `call`, 65 `setup`, 14 `rule`; 85 `ok`, 1 `needs_review` |
 | `strategy_nutshell.spec.json` | 3 specs | One StrategySpec per strategy on the card |
 
-Cost: about $0.55 in Nicrron calls (transcription $0.53, extraction a few cents).
+Checks on the 86 events: quote 86/86, numbers 85/86 (a JPM paraphrase says "Q3", which its panel doesn't), ticker 72/72 (rules have none), cross-read 86/86, price not checked (no minute bars).
+
+Cost: under $1 in Nicrron calls (transcription $0.53; extraction and re-runs after review the rest). PRISM: 13 runs of agent `extract-ziptrader-v1` (one per post), inside the free automatic analyses.
 
 ## 3. Morning briefings → events
 
@@ -62,8 +64,8 @@ Posted 2026-01-08 in `#strategy-explained` (`dc:1387103286389243985/145865702848
 
 | Spec | Testable? | Rules (paraphrased; item on the card) |
 |---|---|---|
-| Buy good assets at good prices (main focus) | Runs, on assumptions | Buy dips (A, dip assumed = close below its 50-day average); hold to the end of the window (B, assumed); universe and the sell rule are judgement |
-| Momentum riding (secondary) | Runs, mostly sourced | Stop 15-20% below entry (C, the one fully sourced number; coded at 15%); entry and "ride" assumed = close above 50-day average; take profit assumed at +20%; "cut losses quickly" kept as a -7% variant (assumed) |
+| Buy good assets at good prices (main focus) | Runs, on assumptions | Buy dips (A, dip assumed = 14-day RSI below 30); hold to the end of the window (B, assumed); universe and the sell rule are judgement |
+| Momentum riding (secondary) | Runs, mostly sourced | Stop 15-20% below entry (C, the one fully sourced number; coded at 15%); entry and "ride" assumed = close above 50-day average; "lock in profits" and "cut losses quickly" assumed = close crosses below the 10-day EMA, in profit or at a loss |
 | Options strategy (secondary) | No | Needs options prices and judgement |
 
 **What we couldn't test** (the UI's "what we couldn't test" list)
@@ -73,7 +75,7 @@ Posted 2026-01-08 in `#strategy-explained` (`dc:1387103286389243985/145865702848
 4. Both options items: no options data.
 5. No timeframe or holding period on the card: daily bars assumed.
 
-Every assumption is written into the spec (`assumed`), so v1 proposals can change them and say which.
+Every assumption is written into the spec (`assumed`), so v1 proposals can change them and say which. The assumed definitions come from the model and can differ between runs (two runs picked a 50-day average, then RSI below 30, for "dip"); the spec file records which one this v0 uses.
 
 ## 5. How it was built (`app/collect/ziptrader/`)
 
@@ -82,17 +84,26 @@ Run in order with `uv run` (each script declares its own dependencies):
 2. `transcribe.py`: crops each briefing at its two column gutters and sends each column at full resolution (the whole image would be scaled to ~1,568 px); Haiku for briefings, Sonnet for the Nutshell, `--model` for the cross-check read.
 3. `extract_calls.py`: one Haiku call per whole briefing; code sets `type` (call vs setup) and runs the checks.
 4. `nutshell_spec.py`: Sonnet proposes rules; code validates the vocabulary and numbers, assembles the specs and writes rule events.
-5. `checks.py`: `quote_ok`, `numbers_ok`, `ticker_ok` (Nasdaq Trader symbol directory in `data/ref/`), `price_ok` (null: no Alpaca keys yet), `xcheck_ok` (the quote is also in the second model's reading).
+5. `checks.py`: every check runs on the event's own span (its ticker's panel, or its card line): `quote_ok` (exact, case kept except a first capital), `numbers_ok`, `ticker_ok` (real symbol per the Nasdaq Trader directory in `data/ref/`, named in the span), `price_ok` (null: no Alpaca keys yet), `xcheck_ok` (the quote is also in the second model's reading).
+6. `test_ziptrader.py`: 25 unit tests, no network: `uv run --with pytest --with openai --with python-dotenv --with pillow --with numpy pytest app/collect/ziptrader -q`.
+7. `--trace` on the two extract scripts sends one PRISM run per post (locators and derived events only).
 
 **Additions to the shared record shapes** (extra keys; the common loader can ignore them)
-1. `events.level_ref`: a named level without a number (`prev_low`, `premarket_high`, ...).
-2. `events.watch`: paraphrase of the WATCH line.
-3. `events.checks.xcheck_ok`: two-model agreement on the quote.
-4. `sources.image_files`: local image paths under `data/ziptrader/`.
-5. Vocabulary: `pct_from_entry` and `const` for fixed-% exits.
+1. `events.levels`: every level of a call, `[{value, kind, ref}]`; `entry`, `stop`, `targets`, `level`, `level_kind` are filled from it.
+2. `events.level_ref`: a named level without a number (`prev_low`, `premarket_high`, ...).
+3. `events.watch`: paraphrase of the WATCH line.
+4. `events.checks.xcheck_ok`, `numbers_missing`, `rule_errors`: cross-read result and why a check failed.
+5. `sources.image_files`: local image paths under `data/ziptrader/`.
+6. Spec: `pct_from_entry`, `const` and `+ - *` in the vocabulary; `hold` rules; `exit.variants` (assumed alternatives); `exit.time.at = "window_end"`; `timeframe.holding = "swing:open"` (no session count stated); items carry `quote_ok`, `xcheck_ok` and `assumed` (a list of the assumptions).
 
 Lessons
 1. Exact quotes ran 13-14 words; code trims an exact quote to its first 12 words instead of failing it.
 2. One Nicrron stream ended mid-JSON; the spec step retries an unparseable reply instead of patching it.
 3. Chrome blocks a page's second automatic download; one ZIP from a fresh tab worked.
 4. Discord search ANDs two `in:` filters (0 results), so each channel needs its own search.
+5. Checking against the ticker's own panel, not the whole briefing, caught a paraphrase number the whole-text check had passed.
+
+## 6. Deferred (from the code review)
+1. KB docs for PRISM proof 1 (`ziptrader-strategy-cards.md` etc.): the `story/extract-rules` loader writes them.
+2. `price_ok` from minute bars: the backtest story, once Alpaca keys (or yfinance) are allowed.
+3. Posts with several images: only the first is transcribed; none in this set have more than one.

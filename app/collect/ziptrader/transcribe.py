@@ -18,8 +18,10 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from PIL import Image
 
-from common import (DATA, PROMPT_VERSION, TRANSCRIPTS, VISION_BRIEFING_MODEL, VISION_STRATEGY_MODEL, chat,
-                    png_data_url, read_jsonl, write_jsonl)
+from common import (DATA, TRANSCRIPTS, VISION_BRIEFING_MODEL, VISION_STRATEGY_MODEL, chat, png_data_url, read_jsonl,
+                    write_jsonl)
+
+PROMPT_VERSION = "zt-v1"
 
 RULES = """Copy all text exactly as written, top to bottom. Keep every number, symbol, sign, punctuation mark and capital letter.
 Join lines that wrap inside one paragraph into a single line; keep separate paragraphs, list items and labelled lines (e.g. NEWS:, WATCH:) on their own lines.
@@ -65,6 +67,8 @@ def transcribe(src: dict, model: str | None) -> dict:
         tiles = [img]
     else:
         cuts = gutters(img)
+        if not cuts:
+            print(f"warn: no column gutters in {src['message_id']}; sending the whole image, scaled down")
         xs = [0, *cuts, img.width] if cuts else [0, img.width]
         tiles = [img.crop((a, 0, b, img.height)) for a, b in zip(xs, xs[1:])]
     texts, metas = [], []
@@ -81,7 +85,7 @@ def transcribe(src: dict, model: str | None) -> dict:
     out.write_text("\n\n".join(texts) + "\n")
     return {"source_id": src["source_id"], "message_id": src["message_id"], "model": model, "prompt_version": PROMPT_VERSION,
             "tiles": len(tiles), "path": out.relative_to(DATA).as_posix(), "chars": out.stat().st_size,
-            "secs": round(sum(m["secs"] for m in metas), 1),
+            "secs": round(sum(m["secs"] for m in metas), 1), "finish": [m.get("finish") for m in metas],
             "tokens_in": sum(m["tokens_in"] or 0 for m in metas), "tokens_out": sum(m["tokens_out"] or 0 for m in metas)}
 
 

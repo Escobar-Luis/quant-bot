@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.13"
-# dependencies = ["openai>=1.0", "python-dotenv"]
+# dependencies = ["python-dotenv"]
 # ///
 """Build data/ziptrader/sources.jsonl from the DOM listing read in Luis's Chrome.
 
@@ -17,13 +17,16 @@ STAFF = {"Charlie Plattus", "ZipTrader Team"}
 
 def main():
     rows = list(csv.DictReader((DISCORD / "dom_listing.tsv").open(), delimiter="\t"))
-    out = []
+    out, seen = [], set()
     for r in rows:
+        if r["message_id"] in seen:
+            continue
+        seen.add(r["message_id"])
         files = sorted(p.relative_to(DATA).as_posix() for p in IMG.glob(f"{r['message_id']}_*.png"))
         out.append({
             "source_id": f"dc:{r['channel_id']}/{r['message_id']}",
             "course": COURSE,
-            "kind": "discord_image",
+            "kind": "discord_image" if files else "discord_post",
             "server_id": SERVER_ID,
             "channel": r["channel"],
             "channel_id": r["channel_id"],
