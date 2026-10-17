@@ -27,8 +27,8 @@ def _entails(spec: dict, group: list, results5: list, course: str) -> dict:
     else:
         stop = f"Stated on {with_stop} of {len(group)} trades" if with_stop else "None stated"
         qty = [lg.qty for p in group for lg in p.legs if lg.action == "open" and lg.qty]
-        size = (f"His size, median {median(qty):,.0f} shares; copied at $1,000" if qty
-                else "Not stated; copied at $1,000")
+        size = (f"His share count (median {median(qty):,.0f}), scaled to $1,000" if qty
+                else "Not stated; $1,000 per trade")
     times = sorted(_clock(r.position, r.entry.ts) for r in priced)
     tz = "ET" if course != "cryptowizard" else "UTC"
     time = f"Mostly {times[len(times) // 4]}-{times[3 * len(times) // 4]} {tz}" if times else "Not known"

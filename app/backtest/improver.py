@@ -20,6 +20,7 @@ from .common import DATA, DEFAULT_DELAY_MIN, RESULTS, git_sha
 from .run import course_module, hold_numbers, prefetch
 
 AGENT_ID, PROMPT_VERSION = "daytrader-improver-v1", "improver-v1"
+PRISM_RUN = "https://prism.blockconvey.com/trajectories/{}"   # same pattern as story 2's run_url
 MENU = {"skip_before": "HH:MM (ET): don't copy entries before this time",
         "skip_after": "HH:MM (ET): don't copy entries at or after this time",
         "skip_side": "long or short: don't copy that side"}
@@ -193,6 +194,7 @@ def main():
         print("rejected by code check:", failed, change)
         return
     result["trajectory_id"] = tid
+    result["prism_url"] = PRISM_RUN.format(tid) if tid else None
     p = suggestion_path(a.course, a.version)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(result, indent=1))
