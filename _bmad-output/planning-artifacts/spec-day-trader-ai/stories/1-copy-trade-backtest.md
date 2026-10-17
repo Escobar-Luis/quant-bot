@@ -25,8 +25,6 @@ context:
 
 - Spec and acceptance are pre-approved in `stories.yaml`, `lanes.md` and `contracts.md` (orchestrator brief: "work the story exactly as written"), so this runs the one-shot route.
 - No model calls in the backtest, so nothing to trace for it; per contracts the only story-1 `agent_id` is `daytrader-improver-v1` (stretch).
-</content>
-</invoke>
 - Built: `app/backtest/` (bars, engine, lpp, cryptowizard, ziptrader, run, handcheck, tests). Results: `results/cryptowizard/v1.json`, `results/ziptrader/v1.json`; LPP waits on Alpaca keys.
 - Entry fills at the first bar whose open time is at or after post + delay (rounds up; the contract example agrees, the sample file rounded down).
 - Sizing: LPP's raw share counts peak at ~$42k median per position, so his counts are scaled to $1,000 per trade by default (`--literal` opts out), agreed with the orchestrator pending Luis. Open exposure is capped at the cash (orchestrator request): overflow is sized down or skipped and counted as `couldnt_copy`.
