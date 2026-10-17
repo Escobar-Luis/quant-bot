@@ -116,3 +116,40 @@ def best_stop(all_portfolio: dict, hold_series: list) -> dict:
         i = max(range(len(curve)), key=lambda k: curve[k])
         rows[d] = {"date": dates[i], "end": curve[i], "hold_end": hold_series[i]}
     return {"by_delay": rows}
+
+
+def _account(results: list) -> tuple[float, int]:
+    kept, *_ = engine.fit_to_cash([r for r in results if r.status == "priced"])
+    return round(100 * sum(r.pnl * f for r, f in kept) / MONEY_START, 2), len(kept)
+
+
+def combos(mod, positions: list, by_pos: dict, dates: list, hold: dict, hold_series: list, window: dict,
+           delay: int = 5) -> list:
+    """The best two-strategy mix in one $10k account: picked on the dev months only, reported on the sealed months.
+    Same course only (the courses' dates don't overlap)."""
+    if not hasattr(mod, "STRATEGIES"):
+        return []
+    sealed = window["sealed_from"]
+    groups = {s["id"]: [p for p in positions if mod.strategy_of(p) == s["id"]] for s in mod.STRATEGIES}
+    groups = {k: v for k, v in groups.items() if v}
+    dev_last = max((i for i, d in enumerate(dates) if d < sealed), default=0)
+    hold_dev = round((hold_series[dev_last] / MONEY_START - 1) * 100, 2)
+
+    def split(ids):
+        rs = [by_pos[p.pid][delay] for k in ids for p in groups[k]]
+        on = lambda r: bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed  # noqa: E731
+        dev = [r for r in rs if r.status == "priced" and not on(r)]
+        late = [r for r in rs if r.status == "priced" and on(r)]
+        return _account(dev), _account(late)
+
+    ids = list(groups)
+    pairs = [(a, b) for i, a in enumerate(ids) for b in ids[i + 1:]]
+    if not pairs:
+        return []
+    scored = sorted(((split(pr), pr) for pr in pairs), key=lambda x: -x[0][0][0])
+    ((dev_ret, dev_n), (sealed_ret, sealed_n)), best = scored[0]
+    return [{"ids": [f"{mod.COURSE}:{k}" for k in best], "delay_min": delay, "picked_on": "dev",
+             "window": {"start": sealed, "end": window["end"]},
+             "dev": {"ret_pct": dev_ret, "hold_ret_pct": hold_dev, "trades": dev_n, "pairs_tried": len(pairs)},
+             "sealed": {"ret_pct": sealed_ret, "hold_ret_pct": hold["sealed_ret_pct"], "trades": sealed_n},
+             "word": engine.word(sealed_n, sealed_ret, hold["sealed_ret_pct"])}]

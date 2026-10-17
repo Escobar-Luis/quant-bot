@@ -67,3 +67,12 @@ def test_optional_v2_keys(path):
         for k, b in d["best_stop"]["by_delay"].items():
             curve = d["portfolios"][0]["series"]["by_delay"][k]
             assert b["date"] in dates and b["end"] == max(curve)
+
+
+@pytest.mark.parametrize("path", FILES, ids=[f"{p.parent.name}/{p.name}" for p in FILES])
+def test_combos_are_picked_on_dev_and_reported_on_sealed(path):
+    d = json.loads(path.read_text())
+    for c in d.get("combos", []):
+        assert c["picked_on"] == "dev" and c["window"]["start"] == d["window"]["sealed_from"]
+        assert len(c["ids"]) == 2 and all(i.startswith(d["course"] + ":") for i in c["ids"])
+        assert c["word"] == engine.word(c["sealed"]["trades"], c["sealed"]["ret_pct"], c["sealed"]["hold_ret_pct"])

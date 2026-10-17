@@ -201,9 +201,13 @@ def main():
     results_all = {d: [by_pos[p.pid][d] for p in positions] for d in DELAYS_MIN}
     strat = extras.strategies(mod, a.version, positions, by_pos, dates, hold, mod.WINDOW)
     rng = extras.ranges(results_all, dates, hold_series, mod.WINDOW)
-    out.update({k: v for k, v in (("strategies", strat), ("ranges", rng)) if v})
+    mix = extras.combos(mod, positions, by_pos, dates, hold, hold_series, mod.WINDOW)
+    out.update({k: v for k, v in (("strategies", strat), ("ranges", rng), ("combos", mix)) if v})
     out["best_stop"] = extras.best_stop(portfolios[0], hold_series)
     print(f"  strategies {len(strat)}, ranges {list(rng)}, best stop @5m {out['best_stop']['by_delay']['5']}")
+    for c in mix:
+        print(f"  best mix {c['ids']}: dev {c['dev']['ret_pct']}% vs hold {c['dev']['hold_ret_pct']}%, "
+              f"sealed {c['sealed']['ret_pct']}% vs {c['sealed']['hold_ret_pct']}% ({c['sealed']['trades']} trades) {c['word']}")
     path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=1, ensure_ascii=False))
