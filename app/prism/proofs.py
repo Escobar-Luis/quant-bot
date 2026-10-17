@@ -122,7 +122,7 @@ def improver() -> dict | None:
         return None
     return {"agent_id": s.get("agent_id"), "run_url": run_url(s.get("trajectory_id")), "applies_to": s.get("applies_to"),
             "change": s.get("change"), "why": s.get("why"), "dev": s.get("dev"), "sealed": s.get("sealed"),
-            "kept": s.get("kept"), "source": "results/lpp/v1.json"}
+            "kept": s.get("kept"), "kept_reason": s.get("kept_reason"), "source": "results/lpp/v1.json"}
 
 
 def evaluator() -> dict:
