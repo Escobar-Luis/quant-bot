@@ -87,18 +87,18 @@ def iso_ms(s):
 def main():
     events = read_jsonl(CW / "events.calls.jsonl")
     calls = [e for e in events if e["type"] == "call"]
-    symbols = sorted({e["ticker"] for e in calls})
+    symbols = sorted({e["pair"] for e in calls})
     listed = listed_symbols(symbols)
     print("symbols", len(symbols), "listed on Binance spot", len(listed), "missing", sorted(set(symbols) - set(listed)))
     (CW / "binance_symbols.json").write_text(json.dumps(listed, indent=1))
     need = set()
     for e in events:
-        if e["ticker"] not in listed:
+        if e.get("pair") not in listed:
             continue
         d = dt.datetime.fromtimestamp(iso_ms(e["wall_utc"]) / 1000, dt.timezone.utc).date()
         span = HORIZON_DAYS + 1 if e["type"] == "call" else 0
         for k in range(span + 1):
-            need.add((e["ticker"], d + dt.timedelta(days=k)))
+            need.add((e["pair"], d + dt.timedelta(days=k)))
     today = dt.datetime.now(dt.timezone.utc).date()
     need = sorted(x for x in need if x[1] <= today)
     print("symbol-days to cache", len(need), flush=True)

@@ -91,7 +91,7 @@ def main():
             closes.setdefault(e["links_to"], iso_ms(e["wall_utc"]) + DELAY_MIN * MIN)
     checks, scores = {}, []
     for e in events:
-        sym = e["ticker"]
+        sym = e.get("pair")
         c = {"ticker_ok": sym in listed and listed[sym] in ("TRADING", "BREAK"), "price_ok": None}
         t = iso_ms(e["wall_utc"])
         if c["ticker_ok"] and e["type"] == "call":
@@ -119,7 +119,7 @@ def main():
         if len(bars) < 60:
             scores.append({"event_id": e["event_id"], "skipped": "not enough bars after the post"})
             continue
-        row = {"event_id": e["event_id"], "ticker": sym, "side": e["side"], "wall_utc": e["wall_utc"],
+        row = {"event_id": e["event_id"], "ticker": e["ticker"], "pair": sym, "side": e["side"], "wall_utc": e["wall_utc"],
                "entry_said": e["entry"], "stop": e["stop"], "targets": e["targets"]}
         for mode in ("tp1", "ladder", "managed"):
             fill, legs = simulate(e, bars, closes.get(e["event_id"]) if mode == "managed" else None,

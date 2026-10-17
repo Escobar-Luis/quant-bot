@@ -14,8 +14,8 @@ Run: python parse_posts.py
 import re
 from collections import Counter
 
-from common import (COURSE, CW, SERVER_ID, STAFF, CHANNEL_IDS, coin_of, load_raw, message_url, num,
-                    source_id, to_symbol, write_jsonl)
+from common import (COURSE, CW, SERVER_ID, STAFF, CHANNEL_IDS, coin_of, event_id, load_raw, message_url, num,
+                    source_id, to_symbol, to_ticker, write_jsonl)
 
 NUM_RE = re.compile(r"\$?\s?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)")
 ORD = {"FIRST": 1, "SECOND": 2, "THIRD": 3, "FOURTH": 4, "FIFTH": 5}
@@ -111,8 +111,8 @@ def main():
         })
         kind = classify(p)
         kinds[kind] += 1
-        base = {"event_id": f"cw-{p['message_id']}", "source_id": sid, "course": COURSE, "t_s": None,
-                "wall_utc": p["posted_at"], "market": "crypto", "qty": None, "price": None, "entry": None,
+        base = {"event_id": event_id(p["message_id"]), "source_id": sid, "course": COURSE, "t_s": None,
+                "wall_utc": p["posted_at"], "session_date": p["posted_at"][:10], "market": "crypto", "qty": None, "price": None, "entry": None,
                 "stop": None, "targets": [], "level": None, "level_kind": None, "horizon": None, "why": None,
                 "rule": None, "quote": None, "model": None, "prompt_version": None}
         src_nums = numbers_in(fix_numbers(p["text"]))
@@ -126,7 +126,8 @@ def main():
                 skipped.append({"source_id": sid, "kind": kind, "reason": f"not crypto ({e['coin']})"})
                 continue
             nums = [e["entry"], e["stop"], *e["targets"]]
-            ev = {**base, "type": "call", "ticker_said": e["coin"], "ticker": symbol, "side": e["side"],
+            ev = {**base, "type": "call", "ticker_said": e["coin"], "ticker": to_ticker(e["coin"]), "pair": symbol,
+                  "venue": "binance_spot", "side": e["side"],
                   "action": "open", "entry": e["entry"], "stop": e["stop"], "targets": e["targets"],
                   "level": e["entry"], "level_kind": "entry", "horizon": e["label"], "quote": e["quote"],
                   "reason_text_chars": len(e["reason"]),
@@ -146,7 +147,8 @@ def main():
             if re.search(r"\b(?:OUR|THE) (?:SECOND|2ND) (?!TAKE\b)\w+ (?:TRADE|SCALP)\b", T):
                 nth = "2"
             parent = open_by_key.get((coin, nth))
-            ev = {**base, "type": "trade", "ticker_said": coin, "ticker": to_symbol(coin),
+            ev = {**base, "type": "trade", "ticker_said": coin, "ticker": to_ticker(coin), "pair": to_symbol(coin),
+                  "venue": "binance_spot",
                   "side": parent["side"] if parent else None, "links_to": parent["event_id"] if parent else None,
                   "checks": {"quote_ok": None, "numbers_ok": None, "ticker_ok": None, "price_ok": None}}
             if ev["ticker"] is None:

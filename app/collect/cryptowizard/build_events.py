@@ -49,11 +49,15 @@ def main():
         if e["type"] == "trade" and not e.get("links_to"):
             problems.append("unlinked")
         e["status"] = "needs_review" if problems else "ok"
-        e["review_reasons"] = problems
+        e["review_reasons"] = e["fail"] = problems  # `fail` is the loader's field name
         e.pop("reason_text_chars", None)
         out.append(e)
     rules = load("events.rules.jsonl")
+    for r in rules:
+        r["fail"] = [k for k, v in r["checks"].items() if v is False]
     out += rules
+    ids = [e["event_id"] for e in out]
+    assert len(ids) == len(set(ids)), "duplicate event_id"
     write_jsonl(CW / "events.jsonl", out)
     c = Counter((e["type"], e.get("action"), e["status"]) for e in out)
     print("events", len(out))

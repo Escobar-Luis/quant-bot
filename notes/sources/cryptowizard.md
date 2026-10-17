@@ -68,7 +68,7 @@ A fixed template, staff only, roughly 10 a month:
 
 ## 3. What became events
 
-`data/cryptowizard/events.jsonl` (shared record shape from the hand-over), 670 events:
+`data/cryptowizard/events.jsonl` (shared record shape from the hand-over, loaded as is by the SurrealDB loader in PR Escobar-Luis/quant-bot#11), 670 events. Ids follow the loader's convention: `event_id` = `cw:<message_id>:<nnn>` (000 for a post's own event, 001+ for lesson rules), `ticker` = `<COIN>USD` (the cross-course ticker id), `pair` = the Binance spot pair we price on, `fail` = the checks that failed.
 
 | Type | Count | ok | needs_review | Why review |
 |---|---|---|---|---|
@@ -145,5 +145,7 @@ Only 2 of 220 checked lesson rules are codeable in the closed vocabulary (inside
 ## 9. Files and rerun
 
 Scripts in `app/collect/cryptowizard/` (run with `~/dev/quant-bot/app/.venv/bin/python`, in this order): `parse_posts.py` → `fetch_charts.py` → `bars.py` → `enrich_why.py v2` → `charts_vision.py` → `extract_rules.py` → `score_calls.py 5` → `build_events.py` → `strategy_spec.py` → `evaluate.py`.
+
+Loader check: PR Escobar-Luis/quant-bot#11's `db.load --url mem://` on these two files loads 595 sources, 670 events, 16 tickers and 398 event→ticker mentions with no schema errors.
 
 Raw collection: `data/cryptowizard/raw/cw_posts_2026-10-17_{sl12,close12,lessons}.json`, saved from the Discord tab by browser download (Luis approved), 802 search hits, 595 unique posts.

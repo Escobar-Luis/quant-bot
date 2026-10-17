@@ -15,7 +15,8 @@ import re
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
-from common import COURSE, CW, PROMPT_VERSION, SONNET, chat, load_raw, parse_json, prism_run, source_id, write_jsonl
+from common import (COURSE, CW, PROMPT_VERSION, SONNET, chat, event_id, load_raw, parse_json, prism_run, source_id,
+                    write_jsonl)
 from parse_posts import numbers_in
 
 KEEP = re.compile(r"pattern|breakout|fakeout|confirmation|candle|doji|inside bar|pin bar|shooting star|hanging man|"
@@ -101,7 +102,8 @@ def run_lesson(L):
         if not all(checks.values()):
             status = "error"
         events.append({
-            "event_id": f"cw-rule-{L['n']}-{i + 1}", "source_id": source_id(owner), "course": COURSE, "type": "rule",
+            "event_id": event_id(owner["message_id"], i + 1), "source_id": source_id(owner), "course": COURSE,
+            "type": "rule", "session_date": owner["posted_at"][:10],
             "t_s": None, "wall_utc": owner["posted_at"], "market": "crypto", "ticker_said": None, "ticker": None,
             "side": None, "action": None, "qty": None, "price": None, "entry": None, "stop": None, "targets": [],
             "level": None, "level_kind": None, "horizon": None, "why": None, "rule": r.get("rule"),

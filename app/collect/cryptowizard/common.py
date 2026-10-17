@@ -78,9 +78,25 @@ def coin_of(header):
 
 
 def to_symbol(coin):
+    """Exchange pair we price on (Binance spot), e.g. BTC -> BTCUSDT. None for non-crypto names."""
     if coin is None or coin in NOT_CRYPTO or not re.fullmatch(r"[A-Z0-9]{2,10}", coin):
         return None
     return f"{coin}USDT"
+
+
+def to_ticker(coin):
+    """Cross-course ticker id the SurrealDB loader uses (ticker:BTCUSD); the pair stays in `pair`."""
+    return f"{coin}USD" if to_symbol(coin) else None
+
+
+def event_id(message_id, n=0):
+    """`cw:<message_id>:<nnn>`, the loader's id convention (lpp uses lpp:<video>:<nnn>)."""
+    return f"cw:{message_id}:{n:03d}"
+
+
+def mid_of(eid):
+    """Message id inside an event id, for both `cw:<mid>:000` and the older `cw-<mid>`."""
+    return eid.split(":")[1] if eid.startswith("cw:") else eid.split("-", 1)[1]
 
 
 def num(s):

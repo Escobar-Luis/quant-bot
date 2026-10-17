@@ -16,7 +16,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 
-from common import (CW, PROMPT_VERSION, SONNET, chat, load_raw, parse_json, prism_run, read_jsonl,
+from common import (CW, PROMPT_VERSION, SONNET, chat, load_raw, mid_of, parse_json, prism_run, read_jsonl,
                     write_jsonl)
 from parse_posts import core, numbers_in
 
@@ -52,7 +52,7 @@ def items():
     for e in read_jsonl(CW / "events.calls.jsonl"):
         if e["action"] not in ("open", "close"):
             continue
-        p = posts[e["event_id"].split("-", 1)[1]]
+        p = posts[mid_of(e["event_id"])]
         text = core(p["text"])
         if e["action"] == "open":  # the reasoning sits after the TP ladder
             last = max(text.rfind("TP 4"), text.rfind("TP 3"), text.rfind("TP4"), text.rfind("TP3"))

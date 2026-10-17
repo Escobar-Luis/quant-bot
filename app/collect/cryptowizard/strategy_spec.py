@@ -12,7 +12,7 @@ import json
 import statistics as st
 from collections import Counter
 
-from common import CW, load_raw, read_jsonl
+from common import CW, load_raw, mid_of, read_jsonl
 
 CORE_LESSONS = {3, 8, 27, 30, 84, 85, 100, 107}
 
@@ -27,7 +27,7 @@ def main():
                                         for e in calls if len(e["targets"]) > k), 2) for k in range(4)}
     tfs = Counter((e.get("chart") or {}).get("timeframe") for e in calls if e.get("chart"))
     texts = {p["message_id"]: p["text"] for p in load_raw()}
-    h1h4 = [e for e in closes if "H1 & H4" in texts.get(e["event_id"].split("-", 1)[1], "")]
+    h1h4 = [e for e in closes if "H1 & H4" in texts.get(mid_of(e["event_id"]), "")]
     first_call = min(calls, key=lambda e: e["wall_utc"])
     cite = {}
 
@@ -47,7 +47,8 @@ def main():
                       "chart_timeframes_seen": dict(tfs.most_common())},
         "universe": [{"id": "U1", "expr": {"in": sorted({e["ticker"] for e in calls})},
                       "counts": dict(Counter(e["ticker"] for e in calls).most_common()),
-                      "note": "coins they actually called, Oct 2025 - Oct 2026; Binance spot USDT pairs",
+                      "note": "coins they actually called, Oct 2025 - Oct 2026; priced on Binance spot USDT pairs",
+                      "pairs": sorted({e["pair"] for e in calls}),
                       "cite": c(first_call, "first call in window")}],
         "filters": [
             {"id": "F1", "rule": "Skip or exit when Bitcoin turns weak (BTC drives every altcoin call)",
