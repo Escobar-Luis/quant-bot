@@ -21,7 +21,7 @@ function ensure(el) {
     layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#6E6E73', fontFamily: '-apple-system,system-ui,sans-serif', fontSize: 12, attributionLogo: true },
     grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(0,0,0,.07)' } },
     rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.2, bottom: 0.2 } },
-    timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, tickMarkFormatter: t => fmtT(t), fixLeftEdge: true, fixRightEdge: true },
+    timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, tickMarkFormatter: t => fmtT(t), rightOffset: 1 },
     localization: { timeFormatter: t => ETD.format(new Date(t * 1000)), priceFormatter: p => '$' + p.toFixed(2) },
     crosshair: { horzLine: { labelBackgroundColor: '#1D1D1F' }, vertLine: { labelBackgroundColor: '#1D1D1F' } },
     handleScroll: false, handleScale: false
@@ -68,9 +68,9 @@ export function drawTrade(el, trade, delay, color) {
   if (!pts.length) return false;
   const me = trade.by_delay?.[String(delay)];
   const short = trade.side === 'short';
-  const list = [{ time: nearest(pts, sec(trade.posted_at)), position: 'belowBar', shape: 'arrowUp', color: '#6E6E73', text: 'Posted ' + etTime(trade.posted_at) }];
-  if (me?.entry_at) list.push({ time: nearest(pts, sec(me.entry_at)), position: short ? 'aboveBar' : 'belowBar', shape: 'circle', color, text: (short ? 'You shorted ' : 'You bought ') + etTime(me.entry_at) });
-  if (me?.exit_at) list.push({ time: nearest(pts, sec(me.exit_at)), position: 'aboveBar', shape: 'arrowDown', color: '#1D1D1F', text: (short ? 'You covered ' : 'You sold ') + etTime(me.exit_at) });
+  const list = [{ time: nearest(pts, sec(trade.posted_at)), position: 'belowBar', shape: 'arrowUp', color: '#6E6E73', text: 'Posted' }];
+  if (me?.entry_at) list.push({ time: nearest(pts, sec(me.entry_at)), position: short ? 'aboveBar' : 'belowBar', shape: 'circle', color, text: 'In' });
+  if (me?.exit_at) list.push({ time: nearest(pts, sec(me.exit_at)), position: 'aboveBar', shape: 'arrowDown', color: '#1D1D1F', text: 'Out' });
   list.sort((a, b) => a.time - b.time);
   marks = createSeriesMarkers(series, list);
   chart.timeScale().fitContent();

@@ -63,10 +63,12 @@ const fmt = {
 };
 const pct = fmt.pct;
 const kMoney = v => (v % 1000 === 0 ? '$' + v / 1000 + 'k' : fmt.money(v));
-function toneFor(r, h) {
-  if (r >= h) return 'green';
-  const t = (r + 20) / (h + 20);
-  return t < .2 ? 'red' : t < .5 ? 'rust' : t < .78 ? 'amber' : 'olive';
+// A part's colour follows its answer word, so a "No" never looks like a win.
+function toneOf(a) {
+  if (a.word === 'Yes') return 'green';
+  if (a.word === 'Barely') return 'amber';
+  if (a.word === 'No') return a.ret_pct < 0 ? 'red' : 'rust';
+  return 'grey';
 }
 const vars = t => `--field:${t.field};--on:${t.on};--on2:${t.on2};--stampInk:${t.on}`;
 const setVars = (el, t) => { el.style.setProperty('--field', t.field); el.style.setProperty('--on', t.on); el.style.setProperty('--on2', t.on2); el.style.setProperty('--stampInk', t.on); };
@@ -350,7 +352,7 @@ function fillSlide(el, c, animateNums) {
   const s = v.s;
   line.innerHTML = `<span>${kMoney(v.start)} became ${animateNums ? cnt(s.end, 'money') : fmt.money(s.end)}.</span> <span>${esc(v.holdLabel)} made ${animateNums ? cnt(s.hold_end, 'money') : fmt.money(s.hold_end)}.</span>`;
   if (v.best) {
-    const b = v.best.at, bt = TONE[toneFor(b.ret_pct, b.hold_ret_pct)];
+    const b = v.best.at, bt = TONE[toneOf(b)];
     setVars(stub, bt);
     stub.setAttribute('aria-label', `${v.best.label}: ${pct(b.ret_pct)}, ${b.word}. See each kind of trade.`);
     stub.innerHTML = `<span class="stub-label">${esc(v.best.label)} ${icon('chevR')}</span>
@@ -555,7 +557,7 @@ function renderLearn(vt, quietNums = false) {
       return;
     }
     if (!p.at) return;
-    const a = p.at, t = TONE[toneFor(a.ret_pct, a.hold_ret_pct)];
+    const a = p.at, t = TONE[toneOf(a)];
     const vtName = vt && k === 1 ? ' data-vt="1"' : '';
     html += `<li class="band"${vtName}><button class="band-btn" type="button" data-trades="${esc(p.id)}" style="${vars(t)}" aria-label="${esc(p.label)}: ${pct(a.ret_pct)}, ${esc(a.word)}. Check its trades."><div class="band-in">
       <span class="b-step num">${a.trades.toLocaleString('en-US')} trades<span class="b-tag">${esc(a.word)}</span></span>
