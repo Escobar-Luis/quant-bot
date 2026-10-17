@@ -16,6 +16,7 @@ Money Intelligence
 ## Links
 - Live app: https://day-trader-ai.vercel.app
 - Video: https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi (59 s, narrated screen recording of the live app)
+  - Recorded on the 15:24 build. It says v1 failed 29 of 30 runs (our own count then); PRISM's Agent Runs page counts 28, the number used everywhere below.
   - **Luis decides:** the page is private until you share it (Share menu, "anyone with the link"). If Devpost's video field wants YouTube or Vimeo, upload `demo/out/demo.mp4` there (unlisted) and paste that link instead.
 - Code: https://github.com/Escobar-Luis/quant-bot
   - **Luis decides:** the repo is private. Make it public after checking git history holds no course content (raw files should only be in gitignored `data/`), or add the judges' GitHub accounts.
