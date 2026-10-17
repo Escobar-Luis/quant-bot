@@ -12,7 +12,7 @@ import argparse
 import json
 import uuid
 
-from .common import DATA, PROOFS, git_sha, now, read_jsonl
+from .common import DATA, PROOFS, git_sha, now, read_jsonl, write_public
 
 EVENT_KEYS = ("event_id", "type", "t_s", "wall_utc", "ticker", "side", "action", "qty", "price", "level",
               "level_kind", "rule", "quote", "status", "fail")
@@ -87,8 +87,7 @@ def main():
     if pt:
         pt.flush(timeout=60)
         pt.close()
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        log_path.write_text(json.dumps(log, indent=1))
+        write_public(log_path, json.dumps(log, indent=1))  # PRISM keeps the ids (private); git gets dates
 
 
 if __name__ == "__main__":

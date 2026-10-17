@@ -53,6 +53,42 @@ def clip(s: str | None, n: int = QUOTE_MAX) -> str:
     return " ".join(w[:n]) + (" …" if len(w) > n else "")
 
 
+_KEYS = None
+
+
+def _video_keys() -> dict:
+    """video_id -> session date, from data/lpp/session_keys.json (gitignored). Unlisted video IDs never go in git."""
+    global _KEYS
+    if _KEYS is None:
+        p = DATA / "lpp" / "session_keys.json"
+        m = json.loads(p.read_text()) if p.exists() else {}
+        _KEYS = {v["video_id"]: k.split(":", 1)[1] for k, v in m.items() if v.get("video_id")}
+    return _KEYS
+
+
+def scrub(text: str) -> str:
+    """yt:<video id> -> lpp:<date>, any other <video id> -> <date>, for every file we write into git."""
+    for vid, day in _video_keys().items():
+        if vid in text:
+            text = text.replace(f"yt:{vid}", f"lpp:{day}").replace(vid, day)
+    return text
+
+
+def leaks(text: str) -> list[str]:
+    return [vid for vid in _video_keys() if vid in text]
+
+
+def write_public(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(scrub(text))
+
+
+def append_public(path: Path, line: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a") as f:
+        f.write(scrub(line) + "\n")
+
+
 def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in open(path)] if path.exists() else []
 
