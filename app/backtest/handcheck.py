@@ -16,8 +16,11 @@ from .common import RESULTS
 def raw_bars(market: str, symbol: str, day: dt.date) -> dict[int, float]:
     """{bar open unix_s: open} read directly from the cache files."""
     if market == "us_equities":
-        p = BARS / "alpaca_1m" / symbol / f"{day.isoformat()}.json"
-        return {int(k): v[0] for k, v in json.loads(p.read_text()).items()} if p.exists() else {}
+        for src in ("alpaca_1m", "yahoo_1m"):
+            p = BARS / src / symbol / f"{day.isoformat()}.json"
+            if p.exists():
+                return {int(k): v[0] for k, v in json.loads(p.read_text()).items()}
+        return {}
     p = BARS / "binance" / symbol / "1m" / f"{day.isoformat()}.json"
     return {int(k[0] // 1000): k[1] for k in json.loads(p.read_text())} if p.exists() else {}
 
@@ -44,7 +47,7 @@ def main():
         if b:
             break
     bar_ts = min(b)
-    ok = to_iso(bar_ts) == row["entry_at"] and abs(b[bar_ts] - row["entry"]) < 1e-6
+    ok = to_iso(bar_ts) == row["entry_at"] and round(b[bar_ts], 4) == row["entry"]
     print(f"trade      {t['trade_id']} {symbol} {t['side']} ({t['portfolio']})")
     print(f"posted_at  {t['posted_at']}  ({dt.datetime.fromtimestamp(to_ts(t['posted_at']), ET):%H:%M:%S} ET)")
     print(f"+ delay    {a.delay} min -> {to_iso(want)}")
