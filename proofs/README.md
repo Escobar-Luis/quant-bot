@@ -17,7 +17,10 @@ evaluator 1 per run scored, Root Cause 5, Intelligence 1 per unanalysed trace (a
 <!-- spend:start -->
 | When (UTC) | What | Credits |
 |---|---|---|
-| | **Total** (cap 150 of 200) | **0** |
+| 2026-10-17T19:23:44Z | Root Cause Analyze now (pressed by the orchestrator in the UI) | 5 |
+| 2026-10-17T19:23:44Z | Numbers grounded on 30 extract-lpp-v1 traces (Luis approved) | 30 |
+| 2026-10-17T19:29:15Z | Numbers grounded on 30 extract-lpp-v2 traces (Luis approved; PRISM shows 135 of 200 left) | 30 |
+| | **Total** (cap 150 of 200) | **65** |
 <!-- spend:end -->
 
 ## Steps only Luis can do in PRISM

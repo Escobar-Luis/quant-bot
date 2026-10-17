@@ -2,6 +2,24 @@
 
 Newest run on top. Screenshots in `tests/flow/shots/`.
 
+## 15:24 · LIVE https://day-trader-ai.vercel.app (bundle index-Db3xMx-B.js, deployed 15:21), main 256018a
+
+**Call: PASS. Demo-ready.**
+
+| Check | Phone 390 | Desktop 1440 | Notes |
+|---|---|---|---|
+| Live build carries main's numbers + 5 PRISM links | PASS | PASS | `check_numbers.py`: 19 pass, 0 fail |
+| Verdict numbers: 3 courses × 1/5/15 min × 3M/6M/1Y/All, strategies, best stop | PASS 150/150 | PASS 150/150 | Desktop run with motion on |
+| Fresh visit: Continue → onboarding 1–3 → LPP at 5m, $9,766 | PASS | | Onboarding shows once per browser (localStorage) |
+| Sign out → sign in | PASS | | Stand-in sign-in, no Clerk key |
+| "1 trade", no best stop on ZipTrader | PASS | | |
+| Bot suggestion card + PRISM link | PASS | | Improver run 692218c0, "Not kept" |
+| Proof: KB run link, Root Cause cluster link, Evaluator 52% → 66%, 29 → 18 of 30 | PASS | PASS | Root Cause sentence no longer carries a count |
+| No horizontal overflow | PASS | PASS | |
+| Load | 0.56 s, 2.9 MB | | One console error: a blocked third-party request (ERR_BLOCKED_BY_CLIENT), harmless |
+
+Screenshots: shots/live-phone-verdict-lpp-1524.jpg, shots/live-desktop-proof-lpp-1524.jpg.
+
 ## 15:18 · story 3 build c4408eb (local preview), main 28e3f2e
 
 **Call: files PASS · new build PASS · live still old build (deploy waits on Luis's OK)**
