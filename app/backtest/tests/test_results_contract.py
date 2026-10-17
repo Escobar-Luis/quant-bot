@@ -44,3 +44,26 @@ def test_results_file_matches_contract(path):
 
 def test_results_exist():
     assert {f"{p.parent.name}/{p.stem}" for p in FILES} >= {"lpp/v1", "cryptowizard/v1", "ziptrader/v1"}
+
+
+@pytest.mark.parametrize("path", FILES, ids=[f"{p.parent.name}/{p.name}" for p in FILES])
+def test_optional_v2_keys(path):
+    d = json.loads(path.read_text())
+    n = len(d["portfolios"][0]["series"]["dates"])
+    for s in d.get("strategies", []):
+        assert s["id"] and s["name"] and set(s["entails"]) == {"buy", "sell", "stop", "size", "time"}
+        assert set(s["by_delay"]) == {str(x) for x in DELAYS_MIN}
+        assert all(len(v) == n for v in s["series"]["by_delay"].values())
+        assert all(len(q["text"].rstrip("…").split()) <= 12 and q["cite"]["source_id"] for q in s["quotes"])
+        assert all(len(u.split()) <= 15 for u in s["untestable"])
+        for row in s["by_delay"].values():
+            assert row["word"] == engine.word(row["trades"], row["ret_pct"], row["hold_ret_pct"])
+    for r in d.get("ranges", {}).values():
+        assert set(r["by_delay"]) == {str(x) for x in DELAYS_MIN}
+        for row in r["by_delay"].values():
+            assert row["word"] == engine.word(row["trades"], row["ret_pct"], row["hold_ret_pct"])
+    if "best_stop" in d:
+        dates = d["portfolios"][0]["series"]["dates"]
+        for k, b in d["best_stop"]["by_delay"].items():
+            curve = d["portfolios"][0]["series"]["by_delay"][k]
+            assert b["date"] in dates and b["end"] == max(curve)

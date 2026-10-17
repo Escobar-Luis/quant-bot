@@ -72,7 +72,7 @@ def build(version: str) -> dict:
         p = Position(pid=f"cw-{c['source_id'].rsplit('/', 1)[-1]}", course=COURSE, market=MARKET,
                      ticker=symbol(c), side=side, portfolio="crypto", legs=legs,
                      default_exit=f"hours:{hours}", stop=c.get("stop"), targets=list(c["targets"]),
-                     target_fracs=fracs, quote=words(c.get("quote"), 12), cite=cite(c, CHANNEL))
+                     target_fracs=fracs, quote=words(c.get("quote"), 12), cite=cite(c, CHANNEL), why=c.get("why"))
         p.be_after_target = 2
         positions.append(p)
 
@@ -109,3 +109,26 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     out.append("$1,000 per setup: most of the $10k sits in cash, earning nothing.")
     out.append("Prices are Binance 1-minute bars; costs 25 bps per side.")
     return out
+
+
+# ---- named strategies (code: by direction and coin, since their setups give no stated reason) --------------------
+
+STRATEGIES = [
+    {"id": "btc-eth-scalps", "name": "BTC and ETH long scalps", "side": "long",
+     "buy": "Buy now on the post, BTC or ETH", "sell": "Four targets: 25/30/25/20% of the position"},
+    {"id": "alt-scalps", "name": "Altcoin long scalps", "side": "long",
+     "buy": "Buy now on the post, an altcoin", "sell": "Four targets: 25/30/25/20% of the position"},
+    {"id": "short-scalps", "name": "Short scalps", "side": "short",
+     "buy": "Short now on the post", "sell": "Four targets, same ladder"},
+]
+
+
+def strategy_of(p) -> str:
+    if p.side == "short":
+        return "short-scalps"
+    return "btc-eth-scalps" if p.ticker in ("BTCUSDT", "ETHUSDT") else "alt-scalps"
+
+
+def untestable(version: str) -> list[str]:
+    return [e["rule"] for e in load("events.rules.jsonl")
+            if e["status"] == "ok" and e.get("rule") and e.get("testable") is False and len(e["rule"].split()) <= 15]

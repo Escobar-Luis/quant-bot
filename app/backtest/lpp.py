@@ -65,6 +65,7 @@ def build(version: str, only: set[str] | None = None) -> dict:
     options = [e for e in trades if is_option(e) and e["action"] == "open"]
     trades = [e for e in trades if not is_option(e) and (e.get("side") in ("long", "short")
                                                           or e["action"] in ("trim", "close"))]
+    by_id = {e["event_id"]: e for e in trades}
     stats = Counter(calls_not_copied=sum(e["type"] == "call" and e["status"] == "ok" for e in evs))
     positions, open_pos = [], {}
 
@@ -75,7 +76,8 @@ def build(version: str, only: set[str] | None = None) -> dict:
         p = Position(pid=f"lpp-{first['source_id'][3:]}-{first['event_id'].rsplit(':', 1)[-1]}", course=COURSE,
                      market=MARKET, ticker=key[0], side=key[1], portfolio="swing" if swing else "day", legs=legs,
                      default_exit="sessions:5" if swing else "day_close", quote=words(first["quote"], 12),
-                     cite=cite(first))
+                     cite=cite(first), why=next((by_id[lg.event_id].get("why") for lg in legs
+                                                 if by_id[lg.event_id].get("why")), None))
         positions.append(p)
 
     for e in trades:
@@ -167,4 +169,49 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     out.append("Prices are 1-minute market bars, not his own fills.")
     out.append("Costs are estimates: 5 bps per side, 20 under $10.")
     out.append("Just holding SPY leaves out its dividends (about 1% a year).")
+    return out
+
+
+# ---- named strategies (code, not the model: keyword rules on his stated reason, first match wins) ----------------
+
+STRATEGIES = [
+    {"id": "short-overbought", "name": "Short the overbought run", "side": "short",
+     "words": ("overbought", "ran up", "run up", "pump", "extended", "rise", "rally", "pop", "rip", "spike", "squeeze"),
+     "buy": "Short after a fast run-up he calls overbought",
+     "sell": "Covers in pieces as it fades"},
+    {"id": "short-resistance", "name": "Short into resistance", "side": "short",
+     "words": ("resistance", "reject", "highs", "high of", "lower high", "double top", "ceiling"),
+     "buy": "Short as it stalls at a prior high",
+     "sell": "Covers into the next drop"},
+    {"id": "short-breakdown", "name": "Short the breakdown", "side": "short",
+     "words": ("break", "support", "weak", "downside", "drop", "gap down", "lower", "dump", "bearish", "sell-off"),
+     "buy": "Short when support breaks or it looks weak",
+     "sell": "Covers after the flush"},
+    {"id": "buy-the-dip", "name": "Buy the oversold dip", "side": "long",
+     "words": ("oversold", "dip", "bounce", "support", "recovery", "reversal", "bottom", "flush"),
+     "buy": "Buy a sharp dip near support",
+     "sell": "Sells the bounce in pieces"},
+    {"id": "other-shorts", "name": "Other shorts (gut calls)", "side": "short", "words": (),
+     "buy": "Shorts with no repeatable reason given", "sell": "Covers when it feels done"},
+    {"id": "other-longs", "name": "Other longs", "side": "long", "words": (),
+     "buy": "Longs with no repeatable reason given", "sell": "Sells when it feels done"},
+]
+
+
+def strategy_of(p) -> str:
+    why = (p.why or "").lower()
+    for s in STRATEGIES:
+        if s["side"] == p.side and (not s["words"] or any(w in why for w in s["words"])):
+            return s["id"]
+    return "other-longs" if p.side == "long" else "other-shorts"
+
+
+def untestable(version: str) -> list[str]:
+    """His rules that need judgement a backtest can't copy (paraphrases, 15 words or fewer)."""
+    soft = ("feel", "confirmation", "patience", "gut", "emotion", "discipline", "wait", "trust", "comfortable")
+    out = []
+    for e in load(version):
+        r = e.get("rule") or ""
+        if e["type"] == "rule" and e["status"] == "ok" and len(r.split()) <= 15 and any(w in r.lower() for w in soft):
+            out.append(r)
     return out

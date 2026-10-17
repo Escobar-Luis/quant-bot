@@ -11,7 +11,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from . import bars, engine
+from . import bars, engine, extras
 from .common import (COSTS_BPS, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha)
 
 LABELS = {"all": "Everything he traded", "day": "Day trades", "swing": "Swing trades", "crypto": "Crypto setups",
@@ -198,6 +198,12 @@ def main():
                                        "positions_priced": len(positions),
                                        "results_by_status": dict(status)},
     }
+    results_all = {d: [by_pos[p.pid][d] for p in positions] for d in DELAYS_MIN}
+    strat = extras.strategies(mod, a.version, positions, by_pos, dates, hold, mod.WINDOW)
+    rng = extras.ranges(results_all, dates, hold_series, mod.WINDOW)
+    out.update({k: v for k, v in (("strategies", strat), ("ranges", rng)) if v})
+    out["best_stop"] = extras.best_stop(portfolios[0], hold_series)
+    print(f"  strategies {len(strat)}, ranges {list(rng)}, best stop @5m {out['best_stop']['by_delay']['5']}")
     path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=1, ensure_ascii=False))
