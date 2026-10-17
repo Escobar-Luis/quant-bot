@@ -205,10 +205,11 @@ def main():
     sp = DATA / "improver" / f"{a.course}-{a.version}.json"   # written by backtest.improver (traced to PRISM)
     if sp.exists():
         out["suggestion"] = json.loads(sp.read_text())
+        from .improver import PRISM_RUN, decide
         if out["suggestion"].get("trajectory_id") and not out["suggestion"].get("prism_url"):
-            from .improver import PRISM_RUN
             out["suggestion"]["prism_url"] = PRISM_RUN.format(out["suggestion"]["trajectory_id"])
-            sp.write_text(json.dumps(out["suggestion"], indent=1))
+        decide(out["suggestion"])   # the keep rule is code: dev gain AND a sealed test that agrees
+        sp.write_text(json.dumps(out["suggestion"], indent=1))
     print(f"  strategies {len(strat)}, ranges {list(rng)}, best stop @5m {out['best_stop']['by_delay']['5']}")
     for c in mix:
         print(f"  best mix {c['ids']}: dev {c['dev']['ret_pct']}% vs hold {c['dev']['hold_ret_pct']}%, "

@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-17T19:08:51Z",
- "git_sha": "25e584790e5666b9d841e1fd12d8ccf1f8f89216",
+ "generated_at": "2026-10-17T19:10:23Z",
+ "git_sha": "a65b16a19efa106a71ab85f229c97ee2f54df742",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -49053,10 +49053,11 @@
    "after_pct": -0.09,
    "trades": 11
   },
-  "kept": true,
+  "kept": false,
   "prism_url": "https://prism.blockconvey.com/trajectories/692218c0-5db5-45cf-a6c8-a2d7998d6488",
   "trajectory_id": "692218c0-5db5-45cf-a6c8-a2d7998d6488",
   "picked_on": "dev",
-  "generated_at": "2026-10-17T19:05:24Z"
+  "generated_at": "2026-10-17T19:05:24Z",
+  "kept_reason": "no gain on new (sealed) months"
  }
 }

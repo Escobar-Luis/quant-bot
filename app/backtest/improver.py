@@ -27,6 +27,17 @@ MENU = {"skip_before": "HH:MM (ET): don't copy entries before this time",
 BUCKETS = ["09:30", "10:00", "10:30", "11:00", "12:00", "16:00"]
 
 
+def decide(s: dict) -> dict:
+    """Kept only if it beats the parent on dev (where it was picked) AND a sealed test agrees."""
+    if s["dev"]["after_pct"] <= s["dev"]["before_pct"]:
+        s["kept"], s["kept_reason"] = False, "no gain on the months it was picked on (dev)"
+    elif s["sealed"]["after_pct"] <= s["sealed"]["before_pct"]:
+        s["kept"], s["kept_reason"] = False, "no gain on new (sealed) months"
+    else:
+        s["kept"], s["kept_reason"] = True, "gained on dev and on new (sealed) months"
+    return s
+
+
 def suggestion_path(course: str, version: str):
     return DATA / "improver" / f"{course}-{version}.json"
 
@@ -147,12 +158,12 @@ def main():
         dev, late = [r for r in priced if on_dev(r)], [r for r in priced if not on_dev(r)]
         before_dev, _ = extras._account(dev)
         after_dev, n_dev = extras._account([r for r in dev if applies(change, r)])
-        kept = after_dev > before_dev
+        picked = after_dev > before_dev
         steps.append({"step_type": "tool_call", "tool_name": "backtest_dev", "label": "backtest_dev",
                       "input_summary": json.dumps({"applies_to": change["applies_to"], "change": change["change_type"],
                                                    "value": change["value"], "trades": len(dev)}),
                       "output_summary": json.dumps({"before_pct": before_dev, "after_pct": after_dev,
-                                                    "trades_after": n_dev, "kept": kept})})
+                                                    "trades_after": n_dev, "passes_dev": picked})})
         before_s, _ = extras._account(late)
         after_s, n_s = extras._account([r for r in late if applies(change, r)])
         steps.append({"step_type": "tool_call", "tool_name": "backtest_sealed", "label": "backtest_sealed",
@@ -165,8 +176,9 @@ def main():
                   "why": change.get("why"), "delay_min": d,
                   "dev": {"before_pct": before_dev, "after_pct": after_dev},
                   "sealed": {"before_pct": before_s, "after_pct": after_s, "trades": n_s},
-                  "kept": kept, "prism_url": None, "trajectory_id": None,
+                  "kept": None, "prism_url": None, "trajectory_id": None,
                   "picked_on": "dev", "generated_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
+        decide(result)
         steps.append({"step_type": "final_answer", "label": "suggestion", "output_summary": json.dumps(result)})
 
     payload = {"agent_id": AGENT_ID, "agent_name": "Day Trader AI improver v1",
