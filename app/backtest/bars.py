@@ -222,7 +222,7 @@ def daily_closes(market: str, symbol: str, start: dt.date, end: dt.date) -> dict
         for ts, v in _yahoo(symbol, "1d", et_at(start, 0, 0), et_at(end, 23, 59)):
             out[et_date(ts).isoformat()] = v[3]
     elif market == "us_equities":
-        params = {"timeframe": "1Day", "start": start.isoformat(), "end": (end + dt.timedelta(days=1)).isoformat(),
+        params = {"timeframe": "1Day", "start": start.isoformat(), "end": to_iso(et_at(end, 17, 0)),  # never today
                   "limit": 10000, "feed": os.getenv("ALPACA_FEED", "sip"), "adjustment": "raw"}
         for b in _alpaca_get(f"{symbol}/bars", params).get("bars") or []:
             out[et_date(to_ts(b["t"])).isoformat()] = b["c"]
