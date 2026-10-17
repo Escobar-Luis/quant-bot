@@ -494,6 +494,8 @@ const wrap = $('#sheetWrap'), sheet = $('#sheet');
 const link = (url, label) => url ? `<a class="p-link cap" href="${esc(url)}" target="_blank" rel="noopener">${label}${icon('ext')}</a>` : '';
 const pending = what => `<p class="p-s cap">${what}: pending in PRISM.</p>`;
 const has = x => x !== null && x !== undefined && x !== '';
+// KB snippets can be raw markdown chunks: strip the marks, keep the first ~140 characters.
+const clip = t => { const c = String(t || '').replace(/[#_*|>`]+/g, ' ').replace(/\s+/g, ' ').trim(); return c.length > 140 ? c.slice(0, 139).replace(/\s\S*$/, '') + '…' : c; };
 function renderProof() {
   const c = COURSES[cur], v = vm(c);
   if (!v.tested) return;
@@ -516,7 +518,7 @@ function renderProof() {
   $('#pKB').innerHTML = `<h3 class="p-h">Knowledge Base<span class="by">PRISM</span></h3>
     <p class="p-s cap">The course rules the agent looked up</p>
     ${has(kb?.query) ? `<p class="kb-q cap">Searched “${esc(kb.query)}” · ${hits.length} hits ${link(kb.run_url, 'See the run')}</p>
-      ${hits.length ? `<ol class="hits">${hits.slice(0, 5).map(h => `<li><p class="r-q">${esc(h.snippet)}</p><p class="r-c cap">${icon('doc')}${esc(h.doc || '')}</p></li>`).join('')}</ol>` : ''}` : pending('The retrieval step')}
+      ${hits.length ? `<ol class="hits">${hits.slice(0, 5).map(h => `<li><p class="r-q">${esc(clip(h.snippet))}</p><p class="r-c cap">${icon('doc')}${esc(h.doc || '')}</p></li>`).join('')}</ol>` : ''}` : pending('The retrieval step')}
     ${rulesHTML ? `<h4 class="p-h4">Rules found, with sources</h4>${rulesHTML}` : ''}`;
 
   $('#pRC').innerHTML = `<h3 class="p-h">Root Cause<span class="by">PRISM</span></h3>
@@ -533,6 +535,7 @@ function renderProof() {
     ${psl ? `<p class="p-s cap mono num">${esc(psl)}</p>` : ''}
     ${has(a) ? `<div class="ev num"><b style="color:${PAPER.No}">${a}%</b>${icon('arrowR')}<b style="color:${PAPER.Yes}">${b}%</b><small>v1 → v2${ev.inputs ? ' · ' + esc(ev.inputs) : ''}</small></div>
       <p class="ev-t"><b>${esc(ev.name || 'Score')}:</b> ${esc(ev.checks || '')}</p>
+      ${has(ev.failed_runs?.v1) && has(ev.failed_runs?.v2) ? `<p class="p-s cap mono num">Runs failing a code check: ${ev.failed_runs.v1} of ${ev.failed_runs.of} → ${ev.failed_runs.v2} of ${ev.failed_runs.of}</p>` : ''}
       ${prismScore ? link(ev.url, 'See the scores') : `<p class="p-s cap">PRISM’s own score: pending.</p>`}` : pending('The v1 → v2 score')}`;
 
   const se = s.sealed;
