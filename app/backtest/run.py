@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 from . import bars, engine, extras
-from .common import (COSTS_BPS, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha)
+from .common import (COSTS_BPS, DATA, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha)
 
 LABELS = {"all": "Everything he traded", "day": "Day trades", "swing": "Swing trades", "crypto": "Crypto setups",
           "options": "Options"}
@@ -204,6 +204,9 @@ def main():
     mix = extras.combos(mod, positions, by_pos, dates, hold, hold_series, mod.WINDOW)
     out.update({k: v for k, v in (("strategies", strat), ("ranges", rng), ("combos", mix)) if v})
     out["best_stop"] = extras.best_stop(portfolios[0], hold_series)
+    sp = DATA / "improver" / f"{a.course}-{a.version}.json"   # written by backtest.improver (traced to PRISM)
+    if sp.exists():
+        out["suggestion"] = json.loads(sp.read_text())
     print(f"  strategies {len(strat)}, ranges {list(rng)}, best stop @5m {out['best_stop']['by_delay']['5']}")
     for c in mix:
         print(f"  best mix {c['ids']}: dev {c['dev']['ret_pct']}% vs hold {c['dev']['hold_ret_pct']}%, "
