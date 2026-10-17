@@ -1,5 +1,6 @@
 import './ui.css';
 import { COURSE_META, latest, PROOF } from './data.js';
+import FIXTURES from './fixtures.json';
 import { initAuth, signInWithGoogle, signOut, hasClerk } from './auth.js';
 import { drawTrade, destroy as destroyTrade, etTime } from './tradeChart.js';
 
@@ -46,7 +47,9 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<':
 /* ---------- words, colours, numbers ---------- */
 const WORD_CLASS = { 'Yes': 'Yes', 'Barely': 'Barely', 'No': 'No', 'Not enough trades': 'few' };
 const WORD_COLOR = { Yes: 'var(--yes)', Barely: 'var(--barely)', No: 'var(--no)', few: 'var(--few)' };
-const PAPER = { Yes: '#1A7F37', Barely: '#B25E00', No: '#D92D20', few: '#6E6E73' };
+const PAPER = { Yes: '#5fbf93', Barely: '#e3a54a', No: '#ef6f61', few: '#a09e97' };
+const HOLD_INK = '#a09e97';
+const STRAT_COLORS = ['#6c9cf2', '#e3a54a', '#a493e6', '#5fbf93', '#a8c4f7', '#ef6f61'];
 const wcls = w => WORD_CLASS[w] || 'few';
 const fmt = {
   pct: v => { const r = Math.round(v * 10) / 10, a = Math.abs(r); return (r > 0 ? '+' : r < 0 ? '−' : '') + (Number.isInteger(a) ? a : a.toFixed(1)) + '%'; },
@@ -135,20 +138,12 @@ function stepCourse(dir) {
 
 /* ---------- the delay slider (CAP-1): no network, just the file's numbers ---------- */
 const delayIdx = () => Math.max(0, DELAYS.indexOf(delay));
-const delayHTML = id => `<div class="d-head num"><label for="${id}">Entered <b class="d-v">${delay} min</b> after each post</label></div>
-    <input class="d-range" id="${id}" type="range" min="0" max="${DELAYS.length - 1}" step="1" value="${delayIdx()}" aria-valuetext="${delay} minutes after each post">
-    <div class="d-stops num">${DELAYS.map((d, i) => `<button type="button" data-di="${i}" aria-label="${d} minutes" aria-pressed="false">${d}</button>`).join('')}</div>`;
-$('#vDelay').innerHTML = delayHTML('dlV');
-$('#lDelay').innerHTML = delayHTML('dlL');
+const dLabel = d => (d >= 60 && d % 60 === 0 ? d / 60 + 'h' : d + 'm');
+const delayChips = () => DELAYS.map((d, i) => `<button type="button" data-di="${i}" aria-label="${d} minutes after each post" aria-pressed="false">${dLabel(d)}</button>`).join('');
+$('#vDelays').innerHTML = delayChips();
+$('#lDelay').innerHTML = `<div class="sec">ENTERED AFTER EACH POST</div><div class="chips mono">${delayChips()}</div>`;
 function syncDelay() {
-  $$('.delay').forEach(w => {
-    $('.d-v', w).textContent = delay + ' min';
-    const inp = $('.d-range', w);
-    if (+inp.value !== delayIdx()) inp.value = delayIdx();
-    inp.setAttribute('aria-valuetext', `${delay} minutes after each post`);
-    inp.style.setProperty('--p', (delayIdx() / (DELAYS.length - 1) * 100) + '%');
-    $$('.d-stops button', w).forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.di === delayIdx())));
-  });
+  $$('[data-di]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.di === delayIdx())));
 }
 function setDelay(d) {
   if (d === delay || !DELAYS.includes(d)) return;
@@ -158,39 +153,168 @@ function setDelay(d) {
   if (scr === 'verdict') renderVerdict(false);
   if (scr === 'learn') renderLearn(false);
 }
-document.addEventListener('input', e => { if (e.target.matches('.d-range')) setDelay(DELAYS[+e.target.value]); });
-document.addEventListener('click', e => { const b = e.target.closest('.d-stops button'); if (b) setDelay(DELAYS[+b.dataset.di]); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-di]'); if (b) setDelay(DELAYS[+b.dataset.di]); });
 
-/* ---------- verdict (CAP-5): the answer, huge ---------- */
+/* ---------- verdict (CAP-5): one sentence, one chip, then the detail cards ---------- */
+// v2 keys (strategies, ranges, best_stop, combos, suggestion) come from the results file;
+// until story 1 writes them, strategies/combos/suggestion fall back to web/src/fixtures.json, tagged Sample.
+const RANGES = [['3m', '3M', 3], ['6m', '6M', 6], ['1y', '1Y', 12], ['all', 'All', 0]];
+let range = 'all';
+const extra = (c, key) => (c.r?.[key] != null ? { v: c.r[key], sample: !!c.r.sample } : FIXTURES[c.key]?.[key] != null ? { v: FIXTURES[c.key][key], sample: true } : null);
+const addMonths = (iso, n) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() + n); return d.toISOString().slice(0, 10); };
+const wordFor = (ret, hold, trades) => (trades != null && trades < 30 ? 'Not enough trades' : ret - hold >= 2 ? 'Yes' : ret - hold <= -2 ? 'No' : 'Barely');
+// The window, cut to the chosen range: numbers from ranges[...] when the file has them, else from the curve.
+function cut(v) {
+  const S = v.head.series, curve = S?.by_delay?.[dkey(S?.by_delay)], dates = S?.dates || [];
+  let n = curve ? curve.length - 1 : -1;
+  const R = RANGES.find(x => x[0] === range);
+  if (R[2] && dates.length) { const lim = addMonths(dates[0], R[2]); while (n > 0 && dates[n] > lim) n--; }
+  const out = { n, curve, dates, hold: S?.hold, end: v.s.end, hold_end: v.s.hold_end, word: v.word, ret: v.s.ret_pct, hold_ret: v.s.hold_ret_pct, from: 'file' };
+  if (range === 'all' || !curve) return out;
+  const fileR = v.r.ranges?.[range]?.by_delay?.[dkey(v.r.ranges[range].by_delay)];
+  const end = fileR?.end ?? curve[n], hold_end = fileR?.hold_end ?? S.hold?.[n];
+  const ret = (end / v.start - 1) * 100, hold_ret = (hold_end / v.start - 1) * 100;
+  return { ...out, end, hold_end, ret, hold_ret, word: fileR?.word ?? wordFor(ret, hold_ret, v.s.trades < 30 ? v.s.trades : null), from: fileR ? 'file' : 'curve' };
+}
+function bestStop(v, k) {
+  const bs = range === 'all' ? v.r.best_stop?.by_delay?.[dkey(v.r.best_stop?.by_delay)] : null;
+  if (bs) return { date: bs.date, end: bs.end, i: k.dates.indexOf(bs.date) };
+  if (!k.curve || k.n < 1) return null;
+  let i = 0; for (let j = 1; j <= k.n; j++) if (k.curve[j] > k.curve[i]) i = j;
+  return { date: k.dates[i], end: k.curve[i], i };
+}
+const LONGDAY = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const longDay = d => LONGDAY.format(new Date(d + 'T00:00:00Z'));
+function headline(v, k) {
+  const money = `${kMoney(v.start)} became ${fmt.money(k.end)}.`;
+  const acc = { Yes: `It beat holding ${esc(v.hold)}.`, Barely: `About the same as holding ${esc(v.hold)}.`, No: `Holding ${esc(v.hold)} made ${fmt.money(k.hold_end)}.`, 'Not enough trades': `Too few trades to judge.` }[k.word] || '';
+  return `${money} <span class="acc">${acc}</span>`;
+}
+function spark(arr, color, w = 92, h = 28) {
+  if (!arr || arr.length < 2) return '';
+  const mn = Math.min(...arr), mx = Math.max(...arr), span = mx - mn || 1;
+  const step = Math.max(1, Math.floor(arr.length / 80)), pts = arr.filter((_, i) => i % step === 0 || i === arr.length - 1);
+  const d = pts.map((y, i) => `${i ? 'L' : 'M'}${(i * w / (pts.length - 1)).toFixed(1)} ${(h - 3 - (y - mn) / span * (h - 6)).toFixed(1)}`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" pathLength="1" class="draw"/></svg>`;
+}
+function drawMain(v, k) {
+  const host = $('#vChart');
+  if (!k.curve || k.n < 1) { host.innerHTML = ''; $('#vStop').textContent = ''; return; }
+  const col = PAPER[wcls(k.word)], c = k.curve.slice(0, k.n + 1), h = (k.hold || []).slice(0, k.n + 1);
+  const W = Math.max(280, Math.round(host.clientWidth || 560)), H = 170, P = { l: 40, r: 10, t: 10, b: 22 };
+  const all = c.concat(h), mn = Math.min(...all), mx = Math.max(...all);
+  const step = [100, 250, 500, 1000, 2000, 2500, 5000].find(x => (mx - mn) / x <= 4) || 10000;
+  const lo = Math.floor(mn / step) * step, hi = Math.max(lo + step, Math.ceil(mx / step) * step), n = c.length - 1;
+  const X = i => P.l + i * (W - P.l - P.r) / n, Y = y => P.t + (hi - y) * (H - P.t - P.b) / (hi - lo);
+  const path = a => a.map((y, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(y).toFixed(1)}`).join('');
+  let g = '';
+  for (let y = lo; y <= hi + 1; y += step) g += `<line class="gl${y === v.start ? ' base' : ''}" x1="${P.l}" x2="${W - P.r}" y1="${Y(y).toFixed(1)}" y2="${Y(y).toFixed(1)}"/><text x="${P.l - 6}" y="${(Y(y) + 3).toFixed(1)}" text-anchor="end">$${(y / 1000).toLocaleString('en-US', { maximumFractionDigits: 2 })}k</text>`;
+  if (k.dates[0]) g += `<text x="${P.l}" y="${H - 4}">${month(k.dates[0])}</text>`;
+  if (k.dates[n]) g += `<text x="${W - P.r}" y="${H - 4}" text-anchor="end">${month(k.dates[n])}</text>`;
+  const bs = bestStop(v, k);
+  const dot = bs && bs.i >= 0 && bs.i <= n ? `<circle cx="${X(bs.i).toFixed(1)}" cy="${Y(c[bs.i]).toFixed(1)}" r="9" fill="${PAPER.Barely}" opacity=".18" class="stopdot"/><circle cx="${X(bs.i).toFixed(1)}" cy="${Y(c[bs.i]).toFixed(1)}" r="4" fill="#f0d29f"/>` : '';
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${kMoney(v.start)} over time: copying ends at ${fmt.money(c[n])}, holding ${esc(v.hold)} at ${fmt.money(h[n] ?? 0)}.">${g}
+    ${h.length ? `<path d="${path(h)}" fill="none" stroke="${HOLD_INK}" stroke-width="1.25" stroke-dasharray="4 4" class="flow"/>` : ''}
+    <path d="${path(c)}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" pathLength="1" class="draw" style="filter:drop-shadow(0 0 6px ${col}55)"/>${dot}</svg>`;
+  $('#chartMeta').innerHTML = `<span style="color:${col}">━</span> copying &nbsp;<span style="color:${HOLD_INK}">┅</span> holding ${esc(v.hold)}`;
+  $('#vStop').innerHTML = bs ? (bs.end > v.start ? `Best day to stop: <b>${longDay(bs.date)}</b>, with ${fmt.money(bs.end)}.` : `Best day to stop: <b>the day you started</b>. It never got above ${kMoney(v.start)}.`) : '';
+}
+let openStrat = null;
+function renderStrats(c, v) {
+  const ex = extra(c, 'strategies');
+  let rows, sample = false;
+  if (ex && Array.isArray(ex.v) && ex.v.length) {
+    sample = ex.sample;
+    rows = ex.v.map((st, i) => ({ id: st.id, name: st.name, color: STRAT_COLORS[i % STRAT_COLORS.length], at: st.by_delay?.[dkey(st.by_delay)], curve: st.series?.by_delay?.[dkey(st.series?.by_delay)], st }));
+  } else {
+    rows = v.ports.filter(p => p.testable && p.at && p.at.trades && p.id !== v.head.id).map((p, i) => ({ id: p.id, name: p.label, color: STRAT_COLORS[i % STRAT_COLORS.length], at: p.at, curve: p.series?.by_delay?.[dkey(p.series?.by_delay)], st: null }));
+  }
+  $('#stratMeta').innerHTML = (sample ? '<span class="tagS">Sample</span> ' : '') + `<span class="mono">holding ${esc(v.hold)} ${pct(v.s.hold_ret_pct)}</span>`;
+  $('#cStrat').hidden = !rows.length;
+  $('#strats').innerHTML = rows.map(r => {
+    const a = r.at; if (!a) return '';
+    const open = openStrat === r.id && r.st;
+    return `<li><button class="strat-row" type="button" data-sid="${esc(r.id)}" aria-expanded="${!!open}" ${r.st ? '' : 'aria-disabled="true"'}>
+      <span class="sw" style="background:${r.color};box-shadow:0 0 8px ${r.color}88"></span>
+      <span class="s-name">${esc(r.name)}</span>
+      <span class="s-sub">${a.trades.toLocaleString('en-US')} trades${a.won_pct != null ? ` · won ${a.won_pct}%` : ''}</span>
+      <span class="s-spark">${spark(r.curve, r.color)}</span>
+      <span class="s-ret" style="color:${PAPER[wcls(a.word)]}">${pct(a.ret_pct)}<small>${esc(a.word)}</small></span></button>
+      ${open ? entailsHTML(r.st) : ''}</li>`;
+  }).join('');
+}
+function entailsHTML(st) {
+  const E = st.entails || {}, lane = (k, t) => (t ? `<div class="lane"><span class="k">${k}</span><span>${esc(t)}</span></div>` : '');
+  const q = (st.quotes || []).slice(0, 2).map(x => `<div class="lane"><span class="k">SAID</span><span><q>${esc(x.text)}</q><span class="cite">${esc(x.cite?.label || '')}</span></span></div>`).join('');
+  const un = (st.untestable || []).length ? `<div class="lane"><span class="k">CAN’T TEST</span><span>${st.untestable.map(esc).join(' · ')}</span></div>` : '';
+  return `<div class="entails">${lane('BUY', E.buy)}${lane('SELL', E.sell)}${lane('STOP', E.stop)}${lane('SIZE', E.size)}${lane('TIME', E.time)}${q}${un}</div>`;
+}
+$('#strats').addEventListener('click', e => {
+  const b = e.target.closest('[data-sid]'); if (!b || b.getAttribute('aria-disabled') === 'true') return;
+  openStrat = openStrat === b.dataset.sid ? null : b.dataset.sid;
+  const c = COURSES[cur]; renderStrats(c, vm(c));
+});
+function stratName(ref, c) {
+  const [ck, sid] = ref.includes(':') ? ref.split(':') : [c.key, ref];
+  const course = COURSES.find(x => x.key === ck) || c;
+  const list = course.r?.strategies || FIXTURES[course.key]?.strategies || [];
+  const st = list.find(x => x.id === sid);
+  const port = course.r?.portfolios?.find(p => p.id === sid);
+  const name = st?.name || port?.label || sid;
+  return course.key === c.key ? name : `${course.name}: ${name}`;
+}
+function renderBotMix(c) {
+  const bot = extra(c, 'suggestion'), mix = extra(c, 'combos');
+  const sb = bot?.v;
+  $('#cBot').hidden = !sb;
+  if (sb) $('#cBot').innerHTML = `<div class="ch"><span>Bot suggests</span>${bot.sample ? '<span class="tagS">Sample</span>' : '<span class="meta">PRISM-traced</span>'}</div>
+    <p class="bot-change">${esc(sb.change)}${sb.applies_to ? ` <span class="meta">on ${esc(stratName(sb.applies_to, c))}</span>` : ''}</p>
+    <div class="bot-nums">${sb.dev ? `<span>Tuned on: <b>${pct(sb.dev.before_pct)} → ${pct(sb.dev.after_pct)}</b></span>` : ''}${sb.sealed ? `<span>Months it never saw: <b>${pct(sb.sealed.before_pct)} → ${pct(sb.sealed.after_pct)}</b></span>` : ''}</div>
+    <p class="meta">${sb.kept ? 'Kept: code tested it and it held up.' : 'Dropped: it didn’t hold up.'}${sb.prism_url ? ` ${link(sb.prism_url, 'See the run')}` : ''}</p>`;
+  const m = Array.isArray(mix?.v) ? mix.v[0] : null;
+  $('#cMix').hidden = !m;
+  if (m) $('#cMix').innerHTML = `<div class="ch"><span>Best mix</span>${mix.sample ? '<span class="tagS">Sample</span>' : `<span class="meta">${esc(m.word || '')}</span>`}</div>
+    <p class="bot-change">${m.ids.map(id => esc(stratName(id, c))).join(' + ')}</p>
+    <div class="bot-nums">${m.window ? `<span>${month(m.window.start)} – ${month(m.window.end)}</span>` : ''}${m.sealed ? `<span>Together: <b>${pct(m.sealed.ret_pct)}</b> vs holding <b>${pct(m.sealed.hold_ret_pct)}</b></span>` : ''}</div>`;
+}
 let shownWord = null;
 function renderVerdict(fresh) {
-  const c = COURSES[cur], v = vm(c), word = $('#vWord');
-  $('#vQ').innerHTML = `<b>${esc(c.r?.course_name || c.name)}</b> · beat just holding?`;
-  const label = v.tested ? v.word : 'Not tested yet';
-  const changed = label !== shownWord;
-  word.textContent = v.tested && v.word.length <= 6 ? v.word + '.' : label;
-  word.classList.toggle('long', label.length > 6);
-  root.style.setProperty('--word', v.tested ? WORD_COLOR[wcls(v.word)] : 'var(--ink3)');
-  if ((fresh || changed) && !STILL) { word.classList.remove('reveal'); void word.offsetWidth; word.classList.add('reveal'); }
-  shownWord = label;
-  $('#vDelay').hidden = !v.tested; $('#vAct').hidden = !v.tested;
+  const c = COURSES[cur], v = vm(c);
+  $('#vCourse').textContent = c.r?.course_name || c.name;
   if (!v.tested) {
-    $('#vMoney').innerHTML = `<span class="v-vs">Copying every trade now.</span>`;
-    $('#vFine').textContent = '';
-    return;
+    root.style.setProperty('--word', 'var(--few)');
+    $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
+    $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = '';
+    ['cChart', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    $('#vRanges').innerHTML = ''; return;
   }
-  const s = v.s;
-  $('#vMoney').innerHTML = `${kMoney(v.start)} <span class="arrow">→</span> ${fmt.money(s.end)}<span class="v-vs">vs ${fmt.money(s.hold_end)} holding ${esc(v.hold)}</span>`;
-  $('#vFine').innerHTML = fineLine(v.r, s).split(' · ').map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
-  $('#live').textContent = `${c.name}: ${v.word}. ${kMoney(v.start)} became ${fmt.money(s.end)}; holding ${v.hold} made ${fmt.money(s.hold_end)}.`;
+  ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
+  const k = cut(v);
+  root.style.setProperty('--word', WORD_COLOR[wcls(k.word)]);
+  $('#vHead').innerHTML = headline(v, k);
+  $('#vChip').textContent = k.word;
+  $('#vMeta').textContent = `${v.s.trades.toLocaleString('en-US')} trades`;
+  $('#vFine').innerHTML = fineLine(v.r, v.s).split(' · ').filter(Boolean).map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
+  const span = v.head.series?.dates;
+  $('#vRanges').innerHTML = RANGES.map(([id, lab, mo]) => {
+    const ok = !mo || (span && span.length && addMonths(span[0], mo) <= span[span.length - 1]) || v.r.ranges?.[id];
+    return `<button type="button" data-range="${id}" aria-pressed="${range === id}" ${ok ? '' : 'disabled'}>${lab}</button>`;
+  }).join('');
+  if (fresh && !STILL) { const h = $('#vHead'); h.classList.remove('reveal'); void h.offsetWidth; h.classList.add('reveal'); }
+  shownWord = k.word;
+  drawMain(v, k);
+  renderStrats(c, v);
+  renderBotMix(c);
+  $('#live').textContent = `${c.name}: ${k.word}. ${kMoney(v.start)} became ${fmt.money(k.end)}; holding ${v.hold} made ${fmt.money(k.hold_end)}.`;
 }
+$('#vRanges').addEventListener('click', e => { const b = e.target.closest('[data-range]'); if (!b || b.disabled) return; range = b.dataset.range; renderVerdict(false); });
 $('#proofBtn').addEventListener('click', () => { openedByUser = true; location.hash = '#proof-' + KEYS[cur]; });
 $('#kindBtn').addEventListener('click', () => { location.hash = '#learn-' + KEYS[cur]; });
 $('#backBtn').addEventListener('click', () => { location.hash = '#verdict-' + KEYS[cur]; });
 
 /* swipe between courses on phone */
 let sw = null;
-$('#s-verdict').addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' && !e.target.closest('.delay')) sw = { x: e.clientX, y: e.clientY }; });
+$('#s-verdict').addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' && !e.target.closest('.chips,.strats,.vchart')) sw = { x: e.clientX, y: e.clientY }; });
 $('#s-verdict').addEventListener('pointerup', e => {
   if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) stepCourse(dx < 0 ? 1 : -1);
@@ -340,7 +464,7 @@ function renderProof() {
   const sub = [`${s.trades.toLocaleString('en-US')} trades`, s.won_pct != null && `won ${s.won_pct}%`, s.worst_drop_pct != null && `worst drop ${pct(s.worst_drop_pct)}`, s.peak_invested_usd > 0 && `most in use at once ${fmt.money(s.peak_invested_usd)}`].filter(Boolean).join(' · ');
   $('#pNums').innerHTML =
     `<div><span class="n-name">${swatch(col)}Copying every trade</span><span class="n-pct" style="color:${col}">${pct(s.ret_pct)}<small>${fmt.money(s.end)}</small></span><span class="n-sub cap">${sub}</span></div>` +
-    `<div><span class="n-name">${swatch('#1D1D1F', true)}Holding ${esc(v.hold)}</span><span class="n-pct">${pct(s.hold_ret_pct)}<small>${fmt.money(s.hold_end)}</small></span><span class="n-sub cap">${esc(r.hold?.what || '')}</span></div>`;
+    `<div><span class="n-name">${swatch(HOLD_INK, true)}Holding ${esc(v.hold)}</span><span class="n-pct">${pct(s.hold_ret_pct)}<small>${fmt.money(s.hold_end)}</small></span><span class="n-sub cap">${esc(r.hold?.what || '')}</span></div>`;
 
   const P = proofFor(c), kb = P?.knowledge_base, rc = P?.root_cause, ev = P?.evaluator;
   const rules = (r.rules || []).slice(0, 6);
@@ -376,7 +500,7 @@ function renderProof() {
     $('#pNew').innerHTML = `<h3 class="p-h">Newest months</h3><p class="p-s cap num">${month(r.window.sealed_from)} – ${month(r.window.end)} · kept sealed${has(se.trades) ? ` · ${se.trades} trades` : ''}</p>
       <div class="nd num">
         <div class="nd-row"><span>Copying</span><span class="nd-bar">${bar(se.ret_pct, col)}</span><b>${pct(se.ret_pct)}</b></div>
-        <div class="nd-row"><span>Holding ${esc(v.hold)}</span><span class="nd-bar">${bar(se.hold_ret_pct, '#1D1D1F')}</span><b>${pct(se.hold_ret_pct)}</b></div>
+        <div class="nd-row"><span>Holding ${esc(v.hold)}</span><span class="nd-bar">${bar(se.hold_ret_pct, HOLD_INK)}</span><b>${pct(se.hold_ret_pct)}</b></div>
       </div>`;
   } else $('#pNew').innerHTML = '';
 
@@ -402,11 +526,11 @@ function drawChart() {
     g += `<line class="gl${val === v.start ? ' base' : ''}" x1="${P.l}" x2="${W - P.r}" y1="${Y(val).toFixed(1)}" y2="${Y(val).toFixed(1)}"/><text x="${P.l - 8}" y="${(Y(val) + 4).toFixed(1)}" text-anchor="end">$${(val / 1000).toLocaleString('en-US', { maximumFractionDigits: 2 })}k</text>`;
   const dates = S.dates || [];
   [[0, 'start'], [n, 'end']].forEach(([i, anchor]) => { if (dates[i]) g += `<text x="${X(i).toFixed(1)}" y="${H - 6}" text-anchor="${anchor}">${month(dates[i])}</text>`; });
-  const end = (arr, cl) => `<circle cx="${X(n).toFixed(1)}" cy="${Y(arr[n]).toFixed(1)}" r="4" fill="${cl}" stroke="#FBFBFD" stroke-width="2"/>`;
+  const end = (arr, cl) => `<circle cx="${X(n).toFixed(1)}" cy="${Y(arr[n]).toFixed(1)}" r="4" fill="${cl}" stroke="#1b1a19" stroke-width="2"/>`;
   host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${kMoney(v.start)} over time: copying ends at ${fmt.money(course[n])}, holding ${esc(v.hold)} at ${fmt.money(S.hold[n])}.">${g}
-    <path d="${path(S.hold)}" fill="none" stroke="#1D1D1F" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>
+    <path d="${path(S.hold)}" fill="none" stroke="${HOLD_INK}" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>
     <path d="${path(course)}" fill="none" stroke="${col}" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"/>
-    ${end(S.hold, '#1D1D1F')}${end(course, col)}</svg>`;
+    ${end(S.hold, HOLD_INK)}${end(course, col)}</svg>`;
 }
 
 /* ---------- check any trade (CAP-7) ---------- */

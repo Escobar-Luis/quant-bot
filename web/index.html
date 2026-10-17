@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#FBFBFD">
+<meta name="theme-color" content="#121211">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta name="description" content="Did your trading course actually work? Every trade it posted, copied with $10k of fake money, against just holding.">
 <title>Day Trader AI</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231D1D1F'%3E%3Cpath d='M4 17l5.5-5.5 3.5 3.5L20 8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -88,18 +91,33 @@
     </div>
   </section>
 
-  <section class="screen" id="s-verdict" aria-labelledby="vWord" hidden>
-    <div class="col">
-      <p class="v-q" id="vQ"></p>
-      <h1 class="v-word" id="vWord"></h1>
-      <p class="v-money num" id="vMoney"></p>
-      <div class="delay" id="vDelay"></div>
-      <p class="v-fine cap num" id="vFine"></p>
+  <section class="screen" id="s-verdict" aria-labelledby="vHead" hidden>
+    <div class="col stack">
+      <div class="card hero-card">
+        <div class="ch"><span class="ch-l"><span class="dot br" id="vDot"></span><span id="vCourse"></span></span><span class="meta mono num" id="vMeta"></span></div>
+        <h1 class="headline num" id="vHead"></h1>
+        <div class="chiprow"><span class="wchip" id="vChip"></span><span class="meta" id="vFine"></span></div>
+        <div class="sec">TIME</div>
+        <div class="chips mono" id="vRanges" role="group" aria-label="Time since you started"></div>
+        <div class="sec">ENTERED AFTER EACH POST</div>
+        <div class="chips mono" id="vDelays" role="group" aria-label="Minutes after each post"></div>
+      </div>
+      <div class="card" id="cChart">
+        <div class="ch"><span>$10k over time</span><span class="meta" id="chartMeta"></span></div>
+        <figure class="vchart" id="vChart"></figure>
+        <p class="stop num" id="vStop"></p>
+      </div>
+      <div class="card" id="cStrat">
+        <div class="ch"><span>What was traded</span><span class="meta" id="stratMeta"></span></div>
+        <ol class="strats" id="strats"></ol>
+      </div>
+      <div class="card bot" id="cBot" hidden></div>
+      <div class="card" id="cMix" hidden></div>
       <div class="v-act" id="vAct">
         <button class="btn press-fb" type="button" id="proofBtn">See the proof</button>
         <button class="link" type="button" id="kindBtn">By kind of trade<span data-ic="chevR"></span></button>
       </div>
-      <p class="v-foot cap">Fake money · not advice</p>
+      <p class="fine cap center">Fake money · not advice</p>
     </div>
   </section>
 
