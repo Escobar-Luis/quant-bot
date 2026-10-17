@@ -1,38 +1,41 @@
 # Strategy pipeline: paid course content → testable strategies (design, 2026-10-17)
 
-Design only; nothing here is built yet. It unblocks the two collection agents (section 6). Rules from `AGENTS.md` apply throughout: the model proposes, the code decides; raw course content stays in gitignored `data/`; Discord is read-only and supervised.
+Design, plus one collection step already done (LPP transcripts, section 1). Rules from `AGENTS.md` apply throughout: the model proposes, the code decides; raw course content stays in gitignored `data/`; Discord is read-only and supervised.
 
 Tags: **[V]** verified live today, **[D]** docs only, **[?]** unverified, test first.
 
 ## 0. For Luis
 
-**Pipeline**
-1. Collect posts and lesson videos.
-2. Turn everything into text.
-3. Model extracts rules, with citations.
-4. Code compiles rules, backtests them.
-5. Agent proposes v2; code accepts.
+**LPP morning live trading** (section 4)
+1. 247 daily sessions collected.
+2. Keep trades, calls, rules.
+3. Drop chat, news, promos.
+4. Code checks every kept item.
+5. Replay trades on minute bars.
 
-**Decisions for you** (details in section 7)
-1. Discord: you save, or supervised agent?
-2. Download audio when captions missing?
-3. Alpaca paper keys for minute bars?
-4. "Worked" = beats buy-and-hold after costs?
-5. PRISM gets paraphrased rules only?
+**Decisions for you** (details in section 8)
+1. Alpaca paper keys: blocking.
+2. Review 5 gold sessions?
+3. "Worked" = copy-trading beats SPY?
+4. Older 1,500 sessions: collect?
+5. ZipTrader still in scope?
 
-## 1. Inventory: ZipTrader+ Discord (read-only)
+## 1. Sources found (read-only, 2026-10-17)
 
-**Status: pending.** At 12:37 ET the built-in browser's Discord session was logged out ("Please log in again" for `19_luis`). Signing in needs Luis's password, so the channel walk waits for him. Section 1 is filled in after that look; sections 2 to 6 don't depend on it.
+### Learn Plan Profit (primary, per Luis)
+1. **Where:** server "Learn Plan Profit" (`364543066117505025`), channel `#morning-live-trading` (`431668899101016074`), found in Luis's signed-in Chrome.
+2. **What:** one post per trading day by the host: the date, then a YouTube link to that morning's live session. Format unchanged from 2018-04-04 to 2025-09-12 **[V]**.
+3. **How many:** Discord search counts 1,745 messages with links in the channel and 605 with `youtube.com/live` **[V]**, so roughly 1,700 sessions over 7.4 years.
+4. **The videos [V]:** unlisted (not on the host's public channel, whose streams tab lists 1,508 other videos), titled "Learn Plan Profit | Morning Live Trading", 44-53 min, live from 09:29 ET (`release_timestamp` in the video metadata). English auto-captions exist on every one sampled, 2018 included, so Whisper isn't needed so far.
+5. **Channel ended:** after 2025-09-12 the host posted that LPP moved to a new Discord reached through the new Teachable course ("LPP 3.0"). Sessions after that date need that course.
+6. **Collected (Luis chose "last 12 months"):** 247 links, 2024-08-15 to 2025-09-12, read from 11 Discord search pages; plus 23 sessions from Apr-May 2018 as an early sample. Captions (`json3`, word timings) and metadata go to `data/lpp/` (gitignored): 111 of 247 on disk at 13:50 ET, no errors so far, the rest downloading (4 throttled yt-dlp workers).
+7. **Unlisted means Discord is the only index.** Older years need more Discord search pages (about 60 more); see decision 4.
 
-Seen earlier today (parent session's read-only look, channel names only): `👶🏻start-here`, `🚨big-tip`, `🧨morning-briefing`, `💡stock-briefs`, `🥜strategy-explained`, categories `Alerts & Ideas` and `📈Classrooms`. From the brief: `#morning-briefing` = daily PNG screenshots by staff; `#strategy-explained` = one "ZipTrader Strategy Nutshell" graphic; member chat channels = low value.
+### ZipTrader+ (`634553688605851658`)
+Luis: the YouTube lessons he wants are LPP's, not ZipTrader's. The channel walk is now the `collect-ziptrader` agent's first step (section 7), in Luis's signed-in Chrome (the built-in pane was logged out). Seen earlier today by the parent session, channel names only: `👶🏻start-here`, `🚨big-tip`, `🧨morning-briefing`, `💡stock-briefs`, `🥜strategy-explained`, categories `Alerts & Ideas` and `📈Classrooms`. From the brief: `#morning-briefing` = daily PNG screenshots by staff; `#strategy-explained` = one "ZipTrader Strategy Nutshell" graphic; member chat channels = low value. Inventory lands in `data/ziptrader/inventory.md` and the agent's PR.
 
-| Channel | Holds | Est. posts | YouTube links | Collect? |
-|---|---|---|---|---|
-| `#strategy-explained` | Strategy Nutshell graphic | 1 | (pending) | Yes, vision |
-| `#morning-briefing` | Daily briefing screenshots, Oct 2026 | (pending) | (pending) | Yes, calls test set |
-| `#education` | (pending) | (pending) | (pending) | (pending) |
-| `Classrooms` category | (pending) | (pending) | (pending) | (pending) |
-| `#stock-briefs`, `#big-tip` | (pending) | (pending) | (pending) | (pending) |
+### Crypto Wizard (`639275844795367454`, "CRYPTOWZRD")
+Added by Luis today: trade setups with the reasoning behind each, plus explanations of the overall strategy. Every setup becomes a call event (a test set); the strategy explanations become rules. Inventory and setup format: the `collect-cryptowizard` agent (section 7), starting from channel `639277011164200960`.
 
 Public context **[V]** (yt-dlp, no login): the public `@ZipTrader` channel has 892 videos and two playlists, "Getting Started" (28) and "Trading Tutorials" (46). Lessons linked from Discord may be unlisted copies or members-only; the inventory decides which.
 
@@ -76,7 +79,7 @@ untestable:  [{paraphrase: "read the tape and trust your gut", cite: C7, why: di
 
 Example tree: `{"op": ">", "left": {"fn": "close"}, "right": {"fn": "opening_range_high", "args": [15]}}`.
 
-**Worked example: "ZipTrader Strategy Nutshell"** (pending the Discord look; filled in with paraphrased rules and the message locator, no copy of the graphic). Until then, the shape is shown on a synthetic card made today for the model test in section 3 (not course content):
+**Worked example: "ZipTrader Strategy Nutshell"** (the `collect-ziptrader` agent writes it as `strategy_nutshell.spec.json`: paraphrased rules and the message locator, no copy of the graphic). Until then, the shape is shown on a synthetic card made today for the model test in section 3 (not course content):
 
 | Card line (synthetic) | Rule |
 |---|---|
@@ -143,7 +146,59 @@ Images go in as `{"type": "image_url", "image_url": {"url": "data:image/png;base
 6. Report: hit rate, average R, net vs baseline, with n and a bootstrap 95% interval. Expect n ≈ 40-60 calls for October; say "small sample" on screen.
 7. `watch` items with no levels: only "beat SPY that session?", labelled weak evidence.
 
-## 4. Storage
+## 4. LPP live sessions: keep, drop, store, test
+
+A session is ~45 minutes of the host trading live at the open: he narrates the tape, announces entries and exits, explains setups, reads news, answers chat and chats. Built by the `extract-lpp` agent (section 7).
+
+### What the prototype showed (one session, 2025-09-12, 44 min, ~3,300 words) [V]
+| Try | Result |
+|---|---|
+| Haiku 5.5, per 2-minute chunk | 21 of 23 chunks had a keep-worthy label; 30 events; all 30 quotes exact; 27 of 30 numbers found in the source; one JSON parse error |
+| Sonnet 5.5, per 2-minute chunk | 26 events (13 trades); all quotes exact; 23 of 26 numbers found |
+| Both | trades split across chunk edges lost their ticker ("it", "that one"); Haiku read a dollar P&L as a price level; "open" is also a ticker (OPEN) |
+| Sonnet 5.5, whole session in one call | Nicrron 502 "upstream timeout", then an empty streamed reply: to debug (section 7) |
+
+**Conclusion:** filter at the **event** level, not the chunk level, and extract from the whole session (about 10k tokens, so one call fits), so the model can track open positions.
+
+### Keep (structured events, schema in the hand-over note)
+1. **Trade:** opened, added, trimmed or closed; ticker, side, qty, price.
+2. **Call:** ticker with a direction and a level (entry, stop, target, support, resistance).
+3. **Rule:** a general rule someone could code (entry, exit, sizing, time of day, what to avoid).
+4. **Why:** the setup reason attached to a trade or call (pattern, level, indicator), 15 words max.
+
+Each event gets `t_s` (seconds into the video), `wall_utc` = video `release_timestamp` + `t_s` (the stream starts at ~09:29:50 ET, so this is the real market minute), and an exact quote of 12 words max.
+
+### Drop
+Narration with no action, news read-outs, chat Q&A with no rule, chit-chat, promos, disclaimers. They stay only in the private raw captions (for re-extraction), and each session records its airtime share per category, so the app can say how much of a session was actually trading.
+
+### Code checks (the model proposes, the code decides)
+1. Quote is an exact substring of the captions.
+2. Every number in the event appears in the captions.
+3. Ticker is a real symbol (a symbol list; caption errors resolved only with context).
+4. Price plausible against the 1-min bar at `wall_utc` (trade price within ~2%, levels within ~25%). Catches misheard numbers and P&L-as-price.
+5. Position ledger reconciles: every close has an open; quantity never goes negative.
+Any failure → `needs_review`, and that session's PRISM run gets `final_status="error"`, so Root Cause clusters the failure kinds (e.g. "P&L read as price", "ticker misheard").
+
+### Database
+`sources` (one row per session), `segments` (caption words with times), `events`, `positions` (round trips built from trade events), `event_checks`, `trade_results`. Loaded from `data/lpp/*.jsonl` by the loader (section 5). Recurring rules: embed rule paraphrases (voyage-finance-2) and group them; a rule said in 3+ sessions becomes a `StrategySpec` candidate, one-offs stay notes.
+
+### How we test it
+**A. Is the extraction right?**
+1. Gold set: the model drafts events for 5 sessions spread over the year; Luis checks them (about 15 minutes each).
+2. Score each prompt or model version against gold: trade recall and precision (same ticker and action within 30 s), call precision, rule recall, plus the check pass rates above.
+3. Bar before running all 247: trade recall ≥ 90%, precision ≥ 95%.
+4. The same 5 sessions under prompt v1 and v2 = the PRISM evaluator proof ("every number in the events is in the source").
+
+**B. Did it work?**
+1. **Host's trades:** price each round trip at the minute bars; compare with what he says he made.
+2. **Copy the host:** enter 60 s after he announces, exit when he says he closed, costs included; equity curve over the 12 months vs SPY bought and held over the same minutes.
+3. **Calls:** did the level trade that session, before the opposite level?
+4. **Recurring rules:** compile to `StrategySpec` and backtest per section 6, dev = 2024-08 to 2025-04, sealed holdout = 2025-05 to 2025-09.
+5. **Memory risk:** these dates are before the models' training cutoffs, so a model may "know" how a ticker moved. It never scores anything; every event must quote the captions; code prices every outcome.
+
+Needs 1-min bars for 2024-25: yfinance only reaches back ~30 days, so this needs Alpaca paper keys (decision 1) or a Polygon/Massive free key (2 years, 5 calls/min).
+
+## 5. Storage
 
 **Recommendation: SQLite + sqlite-vec, one local file. Not Supabase.**
 1. Paid content stays on Luis's Mac; Supabase would put it on a third-party cloud.
@@ -152,17 +207,17 @@ Images go in as `{"type": "image_url", "image_url": {"url": "data:image/png;base
 
 Gotcha **[V]**: the python.org Python 3.13 that `app/.venv` uses has no `enable_load_extension`, so sqlite-vec can't load there. uv-managed Python works (`uv run --python-preference only-managed --python 3.13 --with sqlite-vec`: sqlite 3.47.1, vec v0.1.9, KNN query returned). Fallback without the extension: store vectors as BLOBs and do numpy cosine; same tables.
 
-**Where:** `DATA_DIR=~/dev/quant-bot/data` (the main checkout's gitignored `data/`, same pattern as the shared `.env`). Collectors write JSONL into their own subfolders, so two agents never write the same file; one loader builds `data/daytrader.db` from the JSONL.
+**Where:** `DATA_DIR=~/dev/quant-bot/data` (the main checkout's gitignored `data/`, same pattern as the shared `.env`). One subfolder per course, one agent per subfolder, so two agents never write the same file. Every course writes the same `sources.jsonl` and `events.jsonl` shapes (hand-over note, section 7); one loader builds `data/daytrader.db` from them.
 
 ```
-data/ziptrader/discord/posts.jsonl          # collector A
+data/lpp/discord/youtube_links.jsonl          # 247 sessions (done)
+data/lpp/youtube/<video_id>/<id>.en-orig.json3, <id>.info.json   # captions + metadata (downloading)
+data/lpp/{sources,events,sessions}.jsonl      # extract-lpp
 data/ziptrader/discord/img/<message_id>_<n>.png
-data/ziptrader/discord/youtube_links.jsonl  # collector A → collector B
-data/ziptrader/youtube/<video_id>/...        # collector B: info.json, captions .json3, audio chunks (if allowed)
-data/ziptrader/youtube/videos.jsonl
-data/ziptrader/youtube/segments.jsonl
-data/bars/<source>/<symbol>_<tf>.parquet     # cached price data
-data/daytrader.db                            # built by the loader
+data/ziptrader/{sources,events}.jsonl         # collect-ziptrader
+data/cryptowizard/{sources,events}.jsonl      # collect-cryptowizard
+data/bars/<source>/<symbol>_<tf>.parquet      # cached price data
+data/daytrader.db                             # built by the loader
 ```
 
 **Tables**
@@ -180,16 +235,16 @@ data/daytrader.db                            # built by the loader
 | `runs` | run_id, strategy_id, window_id, data_source, bar_tf, cost_bps, metrics_json, trades_path, trial_n, prism_trace_id |
 | `call_results` | call_id, entered, outcome, r_multiple, net_ret, baseline_ret |
 
-Chunking: 60-90 s of transcript with 15 s overlap (keeps timestamp citations precise); one chunk per Discord post.
+Chunking, for embeddings and search only: 60-90 s of transcript with 15 s overlap (keeps timestamp citations precise); one chunk per Discord post. Extraction itself reads whole sessions (section 4).
 
 **What goes into PRISM's Knowledge Base (Money Intelligence proof 1).** Derived docs only, never raw transcripts or images (PRISM is a third party; AGENTS.md rule 5):
-1. `ziptrader-strategy-cards.md`: one card per strategy: paraphrased rules, parameters, citation locators (channel + date, or video id + timestamp), short quotes only.
-2. `ziptrader-calls-2026-10.md`: the extracted call table (ticker, side, levels, posted_at).
-3. `ziptrader-untestable.md`: what we couldn't test and why.
+1. `<course>-strategy-cards.md`: one card per strategy: paraphrased rules, parameters, citation locators (channel + date, or video id + timestamp), quotes of 12 words max.
+2. `<course>-events.md`: the event table (time, ticker, side, action, levels, why), no transcript text.
+3. `<course>-untestable.md`: what we couldn't test and why.
 
 The agent's run logs `kb_search` as a `tool_call` step (`kb_search` records none itself), and the evaluator reads the retrieved text as `{context}`. Assign the docs to the v1 agent, then reassign to v2 (`notes/sponsors.md`).
 
-## 5. Backtest
+## 6. Backtest
 
 ### Data
 | Need | Source | Notes |
@@ -229,46 +284,31 @@ Also shown: Sharpe vs buy-and-hold Sharpe (day trades sit in cash most of the ti
 4. Budget: about 12 trials per strategy (Bailey et al.: 7 configs can overfit 2 years of data). Proposer: `anthropic/claude-sonnet-5-5`.
 5. PRISM: one agent run per trial; `final_status="error"` when it loses to buy-and-hold or is rejected, which feeds Root Cause. Evaluators: "every rule cites its source" and "every number in the verdict comes from the backtest".
 
-## 6. Work split: two collection agents
+## 7. Work split: one agent per course (started 2026-10-17, Luis's ask)
 
-Both read `AGENTS.md` and this file first, write raw data only under `DATA_DIR` (never git), use their own branch and worktree, and open a PR for any code.
+All three read `AGENTS.md`, this file, and the hand-over note `pipeline-handover.md` in the shared notes folder (common record shapes, data folder, Discord rules). Each writes raw data only under its own `data/<course>/`, works in its own worktree and branch, opens a PR for code, and asks Luis directly before any image download or a wider Discord window. Discord reads use Luis's signed-in Chrome (the built-in pane is logged out), via Discord's own search, never by scrolling whole histories.
 
-### Agent A: `story/collect-discord` (ZipTrader+ Discord)
-- **Inputs:** Luis signed in to Discord in the built-in browser; the channel table in section 1; Luis's answer to decision 1.
-- **Does:**
-  1. Short, supervised read with Luis watching: one channel at a time, only the channels marked "Collect", scrolling back no further than 2026-10-01 for `#morning-briefing` and at most 300 messages in total. No posts, reactions or clicks inside messages; URLs are read from the DOM.
-  2. Per message: message id, `<time datetime>` timestamp, author and role, text, attachment URLs, links.
-  3. Images: per decision 1, Luis saves them, or the agent lists filename, source and size and Luis approves the download. Discord CDN links are signed and expire, so fetch soon after reading.
-  4. Vision transcription per section 3 (Haiku for briefings, Sonnet for the Nutshell graphic).
-  5. Extract every YouTube URL with the message it came from.
-- **Outputs:** `data/ziptrader/discord/posts.jsonl` (`source_id, channel, message_id, posted_at, author_role, text, image_files[], image_text, links[]`), `img/`, `youtube_links.jsonl` (`url, video_id, channel, message_id, posted_at`); a PR with `app/collect/discord_vision.py` (the transcription step only).
-- **Done when:** counts per channel reported; every briefing has a `posted_at`; `youtube_links.jsonl` is handed to Agent B; `git status` shows no files under `data/`.
+| Agent (branch) | Input | Does | Output |
+|---|---|---|---|
+| `extract-lpp` (`story/extract-lpp`) | 247 sessions' captions and metadata in `data/lpp/` (collected here), prototypes in `data/lpp/proto/` | Section 4: whole-session extraction, code checks, gold set with Luis, metrics, all 247, PRISM runs, test design | `data/lpp/{sources,events,sessions}.jsonl`, gold checklist, `app/lpp/`, `notes/sources/lpp.md` |
+| `collect-ziptrader` (`story/collect-ziptrader`) | ZipTrader+ server | Inventory via search counts; Strategy Nutshell → `StrategySpec`; Oct 2026 morning briefings → call events (vision) | `data/ziptrader/{sources,events}.jsonl`, `strategy_nutshell.spec.json`, inventory, `app/collect/ziptrader/` |
+| `collect-cryptowizard` (`story/collect-cryptowizard`) | CRYPTOWZRD server (`639275844795367454`), starting at the channel Luis linked | Inventory; how setups are given; index setups (entry, stop, targets, why, follow-ups) in a window Luis picks; strategy explanations → rules; price checks on keyless crypto bars | `data/cryptowizard/{sources,events}.jsonl`, `strategy.spec.json`, inventory, `app/collect/cryptowizard/` |
 
-### Agent B: `story/collect-youtube` (lesson videos)
-- **Inputs:** `youtube_links.jsonl` from Agent A (or the list in section 1 once filled); yt-dlp and ffmpeg (installed); Nicrron Whisper; Luis's answer to decision 2.
-- **Does:**
-  1. Metadata and captions, no video: `yt-dlp --skip-download --write-info-json --write-subs --write-auto-subs --sub-langs "en.*" --sub-format json3 -o "$DATA_DIR/ziptrader/youtube/%(id)s/%(id)s.%(ext)s" <url>`.
-  2. Members-only or private videos: list them and skip; don't use Luis's browser cookies without asking.
-  3. No captions and decision 2 = yes: audio only (`yt-dlp -x`, mono 32 kbps, about 14 MB per hour), split into 20-minute parts, Whisper `verbose_json`, shift segment times by each part's offset. Cost $0.006 per minute.
-  4. Normalize to timestamped segments.
-- **Outputs:** `data/ziptrader/youtube/videos.jsonl` (`video_id, title, upload_date, duration_s, availability, discord_message_id, posted_at`), `segments.jsonl` (`source_id, idx, start_s, end_s, text, origin`); a PR with `app/collect/youtube.py`.
-- **Done when:** every linked video is either transcribed or listed as skipped with a reason; total minutes and Whisper cost reported.
+### Next, after these land
+- `story/loader`: JSONL from all three → SQLite (+ sqlite-vec under uv-managed Python), embeddings, PRISM KB docs.
+- `story/backtest-engine`: bars cache, engine, verdict rules, call and copy-trade scoring, trial log.
 
-### Next (not collection; can start now on the synthetic card)
-- `story/extract-rules`: loader (JSONL → SQLite), chunking, embeddings, triage and extraction prompts above, `StrategySpec` output, PRISM KB docs.
-- `story/backtest-engine`: bars cache, engine, verdict rules, call scoring, trial log.
-
-## 7. Decisions for Luis
+## 8. Decisions for Luis
 
 | # | Decision | My pick | Why |
 |---|---|---|---|
-| 1 | Discord images: you save them by hand, or a supervised agent downloads them? | You save (about 15 files, 5 minutes) | Discord forbids automating user accounts; manual saving keeps the agent to reading |
-| 2 | Download audio of course videos for Whisper when captions are missing? | Yes, local only, deleted after transcription | Captions may be missing on unlisted uploads; audio never leaves the Mac |
-| 3 | Create free Alpaca paper keys for minute bars? | Yes | yfinance only covers about 30 days of 1-min bars; Alpaca goes back to 2016 |
-| 4 | "Worked" = beats buy-and-hold after costs in 3 of 4 windows and the holdout, with 30+ trades? | Yes | One clear, honest bar for a verdict per course |
-| 5 | PRISM KB and public demo get paraphrased rules, locators and short quotes only? | Yes | Course content is copyrighted; PRISM is a third party |
+| 1 | Create free Alpaca paper keys (minute bars since 2016)? | Yes, now | Blocking: LPP's 2024-25 trades and ZipTrader's calls need 1-min bars; yfinance only reaches back ~30 days |
+| 2 | Review the 5 gold LPP sessions the model drafts (~15 min each)? | Yes, 2-3 at least | Without gold, "the extraction is right" is a claim, not a number |
+| 3 | "Worked" for LPP = copying the host (60 s late, after costs) beats SPY over the same minutes, with 30+ trades? | Yes | Matches what a member could actually do; one honest bar |
+| 4 | Collect the older ~1,500 LPP sessions (2018-2024, ~60 more Discord search pages)? | Not today | 247 sessions are enough for a verdict; more paging raises the Discord risk |
+| 5 | ZipTrader still in scope today, and do you save its images by hand? | Yes, you save (~15 files) | Keeps the agent to reading; Discord forbids automating user accounts |
 
-Also needed from Luis: invite links for the Learn Plan Profit and Crypto Wizard servers.
+Defaults I applied without asking (say if wrong): PRISM and the public demo get derived records only (AGENTS.md rule 5); captions only, no audio downloads, since every sampled session has captions.
 
 ## Not verified
-Nicrron model training cutoffs; Alpaca's `feed` parameter for SIP history on the free plan; yfinance's exact 1-min lookback; McLean & Pontiff figures; the Discord inventory (section 1).
+Nicrron model training cutoffs; Alpaca's `feed` parameter for SIP history on the free plan; yfinance's exact 1-min lookback; McLean & Pontiff figures; whole-session Sonnet extraction through Nicrron (502, then empty); the ZipTrader and Crypto Wizard inventories (agents running); that every one of the 247 LPP sessions has captions (all sampled so far do).
