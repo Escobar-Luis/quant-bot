@@ -3,14 +3,9 @@
 Luis asked to save the collected course data to a real database, SurrealDB, hosted if possible, and to write down the schema and why it suits an agent. Code: `app/db/schema.surql` (schema and agent functions), `app/db/load.py` (loader). This replaces the SQLite + sqlite-vec plan in `notes/strategy-pipeline.md` section 5.
 
 ## Where it runs
-1. **Target: Surreal Cloud, free instance** (Luis, 2026-10-17: keep the data off his Mac). Three lines in `~/dev/quant-bot/.env`, then run the loader:
-   ```
-   SURREALDB_URL=wss://<instance>.aws-use1.surreal.cloud
-   SURREALDB_USER=<system user from the instance's Authentication panel>
-   SURREALDB_PASS=<its password>
-   ```
-   Until they exist, the loader runs embedded on disk (`surrealkv://~/dev/quant-bot/data/surreal/daytrader`). The env files on this Mac only hold SurrealDB **Agent Memory** keys (`SPECTRON_*`, hacksprint app), which are a memory API, not a database instance.
-2. Namespace `daytrader`, database `courses` (override with `SURREALDB_NAMESPACE`, `SURREALDB_DATABASE`).
+1. **Live on Surreal Cloud since 2026-10-17:** free instance `daytrader-ai` (org `hacksprint`, AWS US East, SurrealDB 3.3), endpoint in `~/dev/quant-bot/.env` as `SURREALDB_URL`, a root system user in `SURREALDB_USER` / `SURREALDB_PASS`. First load: 2 min 41 s for 855 sources, 4,952 events, 26,434 caption segments and 1,931 rule embeddings; **55.6 MB of the 1 GB** free storage. `uv run python -m db.verify` matched every count against the JSONL files.
+   Without those three lines the loader falls back to embedded on disk (`surrealkv://~/dev/quant-bot/data/surreal/daytrader`).
+2. Namespace `daytrader`, database `courses` (override with `SURREALDB_NAMESPACE`, `SURREALDB_DATABASE`). Studio opens on `main/main`; switch to `daytrader/courses` in its database menu to browse.
 3. The loader is the only writer. Source agents keep writing JSONL; the loader syncs it.
 4. Privacy: caption text (`segment`) is paid course content. It lives only in Luis's own private instance, never in git, PRISM or the public demo (`AGENTS.md` rule 5).
 5. The SurrealDB MCP server (`https://mcp.surrealdb.com`) manages instances and runs ad-hoc queries; the bulk load goes through the Python SDK.
@@ -38,9 +33,9 @@ Compute, measured: the first version took 590 s to load in memory, 582 s of it b
 4. **Where:** Parquet files per symbol and month under `data/bars/`, read straight into the pandas backtester. Not SurrealDB: a million bar rows would use much of the 1 GB free instance and scan slower than a columnar file.
 5. **Tiger Data (TimescaleDB):** the right tool once prices reach tens of millions of rows or need SQL time buckets and compression. But no free tier (30-day trial, then from $30/month, [pricing](https://www.tigerdata.com/pricing)), and a third system to wire up today. Luis's existing Tiger service belongs to another project (`what-are-the-counts`), so don't reuse it. Revisit after the hackathon.
 
-## Load
+## Load and check
 ```bash
-cd app && uv run python -m db.load --embed
+cd app && uv run python -m db.load --embed && uv run python -m db.verify
 ```
 Re-runnable: schema is `DEFINE ... OVERWRITE`, records are `UPSERT`ed by fixed ids in batches, edges and segments are deleted and rebuilt, heavy indexes (`indexes.surql`) are built last. `--stats` prints counts and calls each agent function once.
 
