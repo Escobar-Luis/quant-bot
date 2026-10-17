@@ -147,6 +147,8 @@ def main():
                       if d == d5 and r.assumed_exit for p in [r.position])
     unknown = mod.unknown(st, assumed, len(positions), len(built["positions"]), status) \
         if hasattr(mod, "unknown") else []
+    if not a.scale:
+        unknown = [u for u in unknown if "scaled" not in u]
 
     out = {
         "schema": "results/1", "course": a.course, "course_name": mod.NAME, "version": a.version,
@@ -155,7 +157,7 @@ def main():
         "generated_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"), "git_sha": git_sha(),
         "window": mod.WINDOW, "money_start": int(MONEY_START), "course_fee_usd": None,
         "delays_min": DELAYS_MIN, "default_delay_min": DEFAULT_DELAY_MIN, "costs_bps_per_side": COSTS_BPS,
-        "sizing": mod.SIZING, "hold": mod.HOLD, "headline_portfolio": "all",
+        "sizing": getattr(mod, "SIZING_SCALED", mod.SIZING) if a.scale else mod.SIZING, "hold": mod.HOLD, "headline_portfolio": "all",
         "portfolios": portfolios, "rules": built["rules"], "trades": trades,
         **({"days": built["days"]} if built["days"] else {}),
         "unknown": unknown, "checks": {**built["checks"], "positions": len(built["positions"]),

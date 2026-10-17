@@ -91,3 +91,10 @@ def test_word_rule():
     assert engine.word(30, 11.9, 10) == "Barely"
     assert engine.word(30, 8.1, 10) == "Barely"
     assert engine.word(30, 8, 10) == "No"
+
+
+def test_scaled_sizing_keeps_his_ratios(fake):
+    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
+    r = engine.simulate(p, 1)
+    assert r.fills[0].qty * r.fills[0].px == pytest.approx(1000)
+    assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
