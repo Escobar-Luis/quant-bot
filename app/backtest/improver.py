@@ -16,7 +16,7 @@ import time
 import uuid
 
 from . import bars, engine, extras
-from .common import DATA, DEFAULT_DELAY_MIN, RESULTS, git_sha
+from .common import DATA, DEFAULT_DELAY_MIN, RESULTS, git_sha, public_json
 from .run import course_module, hold_numbers, prefetch
 
 AGENT_ID, PROMPT_VERSION = "daytrader-improver-v1", "improver-v1"
@@ -213,7 +213,7 @@ def main():
     rp = RESULTS / a.course / f"{a.version}.json"
     res = json.loads(rp.read_text())
     res["suggestion"] = result
-    rp.write_text(json.dumps(res, indent=1, ensure_ascii=False))
+    rp.write_text(public_json(res))
     print(json.dumps(result, indent=1))
 
 
