@@ -233,7 +233,7 @@ def screen_table(files: dict) -> dict:
             by[k] = {
                 "word": m["word"], "end": money(m["end"]), "hold_end": money(m["hold_end"]),
                 "ret": pct(m["ret_pct"]), "hold_ret": pct(m["hold_ret_pct"]),
-                "trades": f"{m['trades']:,} trades",
+                "trades": f"{m['trades']:,} trade" + ("" if m["trades"] == 1 else "s"),
                 "couldnt_copy": m.get("couldnt_copy") or 0, "sized_down": m.get("sized_down") or 0,
                 "not_triggered": m.get("not_triggered") or 0,
             }
@@ -393,6 +393,7 @@ def main() -> int:
     ap.add_argument("--no-live", action="store_true")
     ap.add_argument("--no-prism", action="store_true")
     ap.add_argument("--expect", help="write the expected screen table (JSON) here")
+    ap.add_argument("--dom-js", help="write the browser check (dom_check.js + the table) here")
     a = ap.parse_args()
     subprocess.run(["git", "fetch", "-q", "origin"], cwd=REPO)
     print(f"ref {a.ref} @ {git('rev-parse', '--short', a.ref).strip()}")
@@ -425,6 +426,10 @@ def main() -> int:
     if a.expect:
         Path(a.expect).write_text(json.dumps(table, indent=1, ensure_ascii=False))
         print(f"  screen table → {a.expect}")
+    if a.dom_js:
+        Path(a.dom_js).write_text(f"const EXPECTED = {json.dumps(table, ensure_ascii=False)};\n"
+                                  + (HERE / "dom_check.js").read_text())
+        print(f"  browser check → {a.dom_js} (paste into the signed-in page)")
     print()
 
     if not a.no_live:
