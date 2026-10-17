@@ -26,6 +26,9 @@ def course_module(course: str):
     if course == "cryptowizard":
         from . import cryptowizard
         return cryptowizard
+    if course == "ziptrader":
+        from . import ziptrader
+        return ziptrader
     raise SystemExit(f"unknown course {course}")
 
 

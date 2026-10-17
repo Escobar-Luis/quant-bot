@@ -73,6 +73,8 @@ def stock_day(ticker: str, day: dt.date) -> dict[int, list]:
     if p.exists():
         return {int(k): v for k, v in json.loads(p.read_text()).items()}
     if not has_alpaca():
+        if (dt.date.today() - day).days <= 28:
+            return yahoo_day(ticker, day)
         raise NoBars("no Alpaca keys in .env (APCA_API_KEY_ID / APCA_API_SECRET_KEY)")
     rows, token = {}, None
     while True:
@@ -86,6 +88,36 @@ def stock_day(ticker: str, day: dt.date) -> dict[int, list]:
         token = js.get("next_page_token")
         if not token:
             break
+    d.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(rows))
+    return rows
+
+
+def _yahoo(ticker: str, interval: str, t0: int, t1: int) -> list[tuple[int, list]]:
+    r = httpx.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}", timeout=30,
+                  headers={"User-Agent": "Mozilla/5.0"},
+                  params={"interval": interval, "period1": t0, "period2": t1, "includePrePost": "false"})
+    if r.status_code != 200:
+        raise NoBars(f"yahoo {ticker} http {r.status_code}")
+    res = (r.json().get("chart") or {}).get("result") or []
+    if not res or not res[0].get("timestamp"):
+        return []
+    q = res[0]["indicators"]["quote"][0]
+    return [(ts, [q["open"][i], q["high"][i], q["low"][i], q["close"][i], q["volume"][i]])
+            for i, ts in enumerate(res[0]["timestamp"]) if q["open"][i] is not None]
+
+
+@lru_cache(maxsize=4096)
+def yahoo_day(ticker: str, day: dt.date) -> dict[int, list]:
+    """Keyless fallback for the last ~28 days only (Yahoo keeps 1-minute bars 30 days): regular session, cached."""
+    d = BARS / "yahoo_1m" / ticker
+    p = d / f"{day.isoformat()}.json"
+    if p.exists():
+        return {int(k): v for k, v in json.loads(p.read_text()).items()}
+    if day >= dt.date.today():
+        raise NoBars(f"{ticker} {day} not closed yet")
+    rows = {ts: v for ts, v in _yahoo(ticker, "1m", et_at(day, 9, 30), et_at(day, 16, 0))
+            if et_at(day, 9, 30) <= ts < et_at(day, 16, 0)}
     d.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(rows))
     return rows
@@ -175,9 +207,10 @@ def daily_closes(market: str, symbol: str, start: dt.date, end: dt.date) -> dict
     if p.exists():
         return json.loads(p.read_text())
     out = {}
-    if market == "us_equities":
-        if not has_alpaca():
-            raise NoBars("no Alpaca keys in .env (APCA_API_KEY_ID / APCA_API_SECRET_KEY)")
+    if market == "us_equities" and not has_alpaca():
+        for ts, v in _yahoo(symbol, "1d", et_at(start, 0, 0), et_at(end, 23, 59)):
+            out[et_date(ts).isoformat()] = v[3]
+    elif market == "us_equities":
         params = {"timeframe": "1Day", "start": start.isoformat(), "end": (end + dt.timedelta(days=1)).isoformat(),
                   "limit": 10000, "feed": os.getenv("ALPACA_FEED", "sip"), "adjustment": "raw"}
         for b in _alpaca_get(f"{symbol}/bars", params).get("bars") or []:
