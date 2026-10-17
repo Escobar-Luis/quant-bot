@@ -1,5 +1,7 @@
 # Sponsors
 
+**Verified live 2026-10-17:** `smoke.py` got a Nicrron reply (`nicrron/auto` picked `anthropic/claude-haiku-5-5`; `response.model` shows the pick) and PRISM stored the trace and agent run. `prismtrace.verify`: CREDENTIAL OK, LIVE CONNECTED. The key in `.env` can read the Knowledge Base and call `/api/guardrails/evaluate` (both 200).
+
 | Sponsor | Unlock (what only it can do) | What we have access to | Prize rewards |
 |---|---|---|---|
 | PRISM by Block Convey (required) | Observe → root-cause cluster → evaluator v1/v2 → enforce-mode guardrail + block check, on one platform; built-in Knowledge Base retrieval; live ElevenLabs call tracing | Code `MONEYTALKS#2`; one workspace; 200 analysed runs/day | (pending) |
