@@ -1,6 +1,6 @@
 {
  "schema": "proofs/1",
- "updated_at": "2026-10-17T19:11:13Z",
+ "updated_at": "2026-10-17T19:18:02Z",
  "prism_app": "https://prism.blockconvey.com",
  "knowledge_base": {
   "agent_id": "daytrader-verdict-v2",
@@ -74,7 +74,7 @@
   "cluster": "failures in LPP session extractor v1 on path tool_call>reasoning>tool_call>final_answer (Task Completion, Error Handling)",
   "tier": "Needs review",
   "prism_cause": "Prompt: detectors failed_tool_call fired in 25 of 25 runs and unsupported_answer in 20 of 25 (both decisive)",
-  "our_sentence": "The v1 prompt let the model quote long caption stretches and lose track of open positions, so code checks failed in 28 of 30 runs.",
+  "our_sentence": "The v1 prompt let the model quote long caption stretches and lose track of open positions, so most v1 runs failed a code check.",
   "url": "https://prism.blockconvey.com/root-cause"
  },
  "evaluator": {
