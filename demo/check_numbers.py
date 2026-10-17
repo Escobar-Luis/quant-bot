@@ -81,6 +81,17 @@ def main():
         b = by_delay(lpp, 5, "day")
         print(f"  day trades 5 min: {money(b['end'])} ({b['ret_pct']:+.1f}%), {b['word']}")
         print(f"  first unknown: {lpp['unknown'][0]}")
+        r3 = (lpp.get("ranges") or {}).get("3m")
+        if r3:
+            b = r3["by_delay"]["5"]
+            print(f"  chip 3M (until {r3['until']}): {money(b['end'])} vs {money(b['hold_end'])}, {b['word']}")
+        bs = ((lpp.get("best_stop") or {}).get("by_delay") or {}).get("5")
+        if bs:
+            print(f"  best day to stop: {bs['date']}, {money(bs['end'])} vs holding {money(bs['hold_end'])}")
+        for st in lpp.get("strategies") or []:
+            b = (st.get("by_delay") or {}).get("5")
+            if st.get("id") == "short-overbought" and b:
+                print(f"  {st['name']}: {b.get('trades')} trades, {b.get('ret_pct'):+.1f}%, {b.get('word')}")
         v2, _ = load("results/lpp/v2.json", ref)
         if v2:
             same = v2.get("same_sessions") or {}
@@ -111,8 +122,14 @@ def main():
         cm = ev.get("code_mirror") or {}
         print(f"  Evaluator '{ev.get('name')}': PRISM {flag((ev.get('v1') or {}).get('pass_pct'), 'evaluator v1 pass rate')} -> "
               f"{flag((ev.get('v2') or {}).get('pass_pct'), 'evaluator v2 pass rate')}; our code {cm.get('v1_pass_pct')}% -> {cm.get('v2_pass_pct')}%")
+        fr = ev.get("failed_runs") or {}
+        print(f"  Failed runs: v1 {fr.get('v1')} -> v2 {fr.get('v2')} of {fr.get('of')}")
+        ms = ev.get("money_same_sessions") or {}
+        if ms:
+            print(f"  Money, same {ms.get('sessions')} sessions, {ms.get('delay_min')} min: v1 {money(ms['v1_end'])} vs v2 {money(ms['v2_end'])}")
         rc = pr.get("root_cause") or {}
-        print(f"  Root Cause: cluster {flag(rc.get('cluster'), 'root cause cluster')!r}, failed runs {rc.get('failed_runs')}, url {rc.get('url')}")
+        print(f"  Root Cause: {flag(rc.get('failed_runs'), 'root cause failed runs')} failed runs, tier {rc.get('tier')!r}, url {rc.get('url')}")
+        print(f"  Cluster: {flag(rc.get('cluster'), 'root cause cluster')!r}")
         print(f"  Our sentence: {rc.get('our_sentence')!r}")
         kb = pr.get("knowledge_base") or {}
         hits = kb.get("hits") or []

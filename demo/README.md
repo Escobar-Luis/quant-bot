@@ -2,9 +2,9 @@
 
 | File | What | Status |
 |---|---|---|
-| `script.md` | ~2:50 live demo on the real app: problem → verdict → slider → failure, fix, score | Ready on today's files; PRISM cluster and pass rates still pending |
+| `script.md` | ~2:50 live demo, words on top of story 5's click path (`tests/flow/demo-run.md`) | Ready; only PRISM's own evaluator pass rates pending |
 | `narration.md` | ~55 s voice-over text and captions | Ready |
-| `narration.mp3` | 55 s voice-over, made by `python3 demo/narrate.py` (Nicrron `openai/tts-1-hd`, voice onyx; ElevenLabs when its key works) | Ready |
+| `narration.mp3` | 57 s voice-over, made by `python3 demo/narrate.py` (Nicrron `openai/tts-1-hd`, voice onyx; ElevenLabs when its key works) | Ready |
 | `submission.md` | Devpost answers, ready to paste | Draft; **[fill]** marks PRISM values and the video link |
 | `check_numbers.py` | Prints every number the script says, from the files; exit 1 while anything is pending | Works |
 
