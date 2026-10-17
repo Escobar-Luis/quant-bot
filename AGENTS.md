@@ -2,6 +2,8 @@
 
 Hackathon: MONEY TALKS 2 (AI x Finance, NYC, 2026-10-17). The brief and judging are in `event.md`. When a decision here changes, change this file first (by PR), then message the running agents.
 
+**North star (the problem, 5 slides):** https://claude.ai/artifact/Spjn9WB6PBtgEmGx4yv4CD. Check every feature against it.
+
 ## Product
 Day Trader AI proves whether the paid day-trading courses Luis bought (ZipTrader first; Learn Plan Profit and Crypto Wizard if time allows) actually worked, and whether an agent can propose a better version of each strategy from backtesting.
 - Web app, responsive (phone and desktop): OAuth sign-in and sign-out, onboarding, a verdict per course, a learning view.
