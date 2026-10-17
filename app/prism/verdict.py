@@ -167,8 +167,10 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
               "check_language": "ok" if language_ok else "fail"}
     failed = [k for k, v in checks.items() if v == "fail"] if not answer.startswith("(dry run") else []
     status = "error" if failed else "success"
+    rsha = (res.get("git_sha") or "")[:7]  # results regenerate: a new file gets new conversations, so runs never mix
+    conv = f"verdict-{course}-{version}" + (f"-{rsha}" if rsha else "")
     meta = {"agent_version": agent, "course": course, "prompt_version": PROMPT_VERSION[agent], "git_sha": git_sha(),
-            "proof_set": False, "results_version": version}
+            "proof_set": False, "results_version": version, "results_git_sha": rsha}
     steps = [
         {"step_type": "tool_call", "tool_name": "kb_search", "label": "kb_search",
          "input_summary": json.dumps({"query": query_for(course), "agent_id": agent_id, "limit": 5}),
@@ -201,19 +203,20 @@ def run(course: str, version: str, agent: str, dry: bool, results_override: str 
                          "no 'Not advice' or a promise word" if not language_ok else "") if x),
          "status": status},
     ]
-    row = {"agent_id": agent_id, "course": course, "version": version, "final_status": status, "checks": checks,
+    row = {"agent_id": agent_id, "course": course, "version": version, "results_sha": rsha, "conversation_id": conv,
+           "final_status": status, "checks": checks,
            "not_in_results": bad, "cites": cites, "query": query_for(course), "kb_hits": [h["doc"] for h in hits],
            "kb_hit_rows": logged(hits), "answer": answer, "at": now()}
     if dry:
-        print(json.dumps({"agent_id": agent_id, "conversation_id": f"verdict-{course}-{version}",
+        print(json.dumps({"agent_id": agent_id, "conversation_id": conv,
                           "final_status": status, "metadata": meta, "steps": steps}, indent=1))
         return row
     from .common import submit
     r = submit(pt, steps, agent_id=agent_id, agent_name=f"Day Trader AI verdict {agent}",
-               conversation_id=f"verdict-{course}-{version}", model=model, final_status=status, metadata=meta)
+               conversation_id=conv, model=model, final_status=status, metadata=meta)
     pt.trace_llm(model=model, input_messages=messages, output=answer, latency_ms=llm_ms,
                  token_count_input=usage["in"], token_count_output=usage["out"], agent_id=agent_id,
-                 agent_name=f"Day Trader AI verdict {agent}", session_id=f"verdict-{course}-{version}", metadata=meta)
+                 agent_name=f"Day Trader AI verdict {agent}", session_id=conv, metadata=meta)
     pt.flush(timeout=30)
     pt.close()
     row["trajectory_id"] = (r or {}).get("id")

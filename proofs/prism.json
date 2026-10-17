@@ -1,11 +1,11 @@
 {
  "schema": "proofs/1",
- "updated_at": "2026-10-17T18:56:09Z",
+ "updated_at": "2026-10-17T18:59:19Z",
  "prism_app": "https://prism.blockconvey.com",
  "knowledge_base": {
   "agent_id": "daytrader-verdict-v2",
-  "run_id": "7d3b0f72-d1e8-4472-8bc5-36da03782910",
-  "run_url": "https://prism.blockconvey.com/trajectories/7d3b0f72-d1e8-4472-8bc5-36da03782910",
+  "run_id": "aaf87897-9169-4c07-81de-83f2d7945192",
+  "run_url": "https://prism.blockconvey.com/trajectories/aaf87897-9169-4c07-81de-83f2d7945192",
   "docs": [
    "cryptowizard-events-summary.md",
    "cryptowizard-strategy-cards.md",
@@ -34,7 +34,7 @@
     "snippet": "# Learn Plan Profit: what we can't test, and why _Copy assigned to daytrader-verdict-v2._ 1196 of 4196 events failed a code check and are left out of the money result. Each kind, with one example: | Check failed | Events \u2026"
    }
   ],
-  "answer": "No: copying all 287 trades with $10000 of fake money ended at 8806.02, a -11.94% loss, while buying and holding the S&P 500 (SPY) gained 19.64%. The worst drop along the way was -20.4%, and part of the result rests on guesses, since exits were assumed for 128 day trades and $1000 was assumed on 199 entries with no share count. The course itself says you don't have to take every trade [LPP-AVOID-2], so copying everything isn't what it teaches, and this test can't say whether picking only some trades would have done better. Not advice.",
+  "answer": "No: copying all 315 trades with 10000 of fake money would have ended at 9765.86 (-2.34%) after costs, while buying and holding the S&P 500 (SPY) gained 19.64%. The test also relied on guesses, such as assumed exits on 137 day trades, $1000 assumed on 199 entries with no share count, and half the position assumed sold on 202 trims, and options were not tested at all. The course itself says you don't have to take every trade [LPP-AVOID-2], so copying every post is not how it tells you to trade, and past results don't predict future ones. Not advice.",
   "cites": [
    "LPP-AVOID-2"
   ],
@@ -42,16 +42,16 @@
    {
     "course": "lpp",
     "agent_id": "daytrader-verdict-v1",
-    "run_url": "https://prism.blockconvey.com/trajectories/44d6771c-0a50-479d-ae16-399032e2a11a",
+    "run_url": "https://prism.blockconvey.com/trajectories/b7629d6b-a136-4395-be72-1bae643919fe",
     "cites": [
-     "LPP-AVOID-1"
+     "LPP-ENTRY-1"
     ],
     "final_status": "error"
    },
    {
     "course": "cryptowizard",
     "agent_id": "daytrader-verdict-v1",
-    "run_url": "https://prism.blockconvey.com/trajectories/8f78d302-145a-4b71-a39c-231fb1bcc9bf",
+    "run_url": "https://prism.blockconvey.com/trajectories/9b321a31-b6eb-48dd-a17f-f38b672b012c",
     "cites": [
      "CRYPTOWIZARD-STOP-4"
     ],
@@ -60,7 +60,7 @@
    {
     "course": "ziptrader",
     "agent_id": "daytrader-verdict-v1",
-    "run_url": "https://prism.blockconvey.com/trajectories/01614662-cbbe-4fa0-96f0-fb5f371c188f",
+    "run_url": "https://prism.blockconvey.com/trajectories/5a3dce18-b649-41e8-ae20-7ce788f2b5c4",
     "cites": [
      "ZIPTRADER-EXIT-1"
     ],

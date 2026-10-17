@@ -42,9 +42,11 @@ def run_url(trajectory_id: str | None) -> str | None:
 
 def latest_runs() -> dict:
     """The latest traced verdict run per (agent, course, results version): the same inputs for v1 and v2."""
+    rows = [r for r in read_jsonl(PARTS / "verdict_runs.jsonl") if r.get("trajectory_id")]
+    current = {(r["course"], r["version"]): r.get("results_sha", "") for r in rows}  # the newest results file wins
     out = {}
-    for r in read_jsonl(PARTS / "verdict_runs.jsonl"):
-        if r.get("trajectory_id"):
+    for r in rows:
+        if r.get("results_sha", "") == current[(r["course"], r["version"])]:
             out[(r["agent_id"], r["course"], r["version"])] = r
     return out
 
