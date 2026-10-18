@@ -38,10 +38,13 @@ Every response carries `snapshot_id` (AD-1: 12 hex of sha256 over sorted `path:s
 
 - Built `app/api/` (`snapshot.py`: load, contract checks, AD-1 id, AD-3 headline rule; `main.py`: four routes, error envelope, `X-Snapshot-Id` header, one JSON log line per request) and `app/api/tests/test_api.py` (44 tests, offline). Run with `uvicorn --factory api.main:create_app --no-access-log` (no app is built at import).
 - Dependencies in their own commit (shared `pyproject.toml`): `fastapi` 0.143.3, `uvicorn` 0.54.0; dev group `pytest` 9.1.1, `httpx` 0.28.1. This also declares pytest and httpx, which `deferred-work.md` asked for.
-- The snapshot id hashes every `.json`/`.jsonl` file (no dotfiles) under the snapshot's `results/`, `events/` and `verdicts/`, served or skipped, `_sample.json` included, as paths relative to the snapshot folder; the default root (the repo) isn't hashed whole. Each file is read once, so the hashed bytes are the served bytes. `results/_sample.json` is never served.
-- Files that break what the API relies on (schema, course/version vs path, delays, headline portfolio numbers for every delay) are skipped and listed in `/health.skipped`, never half-served.
+- The snapshot id hashes every `.json`/`.jsonl` file (no dotfiles) under the snapshot's `results/`, `positions/` and `bars/`, served or skipped, `_sample.json` included, as paths relative to the snapshot folder; the default root (the repo) isn't hashed whole. Each file is read once, so the hashed bytes are the served bytes. `results/_sample.json` is never served.
+- Files that break what the API relies on (schema, course/version vs path, whole-minute delays, the six headline numbers at every delay, NaN, privacy) are skipped and listed in `/health.skipped`; a course with any skipped file is withheld whole, so the API can't headline an older file than the web app's `latest()`.
+- Privacy (main's #43–#45): a file holding a `yt:` video ID or a YouTube link is never served. The pattern copies `backtest.common.PRIVATE_URL` (a test keeps them equal) instead of importing it, because `backtest.common` runs git and loads `.env` on import.
+- Rebased on main after #43–#46 (session keys replaced video IDs in `results/`).
+- Aligned with the spine after its review gate (spine v2): the query parameter is `delay_min` (the intent above says `delay`), `/verdict` returns the `verdict/1` shape (`at` = the file's `by_delay` entry verbatim, plus `series`, `rules`, `start`/`end`, `source: "snapshot"`, `run_key: null`, `engine_version: null` until manifests exist), and the hashed folders are `results/`, `positions/` and `bars/`.
 - The results endpoint returns the file's bytes unchanged; the snapshot id rides in the `X-Snapshot-Id` header there, so the contract document isn't altered.
-- Smoke after the rebase (before the code-review patches): `uvicorn api.main:app` served `/health` (snapshot `646c7375ef10`, three courses, none skipped, `HEAD` 200) and LPP at 15 min (v1, "No", $9,729.38).
+- Smoke after the rebase (before the code-review patches): `uvicorn` served `/health` (snapshot `646c7375ef10`, three courses, none skipped, `HEAD` 200) and LPP at 15 min (v1, "No", $9,729.38).
 
 ## Review Triage Log
 
