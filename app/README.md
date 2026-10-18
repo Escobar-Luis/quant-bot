@@ -23,3 +23,13 @@ uv run python -m db.load --embed
 ```
 
 Loads every course's `sources.jsonl`, `events.jsonl` and LPP captions from `~/dev/quant-bot/data/` into SurrealDB: embedded on disk by default, Surreal Cloud when `SURREALDB_URL`, `SURREALDB_USER` and `SURREALDB_PASS` are set. Schema and agent functions: `db/schema.surql`; design: `notes/storage-surrealdb.md`.
+
+## API (backend story 1)
+
+Read-only verdicts from one snapshot folder (default: this checkout's `results/`). Design: `_bmad-output/planning-artifacts/backend/architecture.md`.
+
+```bash
+uv run uvicorn --factory api.main:create_app --no-access-log --reload
+```
+
+`GET /health`, `GET /v1/courses`, `GET /v1/courses/{course}/verdict?delay_min=5`, `GET /v1/courses/{course}/results/{version}`. Tests: `uv run pytest api -q`.
