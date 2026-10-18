@@ -1,0 +1,78 @@
+# Backend stories, in build order. Spine: architecture.md (AD ids). One story = one branch = one worktree = one agent.
+# None deploys to production or changes how main's web/ behaves (AD-12).
+- id: "backend-0"
+  title: "chore/backend-agents-md: AGENTS.md amendments for the backend"
+  description: >-
+    One AGENTS.md PR, after Luis answers the open questions: contract 1 (results also written by app/pipeline into
+    snapshots), contract 4 (daytrader-api-backtest-v1, extract-<course>-nightly-v<n>), contract 5 (trace scope: proof
+    set, verdict runs, API runs, nightly extraction), contract 6 (who writes where: app/api/, app/pipeline/, the
+    bucket), and Decisions 3, 4 and 5 as answered (picks, hosting, data). Then message every lane.
+  depends_on: [open questions 1, 2, 4]
+  governed_by: [AD-8, AD-9, AD-11, AD-16, Inherited Invariants]
+- id: "backend-1"
+  title: "story/backend-1-verdict-api: serve verdicts from a snapshot folder"
+  description: >-
+    The thinnest API slice (B1): app/api/ loads one snapshot folder and serves /health, /v1/courses,
+    /v1/courses/{course}/verdict?delay_min= (verdict/1) and /v1/courses/{course}/results/{version}. Read-only; no auth,
+    compute or network. Built: PR #47.
+  governed_by: [AD-1, AD-3, AD-12, AD-15, conventions]
+- id: "backend-2"
+  title: "story/backend-2-deploy-preview: the API live on a preview host"
+  description: >-
+    Dockerfile in app/ (uv sync --frozen), the host's config, secrets per the conventions (refuse to start with a
+    Nicrron or Alpaca key), ALLOWED_ORIGINS feeding CORS, FORWARDED_ALLOW_IPS, ETag and Cache-Control on results,
+    HEAD /health as the uptime probe, serving the frozen results/ as its snapshot on a preview URL. Needs Luis's host
+    account.
+  depends_on: [backend-1, open question 1]
+  governed_by: [AD-6, AD-7, AD-12, AD-13, conventions, Structural Seed]
+- id: "backend-3"
+  title: "story/backend-3-runs: on-demand backtests with the same engine"
+  description: >-
+    Make the engine pure (no git, .env or writes at import), extract backtest.compute returning (result, steps), add
+    app/backtest/ids.py (snapshot_id moved there, engine_version, run_key) and positions.py (build_positions, dump,
+    load); BARS_OFFLINE; POST /v1/runs and GET /v1/runs/{run_key} returning verdict/1; normalized RunSpec, ranges per
+    AD-4, LRU run cache, worker pool of 2, runs_busy and run_timeout. CLI output stays byte-identical for a default
+    run. Acceptance: a run at a precomputed delay over the whole window equals the snapshot numbers, on a fixture
+    snapshot with positions/ and bars/ and no data/.
+  depends_on: [backend-1]
+  governed_by: [AD-3, AD-4, AD-5, AD-6, AD-14, AD-15, AD-16, conventions]
+- id: "backend-4"
+  title: "story/backend-4-auth-picks: Clerk on the API and per-user picks"
+  description: >-
+    Bearer JWT verified offline (accepts_token session_token, azp from ALLOWED_ORIGINS, sts pending rejected),
+    user_hash, runs and /v1/me/* require a token, picks per AD-8 (or none, if Luis keeps browser storage), limits.py
+    per AD-13. Luis: a Clerk development instance for the preview and the session-token claim template.
+  depends_on: [backend-3, open question 2]
+  governed_by: [AD-7, AD-8, AD-13]
+- id: "backend-5"
+  title: "story/backend-5-run-traces: a PRISM trajectory per API-triggered run"
+  description: >-
+    After backend-0's contract change: the bounded after-response queue per AD-9, steps from compute, exact metadata,
+    a dry-run that prints the payload. Acceptance: one cache-miss run shows in PRISM with its steps; a cache hit sends
+    nothing; PRISM down still returns 200; RUNS_PER_DAY is the only cap.
+  depends_on: [backend-0, backend-3, backend-4]
+  governed_by: [AD-9, AD-13, contract 5]
+- id: "backend-6"
+  title: "story/backend-6-snapshots: build, validate, publish, swap"
+  description: >-
+    app/pipeline/build.py, validate.py, publish.py: snapshot folder and manifest (headline.json, windows.json,
+    engine_version), validation per AD-11, upload to the bucket, flip current.json, rollback; the API's verified swap
+    and ETag poll per AD-15, keeping three snapshots.
+  depends_on: [backend-3, open question 1]
+  governed_by: [AD-1, AD-3, AD-5, AD-11, AD-12, AD-14, AD-15, AD-16]
+- id: "backend-7"
+  title: "story/backend-7-nightly: the nightly run on Luis's Mac"
+  description: >-
+    launchd at 20:30 ET from ~/dev/quant-bot-nightly: sources a supervised read queued, extraction through Nicrron at
+    temperature 0 with the ledger and NIGHTLY_BUDGET_USD (check whether streamed calls hit the cache), code checks,
+    positions, compute, then backend-6's publish; no-change nights publish nothing; failures notify Luis.
+  depends_on: [backend-6, PR #18 merged, open questions 4 and 5]
+  governed_by: [AD-1, AD-9, AD-10, AD-11, AD-12, AD-13, AD-16]
+- id: "backend-8"
+  title: "story/backend-8-web-preview: a web client on the API, preview only"
+  description: >-
+    web/ reads verdict/1 from VITE_API_URL when set and falls back to bundled files; the delay slider asks /v1/runs
+    for any minute 1-60; onboarding saves picks. Preview alias only; merges only when a build without VITE_API_URL
+    passes story 5's flow test.
+  depends_on: [backend-2, backend-3, backend-4]
+  governed_by: [AD-4, AD-7, AD-8, AD-12, conventions]
