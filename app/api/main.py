@@ -85,15 +85,27 @@ def create_app(snapshot_dir: Path | str | None = None) -> FastAPI:
         if course not in s.files:
             raise ApiError(404, "unknown_course", f"No course {course!r}. Courses: {', '.join(s.courses())}.")
 
-    def headline_view(f: snap.ResultsFile, delay: int) -> dict:
-        d = f.doc
-        port = f.headline_portfolio()
+    def summary(f: snap.ResultsFile, delay: int) -> dict:
+        """The fields /v1/courses and verdict/1 share. `at` is the file's by_delay entry, verbatim."""
+        d, port = f.doc, f.headline_portfolio()
         return {"course": f.course, "course_name": d.get("course_name"), "version": f.version,
+                "portfolio": {"id": port["id"], "label": port.get("label")}, "delay_min": delay,
+                "delays_min": d["delays_min"], "default_delay_min": d["default_delay_min"],
                 "sample": d.get("sample", False), "partial": d.get("partial", False),
-                "delay_min": delay, "delays_min": d["delays_min"], "default_delay_min": d["default_delay_min"],
-                "money_start": d.get("money_start"), "window": d.get("window"), "hold": d.get("hold"),
-                "portfolio": {"id": port["id"], "label": port.get("label")},
-                "headline": port["by_delay"][str(delay)],
+                "at": port["by_delay"][str(delay)]}
+
+    def verdict_v1(f: snap.ResultsFile, delay: int) -> dict:
+        """verdict/1 (architecture.md conventions), source "snapshot": the precomputed numbers for one delay."""
+        d, port = f.doc, f.headline_portfolio()
+        series = port.get("series") or {}
+        window = d.get("window") or {}
+        return {"schema": "verdict/1", "snapshot_id": s.snapshot_id, "engine_version": None,   # no manifest yet
+                **summary(f, delay), "start": window.get("start"), "end": window.get("end"),
+                "source": "snapshot", "run_key": None,
+                "series": {"dates": series.get("dates"), "hold": series.get("hold"),
+                           "money": (series.get("by_delay") or {}).get(str(delay))},
+                "window": window, "hold": d.get("hold"), "money_start": d.get("money_start"),
+                "rules": d.get("rules", []), "unknown": d.get("unknown", []),
                 "generated_at": d.get("generated_at"), "git_sha": d.get("git_sha")}
 
     @app.api_route("/health", methods=["GET", "HEAD"])
@@ -108,18 +120,18 @@ def create_app(snapshot_dir: Path | str | None = None) -> FastAPI:
         out = []
         for c in s.courses():
             f = s.headline(c)
-            out.append({**headline_view(f, f.doc["default_delay_min"]), "versions": s.versions(c)})
+            out.append({**summary(f, f.doc["default_delay_min"]), "versions": s.versions(c)})
         return {"snapshot_id": s.snapshot_id, "courses": out}
 
     @app.get("/v1/courses/{course}/verdict")
-    def verdict(course: str, delay: int | None = None):
+    def verdict(course: str, delay_min: int | None = None):
         course_or_404(course)
         f = s.headline(course)
-        d = f.doc["default_delay_min"] if delay is None else delay
+        d = f.doc["default_delay_min"] if delay_min is None else delay_min
         if d not in f.doc["delays_min"]:
             raise ApiError(422, "delay_not_precomputed",
                            f"{d} min isn't in this file. Precomputed delays: {f.doc['delays_min']}.")
-        return {"snapshot_id": s.snapshot_id, **headline_view(f, d), "unknown": f.doc.get("unknown", [])}
+        return verdict_v1(f, d)
 
     @app.get("/v1/courses/{course}/results/{version}")
     def results(course: str, version: str):

@@ -24,4 +24,4 @@ Read-only verdicts from one snapshot folder (default: this checkout's `results/`
 uv run uvicorn --factory api.main:create_app --no-access-log --reload
 ```
 
-`GET /health`, `GET /v1/courses`, `GET /v1/courses/{course}/verdict?delay=5`, `GET /v1/courses/{course}/results/{version}`. Tests: `uv run pytest api -q`.
+`GET /health`, `GET /v1/courses`, `GET /v1/courses/{course}/verdict?delay_min=5`, `GET /v1/courses/{course}/results/{version}`. Tests: `uv run pytest api -q`.

@@ -55,12 +55,17 @@ def test_verdict_numbers_equal_the_headline_file_at_every_delay(client, course):
     doc = headline_file(course)
     port = next(p for p in doc["portfolios"] if p["id"] == doc["headline_portfolio"])
     for d in doc["delays_min"]:
-        r = client.get(f"/v1/courses/{course}/verdict", params={"delay": d})
+        r = client.get(f"/v1/courses/{course}/verdict", params={"delay_min": d})
         assert r.status_code == 200, r.text
         body = r.json()
-        assert body["headline"] == port["by_delay"][str(d)]
+        assert body["schema"] == "verdict/1" and body["source"] == "snapshot" and body["run_key"] is None
+        assert body["at"] == port["by_delay"][str(d)]
         assert body["delay_min"] == d and body["version"] == doc["version"]
         assert body["window"] == doc["window"] and body["hold"] == doc["hold"] and body["unknown"] == doc["unknown"]
+        assert (body["start"], body["end"]) == (doc["window"]["start"], doc["window"]["end"])
+        assert body["rules"] == doc["rules"]
+        assert body["series"] == {"dates": port["series"]["dates"], "hold": port["series"]["hold"],
+                                  "money": port["series"]["by_delay"][str(d)]}
 
 
 def test_verdict_defaults_to_the_files_default_delay(client):
@@ -75,7 +80,7 @@ def test_courses_lists_every_course_with_its_default_headline(client):
     for c in body["courses"]:
         doc = headline_file(c["course"])
         port = next(p for p in doc["portfolios"] if p["id"] == doc["headline_portfolio"])
-        assert c["headline"] == port["by_delay"][str(doc["default_delay_min"])]
+        assert c["at"] == port["by_delay"][str(doc["default_delay_min"])]
 
 
 def test_results_endpoint_serves_the_file_bytes(client):
@@ -109,12 +114,12 @@ def test_unknown_course_is_404_in_the_envelope(client):
 
 
 def test_delay_outside_the_file_is_422_not_precomputed(client):
-    r = client.get("/v1/courses/lpp/verdict", params={"delay": 7})
+    r = client.get("/v1/courses/lpp/verdict", params={"delay_min": 7})
     assert r.status_code == 422 and r.json()["error"]["code"] == "delay_not_precomputed"
 
 
 def test_non_integer_delay_is_422_bad_request(client):
-    r = client.get("/v1/courses/lpp/verdict", params={"delay": "five"})
+    r = client.get("/v1/courses/lpp/verdict", params={"delay_min": "five"})
     assert r.status_code == 422 and r.json()["error"]["code"] == "bad_request"
 
 
@@ -275,14 +280,20 @@ def test_snapshot_id_known_answer():
 
 
 def test_snapshot_id_known_answer_through_load(tmp_path):
-    """AD-1 end to end: two courses plus an events file; dotfiles and other suffixes don't count."""
+    """AD-1 end to end: two courses, a positions file and a bar; dotfiles, other suffixes and folders don't count."""
     import hashlib
     files = {"results/lpp/v1.json": write(tmp_path, results_doc("lpp", "v1")),
              "results/ziptrader/v1.json": write(tmp_path, results_doc("ziptrader", "v1"))}
-    ev = tmp_path / "events" / "lpp" / "v1.jsonl"
-    ev.parent.mkdir(parents=True)
-    ev.write_text('{"event_id": "e1"}\n')
-    files["events/lpp/v1.jsonl"] = ev
+    pos = tmp_path / "positions" / "lpp" / "v1.jsonl"
+    pos.parent.mkdir(parents=True)
+    pos.write_text('{"pid": "p1"}\n')
+    files["positions/lpp/v1.jsonl"] = pos
+    bar = tmp_path / "bars" / "alpaca_1m" / "SPY" / "2025-01-02.json"
+    bar.parent.mkdir(parents=True)
+    bar.write_text("{}")
+    files["bars/alpaca_1m/SPY/2025-01-02.json"] = bar
+    (tmp_path / "events").mkdir()
+    (tmp_path / "events" / "ignored.json").write_text("{}")      # not a hashed folder
     (tmp_path / "results" / ".DS_Store").write_bytes(b"\0junk")
     (tmp_path / "results" / "lpp" / "v1.json.swp").write_bytes(b"junk")
     lines = sorted(f"{rel}:{hashlib.sha256(p.read_bytes()).hexdigest()}" for rel, p in files.items())

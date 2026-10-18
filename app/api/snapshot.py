@@ -1,9 +1,10 @@
 """One snapshot folder, loaded once and read-only: results/<course>/<version>.json files (contract results/1).
 
 architecture.md (backend):
-- AD-1: the snapshot id is the first 12 hex of sha256 over the sorted "path:sha256" lines of every .json and .jsonl
-  file (dotfiles excluded) under the snapshot's data folders (results/, events/, verdicts/), served or not, so any
-  change to any data file changes it and stray files (.DS_Store, editor swaps) don't.
+- AD-1: the snapshot id is the first 12 hex of sha256 over the sorted "path:sha256" lines (joined by "\n", no
+  trailing newline) of every .json and .jsonl file (dotfiles excluded) under the snapshot's results/, positions/ and
+  bars/, served or not, so any change to any data file changes it and stray files (.DS_Store, swaps) don't.
+  backend-3 moves snapshot_id() to app/backtest/ids.py, which the pipeline imports too.
 - AD-3: a course's headline file is its highest version not marked `same_sessions.proof_set`, else its highest
   version (the rule web/src/data.js `latest()` uses).
 A file that breaks the contract is skipped and listed in `skipped`. A course with any skipped file is withheld whole:
@@ -17,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 SCHEMA = "results/1"
-DATA_DIRS = ("results", "events", "verdicts")
+DATA_DIRS = ("results", "positions", "bars")
 DATA_SUFFIXES = (".json", ".jsonl")
 COURSE_ORDER = ("lpp", "ziptrader", "cryptowizard")   # the web app's tab order; other courses sort after
 VERSION = re.compile(r"^v([1-9]\d*)$")
