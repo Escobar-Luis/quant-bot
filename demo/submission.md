@@ -15,8 +15,8 @@ Money Intelligence
 
 ## Links
 - Live app: https://day-trader-ai.vercel.app
-- Video: https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi (60 s, narrated screen recording of the live app, recorded 15:35 ET with the current numbers: 28 → 18 failed runs)
-- How it works (44 s animated architecture explainer): https://claude.ai/artifact/L6Tnm9Tv86SwP79MTkPyeE (private until Luis shares it; notes in `demo/explainer.md`)
+- Video: https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi (about 2 min, one narration: the problem, the live app, how it works)
+- How it works on its own (44 s animated explainer, the third part of the video): https://claude.ai/artifact/L6Tnm9Tv86SwP79MTkPyeE
   - **Luis decides:** the page is private until you share it (Share menu, "anyone with the link"). If Devpost's video field wants YouTube or Vimeo, upload `demo/out/demo.mp4` there (unlisted) and paste that link instead.
 - Code: https://github.com/Escobar-Luis/quant-bot
   - **Luis decides:** the repo is private. Make it public after checking git history holds no course content (raw files should only be in gitignored `data/`), or add the judges' GitHub accounts.

@@ -9,6 +9,7 @@ dependencies = [
     "openai>=3.33.0",
     "prismtrace-sdk>=0.5.3",
     "python-dotenv>=1.2.4",
+    "surrealdb>=2.0.0",
     "uvicorn>=0.54.0",
 ]
 

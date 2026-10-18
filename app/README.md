@@ -16,6 +16,14 @@ uv sync && uv run python smoke.py && uv run python -m prismtrace.verify
 
 `smoke.py` sends one Nicrron call and traces it into PRISM. `prismtrace.verify` prints `CREDENTIAL OK` and `LIVE CONNECTED` when PRISM is wired up.
 
+## Course database (SurrealDB)
+
+```bash
+uv run python -m db.load --embed
+```
+
+Loads every course's `sources.jsonl`, `events.jsonl` and LPP captions from `~/dev/quant-bot/data/` into SurrealDB: embedded on disk by default, Surreal Cloud when `SURREALDB_URL`, `SURREALDB_USER` and `SURREALDB_PASS` are set. Schema and agent functions: `db/schema.surql`; design: `notes/storage-surrealdb.md`.
+
 ## API (backend story 1)
 
 Read-only verdicts from one snapshot folder (default: this checkout's `results/`). Design: `_bmad-output/planning-artifacts/backend/architecture.md`.

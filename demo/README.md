@@ -19,8 +19,10 @@ Compare its output with the "Numbers on screen" table in `script.md`. It finds e
 
 ## Recording
 
-- **Video:** https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi (private until Luis shares it). File: `demo/out/demo.mp4` (gitignored, 4 MB, 1440×810, 59.5 s).
-- Re-recorded 15:35 ET on the live app (bundle `index-Cf2KdCGq.js`, carrying PR #35's 28 → 18). Real clicks on the deployed app, never the mock.
-- Made by `node demo/record.mjs`: Playwright drives Google Chrome along `tests/flow/demo-run.md`, timed to `narration.mp3`; frames come from Chrome's screencast with their own timestamps, so voice and picture stay in sync. Captions and a corner label ("Live app · recorded … · AI voice") are an overlay added for the recording.
-- Re-record after a redeploy: `node demo/record.mjs` (needs `playwright`, local or global, and ffmpeg), then republish the page with the new `demo/out/demo.mp4`.
-- ElevenLabs keys (today's and yesterday's) are rejected, so the narration runs through Nicrron. A fresh ElevenLabs key in `.env` makes `narrate.py` switch back automatically.
+- **Video:** https://claude.ai/artifact/13kzNaaYG9PjSkgw8ZB5Qi (private until Luis shares it). File: `demo/out/day-trader-ai.mp4` (gitignored; the GitHub release carries it).
+- Three parts, one Nicrron voice (`demo/merged/`):
+  1. **The problem** (`act1.html`, ~25 s): courses post wins, never a full record; $2.1B (Journal of Finance, 2023); the FTC on Warrior Trading (2022); Luis's three courses; the question.
+  2. **The live app** (~45 s): a fresh window on https://day-trader-ai.vercel.app, real clicks: onboarding, LPP verdict, delay chips, Crypto Wizard, ZipTrader, the proof sheet, the agent's change "not kept".
+  3. **How it works** (~38 s): the architecture explainer (`demo/explainer.md`) from its map pull-out to "No: $9,766 vs $11,964".
+- Make it: `python3 demo/merged/voice.py act1` and `act2` (voice + Whisper times), then `node demo/merged/record.mjs all` (needs `playwright` and ffmpeg). Acts 1 and 2 are recorded from Chrome's screencast with each frame's own timestamp, so voice and picture stay in sync; captions are an overlay added for the recording.
+- ElevenLabs refuses the key in `.env` (it's the key's ID), so the voice is Nicrron's (`openai/tts-1-hd`, onyx) throughout. Luis chose to keep it.
