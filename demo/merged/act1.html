@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Act 1 · The problem</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=block">
+<style>
+  /* Same world as the explainer: warm cream, ink, coral for the machine, red for losses. 1920×1080, one scene at a time. */
+  :root { --bg: #F4F1EA; --ink: #1F1E1B; --muted: #57534B; --card: #FFFDF8; --line: #E2DDD1; --coral: #D97757; --red: #B5452F; --green: #2F6B4F; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: Inter, -apple-system, sans-serif; }
+  body { background-image: radial-gradient(rgba(31,30,27,0.07) 1.5px, transparent 1.5px); background-size: 40px 40px; }
+  .scene { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; padding-bottom: 140px; opacity: 0; transform: translateY(24px) scale(0.98); transition: opacity .45s ease, transform .55s cubic-bezier(.2,1.4,.4,1); }
+  .scene.on { opacity: 1; transform: none; }
+  .scene.off { opacity: 0; transform: translateY(-24px) scale(1.02); }
+  .serif { font-family: 'EB Garamond', Georgia, serif; font-weight: 400; }
+  h1 { font-size: 104px; line-height: 1.05; text-align: center; }
+  .row { display: flex; gap: 34px; }
+  .post { width: 400px; height: 200px; background: var(--card); border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 14px 40px rgba(60,48,30,0.10); padding: 28px 30px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0; transform: translateY(30px); transition: all .45s cubic-bezier(.2,1.5,.4,1); }
+  .post.on { opacity: 1; transform: none; }
+  .post u { display: block; height: 14px; border-radius: 7px; background: rgba(31,30,27,0.12); }
+  .win { align-self: flex-start; padding: 8px 18px; border-radius: 12px; background: #E3EEE7; color: var(--green); font: 700 30px 'JetBrains Mono', ui-monospace, monospace; }
+  .stamp { position: absolute; top: 560px; padding: 16px 40px; border: 7px solid var(--red); border-radius: 20px; background: var(--card); color: var(--red); font: 700 66px 'JetBrains Mono', ui-monospace, monospace; transform: rotate(-5deg) scale(1.8); opacity: 0; transition: all .3s cubic-bezier(.2,1.6,.4,1); }
+  .stamp.on { opacity: 1; transform: rotate(-5deg) scale(1); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 34px; box-shadow: 0 24px 60px rgba(60,48,30,0.12); padding: 56px 80px; text-align: center; max-width: 1500px; }
+  .big { font: 700 220px/1 'JetBrains Mono', ui-monospace, monospace; color: var(--red); }
+  .what { margin-top: 22px; font-size: 48px; line-height: 1.25; }
+  .src { margin-top: 26px; font: 400 26px 'JetBrains Mono', ui-monospace, monospace; color: var(--muted); }
+  .quote { font-size: 74px; line-height: 1.2; font-style: italic; }
+  .k { font: 700 28px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 4px; color: #9A4E33; }
+  .course { width: 470px; height: 170px; background: var(--card); border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 14px 40px rgba(60,48,30,0.10); display: flex; align-items: center; gap: 24px; padding: 0 30px; opacity: 0; transform: translateY(30px); transition: all .45s cubic-bezier(.2,1.5,.4,1); }
+  .course.on { opacity: 1; transform: none; }
+  .badge { flex: none; width: 70px; height: 70px; border-radius: 18px; background: var(--ink); color: #F4F1EA; display: flex; align-items: center; justify-content: center; font: 700 34px 'JetBrains Mono', ui-monospace, monospace; }
+  .cn { font-size: 40px; font-weight: 700; white-space: nowrap; }
+  .cs { margin-top: 4px; font-size: 25px; color: var(--muted); white-space: nowrap; }
+  .name { font-size: 170px; line-height: 1; }
+  .name-card { border: 3px solid var(--coral); padding: 60px 110px; }
+  .q { margin-top: 30px; font-size: 52px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <section class="scene" id="s1">
+    <h1 class="serif">Courses post their wins.</h1>
+    <div class="row">
+      <div class="post" id="p1"><span class="win">WIN ✓</span><div><u style="width:300px"></u><u style="width:220px;margin-top:12px"></u></div></div>
+      <div class="post" id="p2"><span class="win">WIN ✓</span><div><u style="width:280px"></u><u style="width:240px;margin-top:12px"></u></div></div>
+      <div class="post" id="p3"><span class="win">WIN ✓</span><div><u style="width:310px"></u><u style="width:200px;margin-top:12px"></u></div></div>
+    </div>
+    <div class="stamp" id="stamp">never a full record</div>
+  </section>
+
+  <section class="scene" id="s2">
+    <div class="card">
+      <div class="big">$2.1B</div>
+      <div class="what">lost by US retail options traders in 20 months (estimated, 2019–21)</div>
+      <div class="src">Bryzgalova, Pavlova &amp; Sikorskaya · Journal of Finance, 2023</div>
+    </div>
+  </section>
+
+  <section class="scene" id="s3">
+    <div class="card">
+      <div class="k">THE FTC, ON ONE DAY-TRADING COURSE</div>
+      <div class="quote serif" style="margin-top:30px">“the vast majority of customer accounts actually lost money”</div>
+      <div class="src">FTC on Warrior Trading, 2022</div>
+    </div>
+  </section>
+
+  <section class="scene" id="s4">
+    <div class="k">LUIS PAID FOR THREE</div>
+    <div class="row">
+      <div class="course" id="c1"><b class="badge">▶</b><div><div class="cn">Learn Plan Profit</div><div class="cs">live trading on YouTube</div></div></div>
+      <div class="course" id="c2"><b class="badge">#</b><div><div class="cn">ZipTrader</div><div class="cs">briefings on Discord</div></div></div>
+      <div class="course" id="c3"><b class="badge">#</b><div><div class="cn">Crypto Wizard</div><div class="cs">trade calls on Discord</div></div></div>
+    </div>
+  </section>
+
+  <section class="scene" id="s5">
+    <div class="card name-card">
+      <div class="name serif">Day Trader AI</div>
+      <div class="q">Copy every trade they posted. Would it have worked?</div>
+    </div>
+  </section>
+
+<script>
+  // Scene starts (seconds) come from the act's Whisper word times; the recorder calls start() at the voice's t0.
+  const SC = [["s1", 0], ["s2", 3.85], ["s3", 9.4], ["s4", 14.8], ["s5", 16.55]];
+  const EXTRA = [["p1", 0.25], ["p2", 0.5], ["p3", 0.75], ["stamp", 1.7], ["c1", 15.0], ["c2", 15.25], ["c3", 15.5]];
+  window.start = () => {
+    SC.forEach(([id, t], i) => {
+      setTimeout(() => document.getElementById(id).classList.add("on"), t * 1000);
+      const next = SC[i + 1];
+      if (next) setTimeout(() => { const el = document.getElementById(id); el.classList.remove("on"); el.classList.add("off"); }, next[1] * 1000 - 120);
+    });
+    EXTRA.forEach(([id, t]) => setTimeout(() => document.getElementById(id).classList.add("on"), t * 1000));
+  };
+</script>
+</body>
+</html>
