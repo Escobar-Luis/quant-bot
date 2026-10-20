@@ -17,6 +17,31 @@
     CAP-12. Overnight holds, sizes and adds are decided only from what was said before each moment.
   invoke_dev_with: >-
     Engine change (app/backtest/lpp.py keeps a position overnight when a later statement within CARRY_DAYS=7 mentions it; scaled entry size counts later adds). Amend AGENTS.md contracts 1 and 6 first. Rerun results and app/audit; report every headline that moves.
+- id: "18"
+  title: Re-audit LPP exits from his Discord chat
+  description: >-
+    CAP-13. Read LPP's Discord channels where he posts closes, match each post to a stream trade, and rebuild every exit from what he actually said or posted; count trades whose exit is still assumed.
+  spec_checkpoint: true
+  invoke_dev_with: >-
+    Read-only and supervised via Luis's Chrome (memory: discord-chrome-collection); no bulk scraping, no posting. Raw messages stay in data/lpp/discord/. First measure: of the 43 overnight trades, how many have a same-day close in chat.
+- id: "19"
+  title: Write down his strategy
+  description: >-
+    CAP-14. From the accurate record, state LPP's strategy as rules with frequency, win rate and P&L per rule, citing short quotes.
+  invoke_dev_with: >-
+    Model proposes rule wording through Nicrron, traced to PRISM; code computes every number. Depends on 18 and 17.
+- id: "20"
+  title: Improve it from his losses
+  description: >-
+    CAP-15. Propose rule changes from his losing trades, as code; pick on dev months, confirm on held-out months.
+  invoke_dev_with: >-
+    Extend the existing improver (daytrader-improver-v1); log every version tried (AGENTS.md rule 4).
+- id: "21"
+  title: Backtest the strategy on new prices and other stocks
+  description: >-
+    CAP-15. Run his strategy and the improved one as code on recent prices and on stocks he didn't trade; show what works and what doesn't.
+  invoke_dev_with: >-
+    Alpaca 1-minute bars; pick the stock universe before looking at results; report all variants tried.
 - id: "8"
   title: Bankroll simulator
   description: >-
@@ -86,3 +111,15 @@
     proofs/prism.json predates the audit engine fixes (PR #58): knowledge_base.answer quotes $9,765.86 and its hit snippets say 3000 passed / 1196 in review (now $9,763.83, 2,883 / 1,313); evaluator.money_same_sessions says $10,290.71 / $10,303.25 vs results/lpp/v2.json $10,287.41 / $10,300.52. Refresh the numbers from results/.
   invoke_dev_with: >-
     Owner: app/prism (story 2 lane). No new PRISM runs needed for the numbers; rebuild via prism.proofs from current results. The KB answer text is model output: either rerun the verdict run or mark it as the text of that dated run. Then update the README note in "Architecture".
+- id: "15"
+  title: Ledgers per worktree, so parallel reruns don't clobber each other
+  description: >-
+    CAP-3 hygiene. backtest.run writes data/audit/<course>-<version>-ledger.jsonl into the one shared data/ folder (every worktree reads it via DATA_DIR or the main checkout), so two branches regenerating results at once overwrite each other's ledgers and audit.run then fails as stale on whichever branch ran first.
+  invoke_dev_with: >-
+    Found by story 4 (audit-4-honest-words) while stories 9 and 3 regenerate results on other branches. Key the ledger file by results sha256 (or branch) and let audit.run pick the ledger whose stamp matches the results file; keep inputs (events, bars) shared. Contract 6 lists data/audit/; amend it first if the path changes.
+- id: "16"
+  title: Time-range chips slice the one all-time run
+  description: >-
+    CAP-4 follow-up. extras.ranges (3m/6m/1y) re-runs the cash cap on the trades closed by each cutoff instead of slicing the all-time run, so a range can count trades the headline sized down or skipped differently, and it can disagree with by_year and the money curve on the same date.
+  invoke_dev_with: >-
+    Use the headline's fit_to_cash once, then cut by exit day (as extras.by_year does); add the ranges to app/audit's reconciliation. Writes results/: contract first, rerun app/audit. Do not redeploy.

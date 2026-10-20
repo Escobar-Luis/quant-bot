@@ -12,7 +12,11 @@ The short version lives in `AGENTS.md` (every agent reads it). This file holds t
 6. **Sizing:** $1,000 per trade. LPP scales the host's share counts so all of a trade's buys together come to $1,000, keeping his add/trim ratios (decided by Luis, 2026-10-17; wording clarified 2026-10-20 after the audit found two readings; superseded by the bankroll model in spec-audit CAP-9; for the LPP headline, whole-trade scaling reads later adds and is replaced by rule 13(e), kept as `as_taught`); an entry with no share count gets the upper median of his stated counts (with an even count, the higher of the two middle values); total open exposure is capped at cash, and trades that don't fit are sized down or counted as couldn't-copy. Each portfolio starts with $10,000 of fake money; unused cash earns nothing.
 7. **Just holding:** $10,000 in SPY (stocks) or BTC (crypto) bought at the window's first trading minute, held to its end.
 8. **Portfolios:** `day` (opened and closed the same session, or called intraday or a scalp), `swing` (held overnight, or a horizon in days), `options` (calls, puts, strikes or expiries: counted, `testable: false`), `crypto` (Crypto Wizard setups), and `all` (every testable trade in one account: the course headline).
-9. **Answer word, per portfolio and delay:** fewer than 30 trades → `Not enough trades`; else return minus just holding's return ≥ +2 pts → `Yes`; within ±2 pts → `Barely`; ≤ −2 pts → `No`.
+9. **Answer word, per portfolio and delay** (amended 2026-10-20, spec-audit CAP-7: a word never reads as success when the copy lost money): fewer than 30 trades → `Not enough trades`; else a return below 0 → `No`; else return minus the benchmark's return ≥ +2 pts → `Yes`; within ±2 pts → `Barely`; ≤ −2 pts → `No`. The benchmark is just holding (rule 7), except in a proof-set file (one with `same_sessions`, LPP v2): its `all` portfolio is compared only with v1 on the same sessions (`same_sessions.by_delay`), its other portfolios carry no comparison (`word`, `vs` null), and it has no `strategies`, `ranges`, `combos` or `best_stop`. Each by_delay row also carries:
+   - `outcome`: `Made money` (return > 0), `Lost money` (< 0), `Broke even` (0), `No trades` (0 trades).
+   - `vs`: the comparison in plain words, gap = return − benchmark return: ≥ +2 → `beat <B>` (`less than <B>` when the copy lost money); within ±2 → `about the same as <B>`; ≤ −2 → `<B> did better` (`more than <B>` when the benchmark also lost). `<B>` is `compare_with.name`: `the S&P` (SPY), `Bitcoin` (BTC), `v1` (proof set). Null with 0 trades.
+   - `sealed.word`, `sealed.outcome`, `sealed.vs`: the same three on the sealed months alone (rule 10), with the sealed trade count and the sealed benchmark return.
+   The card reads outcome, then vs, then the sealed months' word: "Lost money, less than Bitcoin. Held-out months: No." Top-level `compare_with`: `{"kind": "hold" | "same_sessions", "name": "the S&P" | "Bitcoin" | "v1"}`.
 10. **Sealed window:** the last 3 months of each course's window (`window.sealed_from`). The as-taught test reports it for information; the later improver must never read it.
 11. **LPP ledger as taught** (documented from lpp.py 2026-10-20; uses later statements, so since rule 13 it is reported only as the `as_taught` alternative, never the headline): his `trade` events are copied when every check passed, or when the only failed checks are the ledger checks `open_never_closed`, `close_without_open` or `qty_exceeds_position` (those are kept and resolved by this ledger); options are counted, not priced. Positions are kept per ticker and side; an exit that names no side belongs to his one open position on that ticker, else it is skipped. A position he still holds at the end of a session carries to a later session only when his next word on it within 7 days is an add, trim or close; otherwise it leaves at 15:55 ET of its session (assumed), and a later `open` starts a new position. An exit with no open position is skipped. A position whose legs span sessions is a swing trade (rule 8).
 12. **Edge rules (adopted by Luis 2026-10-20 from the audit, notes/audit/findings-story-2.md):** (a) a horizon said only in the quote counts as written (rule 4) and belongs in the extraction's horizon field; (b) rule 11's look-ahead carry stays for the as-taught numbers (replaced for the headline by rule 13, 2026-10-20); (c) a take-profit post after the copier's own target order filled sells nothing more; (d) a trigger crossed by a gap between bars fills at the gap bar's open; (e) a moved break-even stop hit in the same bar fills at the stop level; (f) rule 6 scales at the first fill's price (superseded by the bankroll model, spec-audit CAP-9); (g) a trim with no size sells half the position; (h) just holding ends at the official daily close, the last 1-minute close reported as an alternative. Added with PR #58: (i) when price data ends before the exit, the trade closes at the last bar's close; (j) a take-profit post for target n also sells the shares of earlier targets that never filled; (k) cash of $1 or less skips the trade (counted).
@@ -41,13 +45,15 @@ The short version lives in `AGENTS.md` (every agent reads it). This file holds t
   "sizing": "His share counts, scaled to $1,000 per trade",
   "hold": {"symbol": "SPY", "label": "Just holding", "what": "Buy and keep the S&P 500 (SPY)"},
   "headline_portfolio": "all",
+  "compare_with": {"kind": "hold", "name": "the S&P"},
   "portfolios": [
     {
       "id": "all", "label": "Everything he traded", "testable": true,
       "by_delay": {
         "5": {"end": 9420, "ret_pct": -5.8, "hold_end": 11890, "hold_ret_pct": 18.9,
               "trades": 412, "not_triggered": 9, "won_pct": 44, "worst_drop_pct": -17, "word": "No",
-              "sealed": {"ret_pct": -1.2, "hold_ret_pct": 3.1}}
+              "outcome": "Lost money", "vs": "the S&P did better",
+              "sealed": {"ret_pct": -1.2, "hold_ret_pct": 3.1, "trades": 93, "word": "No", "outcome": "Lost money", "vs": "the S&P did better"}}
       },
       "series": {"dates": ["2024-08-15", "2024-09-02"], "hold": [10000, 10180],
                  "by_delay": {"5": [10000, 9960]}}
@@ -163,5 +169,35 @@ Written by story 1, read by story 3; a missing key hides its card. Strategy = tr
 "suggestion": {"agent_id": "daytrader-improver-v1", "applies_to": "vwap-pullback", "change": "Skip 9:30-9:45",
                "dev": {"before_pct": 9.0, "after_pct": 13.0}, "sealed": {"before_pct": 4.0, "after_pct": 7.0},
                "kept": true, "prism_url": null}
+}
+```
+
+## `by_year` (additive, optional; spec-audit CAP-4, story audit-3-by-year)
+
+Written by `app/backtest` (`extras.by_year`), reconciled by `app/audit`, shown by `web/` as a small table per course (year rows plus All time); a missing key hides the table. `schema` stays `results/1`. Rules (spec-audit SPEC.md Assumptions):
+
+1. **Periods:** each calendar year inside the window (`from`/`to` = its first and last trading day there), plus `all` (the full window). A year is a slice of the one all-time run: the same copied trades, sizes and cash cap (rule 6) as the headline; nothing is re-run per year.
+2. **A trade belongs to the calendar year of its exit day** (its last exit: ET date for stocks, UTC date for crypto), clamped to the window's first and last years (an exit after the window's last trading day counts in the last year). Engine and audit use this one rule.
+3. **Copying:** `start` = money at the year's start ($10,000 plus every earlier year's realized P&L); `end` = `start` + the year's realized P&L; `ret_pct` = the year's realized P&L / `start`. `all` equals the headline `end`, `ret_pct` and `trades` exactly.
+4. **Just holding** is also one all-time run: $10,000 bought at the window's first trading minute (rule 7), valued at each trading day's official close. `hold_start` = its value at the previous year's last close ($10,000 for the first year), `hold_end` = at the year's last close, `hold_ret_pct` = `hold_end / hold_start − 1`. Stocks use SPY **total return**: each dividend (Yahoo Finance's published SPY dividends, cached in `data/bars/dividends/`) is reinvested at its ex-date's official close; an ex-date on the buy day earns nothing. `hold_price_ret_pct` is the same without dividends (price only, the basis of the headline `hold_ret_pct`). Crypto holds BTC (no dividends: both are equal).
+5. **Words:** rule 9 (CAP-7) on the period's `trades`, `ret_pct` and `hold_ret_pct` (total return): `word`, `outcome` and `vs` (`<B>` = `compare_with.name`); under 30 trades is `Not enough trades`, a loss is never `Yes` or `Barely`. `all`'s `outcome` equals the headline's; its `word` and `vs` can differ from the headline's (price-only holding) by the dividends.
+7. A proof-set file (`same_sessions`, LPP v2) has no `by_year` (rule 9: no full-window comparison).
+6. Every testable portfolio and every delay; money to the cent, returns to 0.01 pt.
+
+```json
+"by_year": {
+  "hold": {"symbol": "SPY", "basis": "total_return",
+           "source": "Yahoo Finance SPY dividends, reinvested at the ex-date close", "dividends": 2},
+  "periods": [{"id": "2024", "from": "2024-08-15", "to": "2024-12-31"},
+              {"id": "2025", "from": "2025-01-02", "to": "2025-09-12"},
+              {"id": "all", "from": "2024-08-15", "to": "2025-09-12"}],
+  "portfolios": {"all": {"by_delay": {"5": {
+    "2024": {"start": 10000, "end": 9850.1, "ret_pct": -1.5, "hold_start": 10000, "hold_end": 10910.4,
+             "hold_ret_pct": 9.1, "hold_price_ret_pct": 8.6, "trades": 120, "word": "No",
+             "outcome": "Lost money", "vs": "the S&P did better"},
+    "2025": {"start": 9850.1, "end": 9763.83, "ret_pct": -0.88, "hold_start": 10910.4, "hold_end": 12100.2,
+             "hold_ret_pct": 10.9, "hold_price_ret_pct": 10.2, "trades": 195, "word": "No"},
+    "all":  {"start": 10000, "end": 9763.83, "ret_pct": -2.36, "hold_start": 10000, "hold_end": 12100.2,
+             "hold_ret_pct": 21.0, "hold_price_ret_pct": 19.64, "trades": 315, "word": "No"}}}}}
 }
 ```

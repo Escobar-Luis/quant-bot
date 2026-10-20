@@ -377,14 +377,46 @@ def hold(market: str, symbol: str, window: dict, close: str = DEFAULT_HOLD_CLOSE
             "sealed_px0": s0, "sealed_ret_pct": round((px1 / s0 - 1) * 100, 2) if s0 else None}
 
 
-def word(trades: int, ret: float, hold_ret: float) -> str:
+def word(trades: int, ret: float, bench_ret: float) -> str:
+    """Rule 9 (amended for CAP-7): a copy that lost money is No, never Yes or Barely."""
     if trades < MIN_TRADES:
         return "Not enough trades"
-    diff = round(ret - hold_ret, 6)
+    if ret < 0:
+        return "No"
+    diff = round(ret - bench_ret, 6)
     return "Yes" if diff >= 2 else "No" if diff <= -2 else "Barely"
 
 
-def copy_with_cash(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, int, float]:
+BENCH = {"SPY": "the S&P", "BTC": "Bitcoin", "BTCUSDT": "Bitcoin"}   # rule 9's <B>, read from the hold symbol
+
+
+def outcome(trades: int, ret: float) -> str:
+    if not trades:
+        return "No trades"
+    if ret == 0:
+        return "Broke even"
+    return "Made money" if ret > 0 else "Lost money"
+
+
+def vs(trades: int, ret: float, bench_ret: float | None, name: str | None) -> str | None:
+    """Rule 9's plain comparison; None with no trades or no benchmark."""
+    if not trades or bench_ret is None:
+        return None
+    diff = round(ret - bench_ret, 6)
+    if diff >= 2:
+        return ("less than " if ret < 0 else "beat ") + name
+    if diff <= -2:
+        return ("more than " + name) if bench_ret < 0 else (name + " did better")
+    return "about the same as " + name
+
+
+def verdict(trades: int, ret: float, bench_ret: float | None, name: str | None) -> dict:
+    """word, outcome and vs for one row (or a sealed block). A None benchmark: not compared (word, vs null)."""
+    return {"word": None if bench_ret is None else word(trades, ret, bench_ret),
+            "outcome": outcome(trades, ret), "vs": vs(trades, ret, bench_ret, name)}
+
+
+def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, int, float]:
     """Rule 6's cash cap, per buy (contracts.md, 2026-10-20): walk every fill of every trade by time, sells before
     buys at one moment, then by trade id. A buy spends its own money as it fills (nothing reserved for buys still
     to come); with less cash than it needs it is sized down to the cash, and with $1 or less it is skipped (a
@@ -392,6 +424,7 @@ def copy_with_cash(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int,
     share of the copied position as the trade's own sell does of its position; it returns the money in what it
     sold plus its gain. ASSUMPTION: a trade's costs (rule 5, on the copied fills) leave cash at its last sell.
     Returns [(trade, copied P&L)], buys sized down or skipped, trades not copied, peak money in positions."""
+    trades = [t for t in trades if t.status == "priced" and t.entry and t.exit]
     steps = sorted(((f.ts, 0 if f.kind != "entry" else 1, t.pid, k, n) for n, t in enumerate(trades)
                     for k, f in enumerate(t.fills)), key=lambda x: (x[0], x[1], x[2], x[3]))
     last_sell = {n: max(k for k, f in enumerate(t.fills) if f.kind != "entry") for n, t in enumerate(trades)}
@@ -445,17 +478,18 @@ def copy_with_cash(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int,
     return kept, shrunk, dropped, peak
 
 
-def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None) -> dict:
+def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None,
+              bench: tuple | None | str = "hold", name: str = "just holding") -> dict:
     """End value, return, trade count, word and the rest of a by_delay row, for one portfolio at one delay.
 
-    Rule 6's cash cap, per buy: see copy_with_cash. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md
+    Rule 6's cash cap, per buy: see copied_trades. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md
     names no minimum; the $1 floor keeps sub-dollar trades out of rule 9's count; bankroll-rules.md's $100 is
     CAP-9's). sized_down counts buys sized down or skipped; couldnt_copy counts trades whose first buy was
     skipped, plus too_late. won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade
     money from its high, booked on each exit's day (the contract's `unknown` says the drop counts closed trades
-    only). sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000."""
-    priced = [t for t in trades if t.status == "priced" and t.entry and t.exit]
-    kept, sized_down, couldnt, _ = copy_with_cash(priced)
+    only). sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000.
+    bench: rule 9's benchmark, (return, sealed return); "hold" = just holding (hold_row); None = not compared."""
+    kept, sized_down, couldnt, _ = copied_trades(trades)
     copied = len(kept)
     end = round(MONEY_START + sum(v for _, v in kept), 2)
     ret = round((end / MONEY_START - 1) * 100, 2)
@@ -472,10 +506,14 @@ def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = Non
            "trades": copied, "not_triggered": sum(t.status == "not_triggered" for t in trades),
            "couldnt_copy": couldnt + sum(t.status == "too_late" for t in trades), "sized_down": sized_down,
            "won_pct": round(100 * sum(v > 0 for _, v in kept) / len(kept)) if kept else 0,
-           "worst_drop_pct": round(worst, 1),
-           "word": word(copied, ret, hold_row["ret_pct"])}
+           "worst_drop_pct": round(worst, 1)}
+    if bench == "hold":
+        bench = (hold_row["ret_pct"], hold_row.get("sealed_ret_pct"))
+    b_ret, b_sealed = bench if bench else (None, None)
+    row.update(verdict(copied, ret, b_ret, name))
     if sealed_from:
         sk = [(t, v) for t, v in kept if B.day_of(t.market, t.entry.ts).isoformat() >= sealed_from]
-        row["sealed"] = {"ret_pct": round(100 * sum(v for _, v in sk) / MONEY_START, 2),
-                         "hold_ret_pct": hold_row.get("sealed_ret_pct"), "trades": len(sk)}
+        s_ret = round(100 * sum(v for _, v in sk) / MONEY_START, 2)
+        row["sealed"] = {"ret_pct": s_ret, "hold_ret_pct": hold_row.get("sealed_ret_pct"), "trades": len(sk),
+                         **verdict(len(sk), s_ret, b_sealed, name)}
     return row

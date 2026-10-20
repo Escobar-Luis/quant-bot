@@ -1,9 +1,9 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T19:17:44Z",
- "results_git_sha": "d8e4a870b2ef358de36b749999a28e6f1289d853",
+ "generated_at": "2026-10-20T19:27:13Z",
+ "results_git_sha": "bdf4d184b8ccad7ab69febc6eb9b2fc61d911b97",
  "pass": true,
- "sizing": "known",
+ "sizing": "trade",
  "hold_close": "official",
  "command": "cd app && uv run python -m audit.run",
  "files": {
@@ -18,7 +18,7 @@
   },
   "lpp/v1": {
    "pass": true,
-   "trades_checked": 6027,
+   "trades_checked": 3605,
    "mismatches": 0,
    "max_abs_diff": 0.0,
    "position_differences": 0,
@@ -27,7 +27,7 @@
   },
   "lpp/v2": {
    "pass": true,
-   "trades_checked": 1428,
+   "trades_checked": 1071,
    "mismatches": 0,
    "max_abs_diff": 0.0,
    "position_differences": 0,
@@ -45,18 +45,17 @@
   }
  },
  "results_sha256": {
-  "cryptowizard/v1": "354f5eddde4be5dcfc830fa672edcee51c0d8fcf86eb5361ff7bda0c5b5b3fff",
-  "lpp/v1": "5eabbb130e91f4436fbb97687dd1e8e087d22be50d84aae13bf8306e36cec8a1",
-  "lpp/v2": "7a004405f97f3b4c124c0904ffd6c87ba6c30d6e0166712d231ebae8b0870342",
-  "ziptrader/v1": "d4e4e56bcaff5e256f94e7c39ac4132e31f42d2690a89d37581a84918122e4c5"
+  "cryptowizard/v1": "1c390bab15d5e27ff9d5fa68ecccbdc9a6e4c34e5545b21b2542fc6371b0008b",
+  "lpp/v1": "82cc2268a821f77cd8e513c6b031d2897e1d09f8012ad44c033dd3aee5e85da1",
+  "lpp/v2": "bb7e8ec41904da83b3f5babd41cd72d1a6b52ae5e11d417d54e5c876c9eb1835",
+  "ziptrader/v1": "e0e9de79acc4bcb3548e9b79b61afaf2987d40c1a402e65f7dfb6e97f68050d4"
  },
  "tolerance": {
   "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",
   "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, won_pct and word exact)"
  },
  "notes": {
-  "sizing": "LPP sizing 'known' (contracts.md rule 13e, no look-ahead): the first buy is $1,000; each add is sized from the counts he had stated by then; a trim sells his stated share of his holding. The as-taught reading 'trade' (all of a trade's buys together are $1,000, which reads later adds) is checked only on the results file's `as_taught` block. Both are superseded by the bankroll model (spec-audit CAP-9).",
-  "ledger": "LPP positions follow contracts.md rule 13 (a position stays overnight only on a horizon he said before 15:55 ET); rule 11's next-word carry is rebuilt only for `as_taught`.",
+  "sizing": "LPP sizing 'trade' (all of a trade's buys together are $1,000, in his ratios; an entry with no count takes the upper median of his stated counts; a trim sells his stated share of his holding) was inferred from the engine's ledger output, then written into contracts.md rule 6. It is superseded by the bankroll model (spec-audit CAP-9).",
   "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last 1-minute bar's close is reported as an alternative (--hold-close minute)."
  },
  "positions": {
@@ -71,13 +70,6 @@
   },
   "lpp/v1": {
    "v1": {
-    "loader_positions": 346,
-    "audit_positions": 346,
-    "differences": 0,
-    "positions_differing": 0,
-    "by_field": {}
-   },
-   "v1-as_taught": {
     "loader_positions": 315,
     "audit_positions": 315,
     "differences": 0,
@@ -86,13 +78,6 @@
    }
   },
   "lpp/v2": {
-   "v2": {
-    "loader_positions": 51,
-    "audit_positions": 51,
-    "differences": 0,
-    "positions_differing": 0,
-    "by_field": {}
-   },
    "v1-same_sessions": {
     "loader_positions": 51,
     "audit_positions": 51,
@@ -100,7 +85,7 @@
     "positions_differing": 0,
     "by_field": {}
    },
-   "v2-as_taught": {
+   "v2": {
     "loader_positions": 51,
     "audit_positions": 51,
     "differences": 0,

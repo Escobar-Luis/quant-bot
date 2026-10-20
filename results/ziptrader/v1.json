@@ -6,8 +6,8 @@
  "source_agent_id": "extract-ziptrader-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:17:22Z",
- "git_sha": "58e2d128535c34f240e899447d28dd992566714c",
+ "generated_at": "2026-10-20T19:27:09Z",
+ "git_sha": "e9070be67dcca19d05c48f7b17bb8183657b1dd3",
  "window": {
   "start": "2026-10-01",
   "end": "2026-10-16",
@@ -37,6 +37,10 @@
   "what": "Buy and keep the S&P 500 (SPY)"
  },
  "headline_portfolio": "all",
+ "compare_with": {
+  "kind": "hold",
+  "name": "the S&P"
+ },
  "portfolios": [
   {
    "id": "all",
@@ -55,12 +59,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "3": {
      "end": 10007.02,
@@ -74,12 +83,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "5": {
      "end": 10007.02,
@@ -93,12 +107,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "10": {
      "end": 10007.02,
@@ -112,12 +131,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "15": {
      "end": 10007.02,
@@ -131,12 +155,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "30": {
      "end": 10007.02,
@@ -150,12 +179,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "60": {
      "end": 10007.02,
@@ -169,12 +203,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     }
    },
    "series": {
@@ -325,12 +364,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     },
     "3": {
      "end": 10000.0,
@@ -344,12 +388,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     },
     "5": {
      "end": 10000.0,
@@ -363,12 +412,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     },
     "10": {
      "end": 10000.0,
@@ -382,12 +436,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     },
     "15": {
      "end": 10000.0,
@@ -401,12 +460,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     },
     "30": {
      "end": 10000.0,
@@ -420,12 +484,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     },
     "60": {
      "end": 10000.0,
@@ -439,12 +508,17 @@
      "peak_invested_usd": 0,
      "won_pct": 0,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.0,
       "hold_ret_pct": -0.14,
-      "trades": 0
-     }
+      "trades": 0,
+      "word": "Not enough trades",
+      "outcome": "No trades",
+      "vs": null
+     },
+     "word": "Not enough trades",
+     "outcome": "No trades",
+     "vs": null
     }
    },
    "series": {
@@ -595,12 +669,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "3": {
      "end": 10007.02,
@@ -614,12 +693,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "5": {
      "end": 10007.02,
@@ -633,12 +717,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "10": {
      "end": 10007.02,
@@ -652,12 +741,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "15": {
      "end": 10007.02,
@@ -671,12 +765,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "30": {
      "end": 10007.02,
@@ -690,12 +789,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     },
     "60": {
      "end": 10007.02,
@@ -709,12 +813,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 100,
      "worst_drop_pct": 0.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.07,
       "hold_ret_pct": -0.14,
-      "trades": 1
-     }
+      "trades": 1,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "about the same as the S&P"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "about the same as the S&P"
     }
    },
    "series": {
@@ -1141,6 +1250,628 @@
     "date": "2026-10-14",
     "end": 10007.02,
     "hold_end": 10068.69
+   }
+  }
+ },
+ "by_year": {
+  "hold": {
+   "symbol": "SPY",
+   "basis": "total_return",
+   "source": "Yahoo Finance dividends (chart API, events=div), reinvested at the ex-date close",
+   "dividends": 0
+  },
+  "periods": [
+   {
+    "id": "2026",
+    "from": "2026-10-01",
+    "to": "2026-10-16"
+   },
+   {
+    "id": "all",
+    "from": "2026-10-01",
+    "to": "2026-10-16"
+   }
+  ],
+  "portfolios": {
+   "all": {
+    "by_delay": {
+     "1": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "3": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "5": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "10": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "15": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "30": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "60": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     }
+    }
+   },
+   "day": {
+    "by_delay": {
+     "1": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     },
+     "3": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     },
+     "5": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     },
+     "10": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     },
+     "15": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     },
+     "30": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     },
+     "60": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null
+      }
+     }
+    }
+   },
+   "swing": {
+    "by_delay": {
+     "1": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "3": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "5": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "10": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "15": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "30": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     },
+     "60": {
+      "2026": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_start": 10000.0,
+       "hold_end": 9985.61,
+       "hold_ret_pct": -0.14,
+       "hold_price_ret_pct": -0.14,
+       "trades": 1,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P"
+      }
+     }
+    }
    }
   }
  }

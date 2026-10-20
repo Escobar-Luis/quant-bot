@@ -245,3 +245,31 @@ def daily_closes(market: str, symbol: str, start: dt.date, end: dt.date) -> dict
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out))
     return out
+
+
+DIVIDEND_SOURCE = "Yahoo Finance dividends (chart API, events=div), reinvested at the ex-date close"
+
+
+def dividends(market: str, symbol: str, start: dt.date, end: dt.date) -> dict[str, float]:
+    """{ex-date: cash per share} for [start, end], from Yahoo Finance's published dividend events; cached in
+    data/bars/dividends/<SYM>_<start>_<end>.json (the audit reads that file, never the network). Crypto: {}."""
+    if market != "us_equities":
+        return {}
+    p = BARS / "dividends" / f"{symbol}_{start}_{end}.json"
+    if p.exists():
+        return json.loads(p.read_text())
+    r = httpx.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}", timeout=30,
+                  headers={"User-Agent": "Mozilla/5.0"},
+                  params={"interval": "1d", "period1": et_at(start, 0, 0), "period2": et_at(end, 23, 59),
+                          "events": "div"})
+    if r.status_code != 200:
+        raise NoBars(f"yahoo {symbol} dividends http {r.status_code}")
+    res = (r.json().get("chart") or {}).get("result") or []
+    if not res:
+        raise NoBars(f"yahoo {symbol} dividends: empty answer")
+    divs = ((res[0].get("events") or {}).get("dividends") or {}).values()
+    out = {et_date(int(x["date"])).isoformat(): float(x["amount"]) for x in divs}
+    out = {k: v for k, v in sorted(out.items()) if start.isoformat() <= k <= end.isoformat()}
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(out))
+    return out
