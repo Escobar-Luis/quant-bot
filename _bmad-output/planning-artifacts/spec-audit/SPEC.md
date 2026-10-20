@@ -1,6 +1,6 @@
 ---
 id: SPEC-audit
-companions: [audit-baseline.md, architecture-diagrams.md, ../spec-day-trader-ai/contracts.md]
+companions: [audit-baseline.md, architecture-diagrams.md, bankroll-rules.md, ../spec-day-trader-ai/contracts.md]
 sources: []
 ---
 
@@ -39,6 +39,19 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
   - **intent:** The Oct 21 episode video shows how we know the result is right.
   - **success:** The video has a beat naming the second calculator's result; it is rendered only after CAP-3 passes.
 
+- **CAP-9**
+  - **intent:** The user picks a starting amount, a start date and a stop date, and sees what one account would have become copying every posted trade in that window, with no money added and gains and losses compounding.
+  - **success:** Moving the amount or either date updates the ending balance, the path and the same-money benchmark in the browser; a test fixes the ending balance for a known ledger, start, stop and amount; the second calculator reproduces it.
+- **CAP-10**
+  - **intent:** Each course says which kinds of trades made money, which lost, and the likely reason, from data.
+  - **success:** Per course, the app lists the best and worst setups with their numbers and one plain-words reason tied to measured market conditions in those months, marked "likely reason".
+- **CAP-11**
+  - **intent:** Comparisons are fair: the benchmark at the same money actually invested, the held-out months' own verdict, the S&P with dividends, and the result with and without assumed trades.
+  - **success:** Every course card shows these four numbers; Crypto Wizard's held-out "No" is visible.
+- **CAP-12**
+  - **intent:** Every copy decision uses only what the host said before that moment.
+  - **success:** A test feeds a session where a later statement would change an earlier decision, and the earlier decision does not change.
+
 ## Constraints
 
 - Gate: the LinkedIn post and the video render wait until CAP-3 passes (Luis, 2026-10-20).
@@ -49,13 +62,18 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 - No redeploy of the live app without Luis's explicit OK.
 - The model proposes, the code decides: every number shown comes from `results/`, `proofs/` or the eval output.
 
+- The bankroll simulator runs in the browser from a per-trade ledger published in `results/` (all trades, every delay); no server, no per-user data stored.
+- No margin or borrowing: a trade that doesn't fit the cash left is sized down or skipped, and the app says how many. Exact rules: bankroll-rules.md.
+- Stories that write `app/backtest/` or `results/` first amend AGENTS.md contracts 1 and 6; each one reruns `app/audit` and refreshes `proofs/audit.json`.
+- Any model call (CAP-10 wording) goes through Nicrron and is traced to PRISM under its own agent_id.
+
 ## Non-goals
 
 - Re-extracting every session with a new model or prompt.
 - Pricing options trades.
 - Adding courses or live trading.
 - Human-grading every event.
-- Changing the copy-trade rules, unless CAP-3 exposes a bug.
+- Changing the copy-trade rules beyond the bankroll model (CAP-9) and the look-ahead fix (CAP-12).
 
 ## Success signal
 
@@ -63,12 +81,15 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 
 ## Assumptions
 
+- The headline becomes the bankroll run at defaults ($10,000, full window, default share per trade, 5 minutes); today's $1,000-per-trade numbers remain only as an audit column until Luis retires them.
 - By year means calendar years inside each course window (LPP 2024 and 2025; Crypto Wizard 2025 and 2026; ZipTrader 2026, equal to all time); all time is the full window.
 - A year is a slice of the one all-time run: a trade belongs to its exit year, the year return is realized P&L over equity at the year's start, holding runs from the year's first to last trading day inside the window, and under 30 trades reads "Not enough trades".
 - v2 is compared with v1 on the same sessions (`same_sessions`).
 
 ## Open Questions
 
+- Bankroll sizing: what share of the current account goes into each new trade (proposal: a fixed percent, default 10%, adjustable; adds and trims keep his ratios)?
+- Sentiment for CAP-10: market data only (VIX, trend, sector moves; free), or also news and social sentiment (paid or rate-limited)?
+
 - Human grading sample size per course (default: 30 LPP, 30 Crypto Wizard, all 86 ZipTrader events)?
-- Should "just holding SPY" include dividends, or stay price-only with the caveat shown?
 - CAP-3 tolerance (default: each trade within 1 cent, each headline within 1 dollar)?
