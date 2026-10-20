@@ -65,3 +65,31 @@ def test_buckets_hold_values_below_their_top():
     assert S._bucket(14.9, S.HOLD_BUCKETS) == "under 15 min" and S._bucket(15, S.HOLD_BUCKETS) == "15-60 min"
     assert S._bucket(1, S.DAY_BUCKETS) == "1" and S._bucket(3, S.DAY_BUCKETS) == "2-3"
     assert S._bucket(6, S.DAY_BUCKETS) == "6 or more"
+
+
+def test_a_does_that_repeats_its_when_or_allows_every_value_is_dropped():
+    props = [{"text": "Shorts are shorts", "when": {"side": ["short"]}, "does": {"side": ["short"]}},
+             {"text": "Long or short", "when": {}, "does": {"side": ["long", "short"]}}]
+    kept, dropped = S.verify(props, ROWS, [])
+    assert not kept and [d["why"] for d in dropped] == ["does_repeats_when:side", "does_covers_every_value:side"]
+
+
+def test_hedge_words_become_the_measured_number():
+    assert S.plain("He mostly shorts, in about four of every five trades.", 80.1) == "He shorts (80% of the time)."
+    assert S.plain("When he trades Tesla, he is almost always short.", 78.3) == \
+        "When he trades Tesla, he is short (78% of the time)."
+    assert S.plain("He opens most trades early.", 70.5) == "He opens trades early (71% of the time)."
+
+
+def test_a_hidden_quote_and_a_malformed_reply_are_handled():
+    q = [{"id": "Q1", "text": "I short tech", "cite": {"label": "x"}}]
+    S.QUOTES_NOT_SUPPORTING["test-sha"] = {0: "does not say it"}
+    try:
+        kept, _ = S.verify([{"text": "He shorts big tech", "when": {"group": ["big tech"]},
+                             "does": {"side": ["short"]}, "quote_id": "Q1"}], ROWS, q, "test-sha")
+    finally:
+        del S.QUOTES_NOT_SUPPORTING["test-sha"]
+    assert kept[0]["quote"] is None and kept[0]["quote_hidden"] == "does not say it"
+    assert S.verify("not a list", ROWS, q) == ([], [])
+    assert S.verify(["junk"], ROWS, q)[1][0]["why"] == "proposal_not_a_map"
+    assert S.profile(None, "v1", [], {"reply": {"rules": "nope"}, "quotes": q}) is None

@@ -431,16 +431,51 @@ def norm(cond: dict) -> dict:
     return {k: sorted(v if isinstance(v, list) else [v]) for k, v in sorted(cond.items())}
 
 
-def verify(proposed: list, rows: list[dict], quotes: list[dict]) -> tuple[list[dict], list[dict]]:
+# Quotes a reviewer found don't say what their rule says (PR #67 review), by cached reply (prompt sha) and the
+# proposal's index: shown as null until story 25 verifies every rule-quote pair.
+QUOTES_NOT_SUPPORTING = {
+    "671eacb1fbc558ea": {0: "says a reversal setup, not that he mostly shorts",
+                         7: "says mind your size, not his size range"},
+}
+HEDGES = [r",? in about [\w ]+? of every [\w ]+?(?= *[,.]|$)", r"\b(?:almost always|usually|mostly|often|most of the time)\s+",
+          r"\bmost (?=trades\b)"]
+
+
+def plain(text: str, pct: float) -> str:
+    """The model's hedge words ("usually", "almost always", "four of every five") are replaced by the number code
+    measured: the hedges are removed and the computed follows_pct is appended."""
+    out = text.strip().rstrip(".")
+    for h in HEDGES:
+        out = re.sub(h, "", out, flags=re.I)
+    out = re.sub(r"\s+,", ",", re.sub(r"\s{2,}", " ", out)).strip(" ,")
+    return f"{out} ({int(pct + 0.5)}% of the time)."
+
+
+def check_does(when: dict, does: dict, rows: list[dict]) -> str | None:
+    """A `does` that repeats its `when`, or allows every value its feature takes, says nothing."""
+    for k, vals in does.items():
+        if k in when and set(vals) & set(when[k]):
+            return f"does_repeats_when:{k}"
+        if set(vals) >= {x[k] for x in rows}:
+            return f"does_covers_every_value:{k}"
+    return None
+
+
+def verify(proposed, rows: list[dict], quotes: list[dict], prompt_sha: str | None = None) -> tuple[list[dict], list[dict]]:
     """Each proposed rule against the trades. Kept: MIN_TRADES+ in the situation and following it, MIN_FOLLOWS%+."""
     qs = {q["id"]: q for q in quotes}
+    hidden = QUOTES_NOT_SUPPORTING.get(prompt_sha or "", {})
     kept, dropped = [], []
-    for i, p in enumerate(proposed[:MAX_RULES]):
+    for i, p in enumerate((proposed if isinstance(proposed, list) else [])[:MAX_RULES]):
+        if not isinstance(p, dict):
+            dropped.append({"text": str(p)[:80], "why": "proposal_not_a_map"})
+            continue
         text = str(p.get("text") or "").strip()
         bad = None if text and len(text.split()) <= 20 else "text_missing_or_over_20_words"
         bad = bad or check_cond(p.get("when", {}), rows) or check_cond(p.get("does"), rows)
         if not bad and not p.get("does"):
             bad = "does_empty"
+        bad = bad or check_does(norm(p.get("when") or {}), norm(p["does"]), rows)
         if bad:
             dropped.append({"text": text, "why": bad})
             continue
@@ -448,8 +483,8 @@ def verify(proposed: list, rows: list[dict], quotes: list[dict]) -> tuple[list[d
         situ = [x for x in rows if matches(x, when)]
         follow = [x for x in situ if matches(x, does)]
         pct = round(100 * len(follow) / len(situ), 1) if situ else 0.0
-        row = {"text": text, "when": when, "does": does, "situation_trades": len(situ), "follows_pct": pct,
-               **stats(follow, len(rows))}
+        row = {"text": plain(text, pct), "proposed_text": text, "when": when, "does": does,
+               "situation_trades": len(situ), "follows_pct": pct, **stats(follow, len(rows))}
         if len(situ) < MIN_TRADES or len(follow) < MIN_TRADES:
             dropped.append({**row, "why": f"fewer than {MIN_TRADES} trades"})
             continue
@@ -457,7 +492,9 @@ def verify(proposed: list, rows: list[dict], quotes: list[dict]) -> tuple[list[d
             dropped.append({**row, "why": f"followed {pct}% of the time (under {MIN_FOLLOWS}%)"})
             continue
         q = qs.get(p.get("quote_id"))
-        row["quote"] = {"text": q["text"], "cite": q["cite"]} if q else None
+        row["quote"] = {"text": q["text"], "cite": q["cite"]} if q and i not in hidden else None
+        if q and i in hidden:
+            row["quote_hidden"] = hidden[i]
         kept.append({"id": f"S{len(kept) + 1}", **row})
     return kept, dropped
 
@@ -483,8 +520,12 @@ def profile(mod, version: str, kept_results: list, cached: dict | None, delay: i
     model reply (None until `python -m backtest.strategy` has run)."""
     if not cached or not cached.get("reply"):
         return None
+    reply = cached["reply"]
+    if not isinstance(reply, dict) or not isinstance(reply.get("rules"), list) or not isinstance(cached.get("quotes"), list):
+        print("  strategy_profile skipped: cached reply is malformed (no rules list or no quotes)")
+        return None
     c = computed(mod, kept_results)
-    rules, dropped = verify(cached["reply"].get("rules") or [], c["rows"], cached["quotes"])
+    rules, dropped = verify(reply["rules"], c["rows"], cached["quotes"], cached.get("prompt_sha"))
     return {"agent_id": AGENT_ID, "prompt_version": PROMPT_VERSION, "model": cached.get("model"),
             "trajectory_id": cached.get("trajectory_id"),
             "prism_url": PRISM_RUN.format(cached["trajectory_id"]) if cached.get("trajectory_id") else None,
@@ -498,7 +539,14 @@ def profile(mod, version: str, kept_results: list, cached: dict | None, delay: i
 def stored(version: str = "v1") -> dict | None:
     """The cached reply backtest.run re-attaches (data/lpp/strategy/lpp-<version>.json)."""
     p = OUT / f"lpp-{version}.json"
-    return json.loads(p.read_text()) if p.exists() else None
+    if not p.exists():
+        return None
+    try:
+        d = json.loads(p.read_text())
+    except json.JSONDecodeError as e:
+        print(f"  strategy_profile skipped: {p.name} is not JSON ({e.msg})")
+        return None
+    return d if isinstance(d, dict) else None
 
 
 # ---- PRISM (contract 5) ---------------------------------------------------------------------------------------
@@ -603,7 +651,7 @@ def main():
         print(f"model reply in {res.get('secs')} s, ${cost(res['usage']):.3f}; errors {res['errors']}")
     if not res.get("reply"):
         print("no usable reply:", res.get("errors"))
-    rules, dropped = verify((res.get("reply") or {}).get("rules") or [], c["rows"], quotes)
+    rules, dropped = verify((res.get("reply") or {}).get("rules") or [], c["rows"], quotes, res.get("prompt_sha"))
     for r in rules:
         print(f"  KEPT {r['id']} {r['text']} | follows {r['follows_pct']}% of {r['situation_trades']}, "
               f"{r['trades']} trades, won {r['won_pct']}%, P&L {r['pnl_usd']}")
