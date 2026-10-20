@@ -43,6 +43,14 @@ def test_results_file_matches_contract(path):
         assert d["sizing"] == "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6
     need = {"end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy", "won_pct",
             "worst_drop_pct", "word", "outcome", "vs", "sealed"}
+    words = {"Yes", "Barely", "No", "Not enough trades"}
+    if d["course"] == "lpp":   # rule 13, provisional: shown beside the as-taught headline
+        nla = d["no_look_ahead"]
+        assert nla["provisional"] is True and nla["rules"]
+        assert [p["id"] for p in nla["portfolios"]] == ["all", "day", "swing"]
+        for p in nla["portfolios"]:
+            assert set(p["by_delay"]) == {str(x) for x in DELAYS_MIN}
+            assert all(need <= set(r) and r["word"] in words | {None} for r in p["by_delay"].values())
     for p in d["portfolios"]:
         if not p["testable"]:
             assert "count" in p and p["why"]

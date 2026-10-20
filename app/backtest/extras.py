@@ -102,7 +102,7 @@ def ranges(results_all: dict, dates: list, hold_series: list, window: dict, name
             closed = [r for r in results_all[d] if r.status == "priced"
                       and bars.day_of(r.position.market, r.last_exit.ts) <= stop]
             kept, *_ = engine.fit_to_cash(closed)
-            money = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
+            money = round(MONEY_START + sum(pnl for _, pnl in kept), 2)
             ret = round((money / MONEY_START - 1) * 100, 2)
             rows[str(d)] = {"end": money, "ret_pct": ret, "hold_end": hold_end, "hold_ret_pct": hold_ret,
                             "trades": len(kept), "word": engine.word(len(kept), ret, hold_ret),
@@ -124,7 +124,7 @@ def best_stop(all_portfolio: dict, hold_series: list) -> dict:
 
 def _account(results: list) -> tuple[float, int]:
     kept, *_ = engine.fit_to_cash([r for r in results if r.status == "priced"])
-    return round(100 * sum(r.pnl * f for r, f in kept) / MONEY_START, 2), len(kept)
+    return round(100 * sum(pnl for _, pnl in kept) / MONEY_START, 2), len(kept)
 
 
 def combos(mod, positions: list, by_pos: dict, dates: list, hold: dict, hold_series: list, window: dict,
@@ -212,10 +212,10 @@ def by_year(port_results: dict, hold: dict, name: str = "just holding") -> dict:
         for d, results in per_delay.items():
             kept, *_ = engine.fit_to_cash([r for r in results if r.status == "priced"])
             pnl, n = {y: 0.0 for y in years}, {y: 0 for y in years}
-            for r, f in kept:
+            for r, v in kept:
                 y = str(bars.day_of(r.position.market, r.last_exit.ts).year)
                 y = min(max(y, years[0]), years[-1])
-                pnl[y] += r.pnl * f
+                pnl[y] += v
                 n[y] += 1
             row, money = {}, MONEY_START
             for y in years:
@@ -225,7 +225,7 @@ def by_year(port_results: dict, hold: dict, name: str = "just holding") -> dict:
                           "trades": n[y]}
                 engine.judge(row[y], h["hold_ret_pct"], None, name)
                 money += pnl[y]
-            end = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)   # the headline's own sum
+            end = round(MONEY_START + sum(v for _, v in kept), 2)   # the headline's own sum
             ret = round((end / MONEY_START - 1) * 100, 2)
             h = holds["all"]
             row["all"] = {"start": MONEY_START, "end": end, "ret_pct": ret, **h, "trades": len(kept)}

@@ -234,6 +234,42 @@ def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list
     return same, ledger
 
 
+def no_look_ahead_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]:
+    """Step 4b, LPP only: the same events through rule 13 (no look-ahead), shown beside the as-taught headline.
+    Provisional (contracts.md rule 13): not the headline until hold intent is extracted and sizing and cash are
+    look-ahead-free."""
+    if not (a.course == "lpp" and not a.limit):
+        return None, []
+    built = mod.build(a.version, only, ledger="no_look_ahead") if only else \
+        mod.build(a.version, ledger="no_look_ahead")
+    positions = built["positions"]
+    seen = Counter()
+    for p in positions:
+        seen[p.pid] += 1
+        if seen[p.pid] > 1:
+            p.pid = f"{p.pid}-{seen[p.pid]}"
+        p.scale = a.scale
+    prefetch(positions)
+    by_pos = {p.pid: {d: engine.simulate(p, d) for d in DELAYS_MIN} for p in positions}
+    pfs = []
+    for pid in ["all", "day", "swing"]:
+        rows = {}
+        for d in DELAYS_MIN:
+            rs = [by_pos[p.pid][d] for p in positions if pid == "all" or p.portfolio == pid]
+            rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"], bench(mod))[0]
+        pfs.append({"id": pid, "by_delay": rows})
+    d5 = str(DEFAULT_DELAY_MIN)
+    print(f"  no look-ahead (rule 13, provisional) @5m: end {pfs[0]['by_delay'][d5]['end']:,.0f}  "
+          f"{pfs[0]['by_delay'][d5]['word']}  peak {pfs[0]['by_delay'][d5]['peak_invested_usd']:,}")
+    block = {"provisional": True, "label": "Provisional: no look-ahead",
+             "rules": "contracts.md rule 13: a position stays overnight only on a horizon he said before 15:55 "
+                      "ET, a later add starts a new trade, and each add is sized from what he had said by then.",
+             "why_provisional": "Not the headline until his hold intent is extracted (he rarely says it in a "
+                                "field we read) and sizing and cash are look-ahead-free (the bankroll model).",
+             "positions": len(positions), "portfolios": pfs}
+    return block, [r for rs in by_pos.values() for r in rs.values()]
+
+
 def sample_trades(by_pos) -> list[dict]:
     """Step 5, sample trades: the biggest wins and losses at the default delay, for the trade list."""
     d5 = DEFAULT_DELAY_MIN
@@ -329,7 +365,7 @@ def write_results(out, a, portfolios) -> Path:
     return path
 
 
-COMPARED = ("portfolios", "same_sessions", "trades")
+COMPARED = ("portfolios", "same_sessions", "no_look_ahead", "trades")
 
 
 def ledger_only(a, out, ledgers) -> None:
@@ -355,11 +391,18 @@ def main():
     same, same_ledger = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
     unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
+    nla, nla_ledger = no_look_ahead_alternative(mod, a, only, dates, hold)
     if same:
         compare_with_same_sessions(portfolios, same)
+        for p in (nla or {}).get("portfolios", []):   # rule 9: a proof-set file's side blocks carry no comparison
+            for row in p["by_delay"].values():
+                engine.judge(row, None, None, None)
     out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
+    if nla:
+        out["no_look_ahead"] = nla
     ledgers = [("", [r for rs in by_pos.values() for r in rs.values()])] + \
-        ([("-same_sessions", same_ledger)] if same else [])
+        ([("-same_sessions", same_ledger)] if same else []) + \
+        ([("-no_look_ahead", nla_ledger)] if nla else [])
     if a.ledger_only:
         ledger_only(a, out, ledgers)
         return

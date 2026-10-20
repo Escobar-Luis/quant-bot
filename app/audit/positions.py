@@ -87,7 +87,19 @@ def lpp_session_key() -> dict[str, str]:
 
 
 LEDGER_FAILS = {"open_never_closed", "close_without_open", "qty_exceeds_position"}   # contracts.md rule 11
-CARRY_S = 7 * 86400                                                                   # rule 11: within 7 days
+CARRY_S = 7 * 86400                                                   # rule 11 (as_taught only): within 7 days
+LPP_LEDGERS = ("no_look_ahead", "as_taught")                          # rule 13 (the headline) | rule 11
+
+
+def leaves_at(day: dt.date, sessions: int) -> int:
+    """Rule 13(b): 15:55 ET on the day `sessions` weekdays after `day` (0 = `day` itself).
+    ASSUMPTION (written in rule 13): sessions are counted as weekdays; a holiday counts as one."""
+    left = sessions
+    while left:
+        day = day + dt.timedelta(days=1)
+        if day.weekday() < 5:
+            left -= 1
+    return B.et_time(day, 15, 55)
 
 
 def lpp_copyable(e: dict) -> bool:
@@ -96,9 +108,21 @@ def lpp_copyable(e: dict) -> bool:
     return e["status"] == "ok" or (bool(fails) and fails <= LEDGER_FAILS)
 
 
-def lpp(version: str, only: set[str] | None = None) -> dict:
-    """LPP trade legs -> round trips, contracts.md rules 1, 4, 8 and 11 (the LPP ledger).
+def lpp(version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
+    """LPP trade legs -> round trips, contracts.md rules 1, 4, 8 and 11 (the headline), or 13 (`no_look_ahead`).
 
+    Rule 13 (ledger="no_look_ahead", provisional, read from the rule's text, not from backtest.lpp):
+    - which events are copied, positions per ticker and side, side-less exits, exits with no open position: as
+      rule 11 below;
+    - every open position has a moment it leaves: 15:55 ET of the session its first leg was posted in, pushed to
+      15:55 ET of the last session of a horizon one of its legs states (the extraction's `horizon` field, rule
+      12a; counted in weekdays from that leg's session; the latest end wins). Only legs already in the position
+      can push it, so a horizon said after the moment came is too late;
+    - before each word, every position whose moment has come leaves; the word then starts afresh (an open or add
+      opens a new position, a trim or close finds nothing open and is skipped);
+    - a position whose moment lies past its first session is a swing trade leaving at that moment (`at:`), any
+      other a day trade (15:55 ET).
+    Rule 11 (ledger="as_taught", the headline; reads his next word):
     - rule 11: `trade` events that passed every check, or failed only the ledger checks; options are counted,
       never priced (rule 8);
     - rule 1: post time = release + t_s, kept to the fraction of a second;
@@ -134,6 +158,68 @@ def lpp(version: str, only: set[str] | None = None) -> dict:
         trades.append((post_ts(e), e["event_id"], e))
     trades.sort(key=lambda x: (x[0], x[1]))
 
+    if ledger not in LPP_LEDGERS:
+        raise ValueError(f"unknown LPP ledger {ledger}")
+    if ledger == "no_look_ahead":
+        positions = _lpp_no_look_ahead(trades, keys, stats)
+    else:
+        positions = _lpp_as_taught(trades, keys, stats)
+    positions.sort(key=lambda p: (p.legs[0].posted_ts, p.legs[0].event_id))
+    unique_ids(positions)
+    return {"positions": positions, "stats": dict(stats)}
+
+
+def _lpp_position(key: tuple, legs: list[Leg], first: dict, keys: dict, swing: bool, exit_: str) -> Position:
+    vid = first["source_id"].split(":", 1)[-1]
+    sess = keys.get(vid, f"lpp:{first['session_date']}")[4:]
+    return Position(
+        pid=f"lpp-{sess}-{first['event_id'].rsplit(':', 1)[-1]}", course="lpp", market="us_equities",
+        ticker=key[0], side=key[1], portfolio="swing" if swing else "day", legs=legs, default_exit=exit_,
+        stop=first.get("stop"), targets=list(first.get("targets") or []))
+
+
+def _lpp_no_look_ahead(trades: list, keys: dict, stats: Counter) -> list[Position]:
+    """Rule 13: each decision from the words already said (see lpp())."""
+    out: list[Position] = []
+    book: dict[tuple, dict] = {}             # (ticker, side) -> {"legs", "first", "leaves"}
+
+    def leave(key):
+        o = book.pop(key)
+        own_close = leaves_at(B.et_day(o["legs"][0].posted_ts), 0)
+        swing = o["leaves"] > own_close
+        out.append(_lpp_position(key, o["legs"], o["first"], keys, swing,
+                                 f"at:{o['leaves']}" if swing else "day_close"))
+
+    for ts, _, e in trades:
+        for key in sorted((k for k, o in book.items() if o["leaves"] <= ts), key=lambda k: book[k]["leaves"]):
+            leave(key)                       # its moment came before he said this
+        side = e.get("side")
+        if side not in ("long", "short"):
+            held = [k for k in book if k[0] == e["ticker"]]
+            if e["action"] in ("open", "add") or len(held) != 1:
+                stats["side_unknown"] += 1
+                continue
+            side = held[0][1]
+        key = (e["ticker"], side)
+        if key not in book:
+            if e["action"] not in ("open", "add"):
+                stats["exit_without_open"] += 1
+                continue
+            book[key] = {"legs": [], "first": e, "leaves": leaves_at(B.et_day(ts), 0)}
+        o = book[key]
+        o["legs"].append(Leg(e["event_id"], ts, e["action"], qty=e.get("qty") or None))
+        n = horizon_sessions(e.get("horizon"))
+        if n:                                # said while it is still open: holds it to that horizon's end
+            o["leaves"] = max(o["leaves"], leaves_at(B.et_day(ts), n))
+        if e["action"] == "close":
+            leave(key)
+    for key in sorted(book, key=lambda k: book[k]["legs"][0].posted_ts):
+        leave(key)
+    return out
+
+
+def _lpp_as_taught(trades: list, keys: dict, stats: Counter) -> list[Position]:
+    """Rule 11, the headline (reads his next word; rule 13 is the provisional `no_look_ahead` key)."""
     positions: list[Position] = []
     open_: dict[tuple, dict] = {}            # (ticker, side) -> {"legs", "first"}
 
@@ -141,13 +227,7 @@ def lpp(version: str, only: set[str] | None = None) -> dict:
         o = open_.pop(key)
         legs, first = o["legs"], o["first"]
         swing = len({B.et_day(lg.posted_ts) for lg in legs}) > 1
-        vid = first["source_id"].split(":", 1)[-1]
-        sess = keys.get(vid, f"lpp:{first['session_date']}")[4:]
-        positions.append(Position(
-            pid=f"lpp-{sess}-{first['event_id'].rsplit(':', 1)[-1]}", course="lpp", market="us_equities",
-            ticker=key[0], side=key[1], portfolio="swing" if swing else "day", legs=legs,
-            default_exit="sessions:5" if swing else "day_close", stop=first.get("stop"),
-            targets=list(first.get("targets") or [])))
+        positions.append(_lpp_position(key, legs, first, keys, swing, "sessions:5" if swing else "day_close"))
 
     for ts, _, e in trades:
         side = e.get("side")
@@ -177,9 +257,7 @@ def lpp(version: str, only: set[str] | None = None) -> dict:
                 finish(key)
     for key in sorted(open_, key=lambda k: open_[k]["legs"][0].posted_ts):
         finish(key)
-    positions.sort(key=lambda p: (p.legs[0].posted_ts, p.legs[0].event_id))
-    unique_ids(positions)
-    return {"positions": positions, "stats": dict(stats)}
+    return positions
 
 
 # ---- Crypto Wizard ---------------------------------------------------------------------------------------------
@@ -297,9 +375,9 @@ def ziptrader(version: str = "v1") -> dict:
     return {"positions": positions, "stats": dict(stats)}
 
 
-def build(course: str, version: str, only: set[str] | None = None) -> list[Position]:
+def build(course: str, version: str, only: set[str] | None = None, ledger: str = "as_taught") -> list[Position]:
     if course == "lpp":
-        return lpp(version, only)["positions"]
+        return lpp(version, only, ledger)["positions"]
     if course == "cryptowizard":
         return cryptowizard(version)["positions"]
     if course == "ziptrader":
@@ -376,11 +454,12 @@ def diff_positions(theirs: list, ours: list[Position]) -> list[dict]:
     return out
 
 
-def loader_positions(course: str, version: str, only: set[str] | None = None) -> list:
+def loader_positions(course: str, version: str, only: set[str] | None = None,
+                     ledger: str = "as_taught") -> list:
     """The engine-side loaders' positions (the thing under audit), with results/'s unique ids."""
     if course == "lpp":
         from backtest import lpp as mod
-        ps = (mod.build(version, only) if only else mod.build(version))["positions"]
+        ps = (mod.build(version, only, ledger=ledger) if only else mod.build(version, ledger=ledger))["positions"]
     elif course == "cryptowizard":
         from backtest import cryptowizard as mod
         ps = mod.build(version)["positions"]
@@ -417,9 +496,9 @@ def _causes(course: str, version: str, theirs: list, d: list[dict]) -> None:
             x["cause"] = "loader copies an event that failed a check: " + "; ".join(why)
 
 
-def compare(course: str, version: str, only: set[str] | None = None) -> dict:
-    theirs = loader_positions(course, version, only)
-    ours = build(course, version, only)
+def compare(course: str, version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
+    theirs = loader_positions(course, version, only, ledger)
+    ours = build(course, version, only, ledger)
     d = diff_positions(theirs, ours)
     _causes(course, version, theirs, d)
     return {"course": course, "version": version, "loader_positions": len(theirs), "audit_positions": len(ours),

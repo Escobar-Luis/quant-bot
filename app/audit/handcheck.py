@@ -58,11 +58,12 @@ def sheet(seed: int, n: int, delay: int) -> str:
              "5th session after entry (swing); costs 5 bps per side (20 under $10).", "",
              "P&L = sum over exits of (exit - average entry) x shares (short: entry - exit), minus costs on every "
              "fill. Sizing is shown both ways (see the audit report): `trade` = all his entries together are "
-             "$1,000 (the engine), `first` = his first entry is $1,000 (contracts.md read literally).", ""]
+             "$1,000 (rule 6 as taught, the headline; reads later adds), `known` = the first buy is $1,000 and "
+             "each add is sized from the counts he had stated by then (rule 13e, provisional).", ""]
     for i, p in enumerate(picks, 1):
         e = ledger[(p.pid, delay)]
         tr = calc.simulate(p, delay, "trade")
-        lit = calc.simulate(p, delay, "first")
+        lit = calc.simulate(p, delay, "known")
         lines += [f"## {i}. {p.pid}: {p.ticker} {p.side}, {p.portfolio} ({p.default_exit})", "",
                   "His posts (action, his share count, post time):", ""]
         for lg in sorted(p.legs, key=lambda lg: lg.posted_ts):
@@ -94,7 +95,7 @@ def sheet(seed: int, n: int, delay: int) -> str:
         lines += ["P&L:", ""] + [f"- {x}" for x in parts]
         lines += [f"- gross {tr.pnl + tr.cost:.4f} - costs {tr.cost:.4f} = **{tr.pnl:.2f}**", "",
                   f"Engine ledger P&L: **{e['pnl']:.2f}** (entry {e['fills'][0][1]} at {B.iso(e['fills'][0][0])}). "
-                  f"Audit `trade`: {tr.pnl:.2f}. Audit `first`: {lit.pnl:.2f}.", "",
+                  f"Audit `trade` (as taught): {tr.pnl:.2f}. Audit `known` (rule 13e): {lit.pnl:.2f}.", "",
                   "- [ ] Luis: entry bar open matches  - [ ] exit bar open matches  - [ ] P&L redone by hand", ""]
     lines += ["---", "", "Sign off with `cd app && uv run python -m audit.gate --sign Luis` (records this file's sha256 "
               "in proofs/audit.json; any later edit to this sheet reopens the gate).", ""]

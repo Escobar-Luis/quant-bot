@@ -122,6 +122,26 @@ def cases() -> list[Case]:
                     "scale 1000/(100 x 200) = 0.05: 5 sh at 100 + 5 at 104 (avg 102); trim 50/200 = 2.5 sh at 106; "
                     "unsized = half of 7.5 at 108; rest 3.75 at 110: 62.5 - 1.05125"))
 
+    # 8b. the same posts under rule 13(e), no look-ahead: the first buy is $1,000 whatever he adds later
+    p = pos([Leg("o", at(9, 30), "open", qty=100), Leg("a", at(9, 40), "add", qty=100),
+             Leg("t1", at(9, 50), "trim", qty=50), Leg("t2", at(10, 0), "trim"), Leg("c", at(10, 10), "close")],
+            course="lpp")
+    out.append(Case("adds, sized trim, unsized trim, close (LPP, no look-ahead)", p, 1, b,
+                    {"status": "priced", "entry": (at(9, 31), 100.0), "exit": (at(10, 11), 110.0),
+                     "pnl": 5 * 4 + 7.5 * 6 + 7.5 * 8 - (1000 + 1040 + 530 + 810 + 825) * BPS5},
+                    "first buy $1,000 / 100 = 10 sh; add 10 x 100/100 = 10 sh at 104 (avg 102); trim 50/200 = 5 sh "
+                    "at 106; unsized = half of 15 at 108; rest 7.5 at 110: 125 - 2.1025", sizing="known"))
+
+    # 8c. no count on the first buy: an add with a count meets the median of what he had said (its own count)
+    b2 = book(DAY, m0931=[100, 100.5, 99.5, 100], m0941=[104, 104.5, 103.5, 104], m1001=[108, 108.5, 107.5, 108])
+    p = pos([Leg("o", at(9, 30), "open"), Leg("a", at(9, 40), "add", qty=300), Leg("c", at(10, 0), "close")],
+            course="lpp")
+    out.append(Case("first buy with no count, later add (LPP, no look-ahead)", p, 1, b2,
+                    {"status": "priced", "entry": (at(9, 31), 100.0), "exit": (at(10, 1), 108.0),
+                     "pnl": 10 * 8 + 10 * 4 - (1000 + 1040 + 2160) * BPS5},
+                    "first buy 10 sh at 100; at the add his only count is 300, so both counts read 300: 10 sh at "
+                    "104; close 20 at 108: 80 + 40 - 2.10", sizing="known"))
+
     # 9. break-even stop after TP2, filled in the same bar that hit TP2
     b = book(DAY, m0940=[100, 101.2, 99.8, 101], m0945=[100.5, 102.2, 99.9, 101])
     p = pos([Leg("o", at(9, 30), "open")], stop=98.0, targets=[101.0, 102.0, 103.0],
@@ -171,27 +191,35 @@ def cases() -> list[Case]:
 
 # ---- the portfolio's cash rule (rule 6) ------------------------------------------------------------------------
 
-def cash_case():
-    """A $9,950 trade still open when a $1,000 trade enters: $50 of cash left.
+def cash_cases():
+    """The portfolio's cash rule (rule 6, per buy as it fills), worked out by hand. Each trade is its fills,
+    (ts, price, shares, kind); costs 5 bps per side at these prices.
 
-    Rule 6: "total open exposure is capped at cash, and trades that don't fit are sized down or counted as
-    couldn't-copy". $50 is cash, so the second trade is sized down to $50 (no minimum in contracts.md).
-    Expected: 2 trades, sized_down 1, couldnt_copy 0, P&L = 10 + 0.05 x 20 = 11."""
-    return [  # (entry ts, exit ts, notional, pnl)
-        (at(9, 31), at(15, 0), 9950.0, 10.0),
-        (at(10, 0), at(11, 0), 1000.0, 20.0),
-    ], {"trades": 2, "sized_down": 1, "couldnt_copy": 0, "end": 10_011.0}
+    1. A $9,950 trade still open when a $1,000 trade enters: $50 of cash left, so the second buy is sized down to
+       $50 (no minimum in contracts.md): 0.5 sh, 0.5 x 2 - (50 + 51) x 5 bps = 0.9495; the first loses its costs,
+       19,900 x 5 bps = 9.95. End 10,000 - 9.95 + 0.9495 = 9,991.00.
+    2. A later add never shrinks an earlier buy: a buys $1,000 at 09:31, b $1,000 at 09:45, a's 95-share add at
+       10:00 finds $8,000 and is sized down to 80 sh. a: 90 x 1 - (9,000 + 9,090) x 5 bps = 80.955; b: 10 -
+       (1,000 + 1,010) x 5 bps = 8.995. End 10,089.95 (the old whole-trade reservation would have shrunk a's
+       first buy)."""
+    one = ([[(at(9, 31), 100.0, 99.5, "entry"), (at(15, 0), 100.0, 99.5, "exit")],
+            [(at(10, 0), 100.0, 10.0, "entry"), (at(11, 0), 102.0, 10.0, "exit")]],
+           {"trades": 2, "sized_down": 1, "couldnt_copy": 0, "end": 9_991.0})
+    two = ([[(at(9, 31), 100.0, 10.0, "entry"), (at(10, 0), 100.0, 95.0, "entry"), (at(15, 0), 101.0, 105.0, "exit")],
+            [(at(9, 45), 100.0, 10.0, "entry"), (at(15, 0), 101.0, 10.0, "exit")]],
+           {"trades": 2, "sized_down": 1, "couldnt_copy": 0, "end": 10_089.95})
+    return [("cash under $100", *one), ("later add never shrinks an earlier buy", *two)]
 
 
 # ---- engine side -----------------------------------------------------------------------------------------------
 
-def to_engine(p: Position):
+def to_engine(p: Position, sizing: str = "trade"):
     from backtest.engine import Leg as ELeg, Position as EPos
     return EPos(pid=p.pid, course=p.course, market=p.market, ticker=p.ticker, side=p.side, portfolio=p.portfolio,
                 legs=[ELeg(lg.event_id, int(lg.posted_ts), lg.action, lg.qty, lg.frac) for lg in p.legs],
                 default_exit=p.default_exit, stop=p.stop, targets=list(p.targets),
                 target_fracs=list(p.target_fracs), trigger=p.trigger, be_after_target=p.be_after_target,
-                scale=p.course == "lpp")
+                scale=p.course == "lpp", as_taught=sizing == "trade")
 
 
 def outcome_engine(r) -> dict:
@@ -226,28 +254,31 @@ def patch_bars(book_: dict, setattr_=setattr):
     return undo
 
 
+def _pnl(fills) -> float:
+    """A closed long trade's own P&L: sells minus buys, less 5 bps per side (every price here is over $10)."""
+    flow = sum((-1 if k == "entry" else 1) * px * q for _, px, q, k in fills)
+    return flow - sum(px * q for _, px, q, _ in fills) * BPS5
+
+
 def engine_cash(trades):
     from backtest import engine
     from backtest.engine import Fill, Result
     rs = []
-    for i, (t0, t1, notional, pnl) in enumerate(trades):
-        p = to_engine(pos([Leg(f"x{i}", t0, "open")]))
+    for i, fills in enumerate(trades):
+        p = to_engine(pos([Leg(f"x{i}", fills[0][0], "open")]))
         p.pid = f"cash-{i}"
-        r = Result(p, 1, "priced", fills=[Fill(t0, 100.0, notional / 100, "entry"), Fill(t1, 100.0, notional / 100,
-                                                                                            "exit")],
-                   pnl=pnl, entry_notional=notional)
-        rs.append(r)
+        rs.append(Result(p, 1, "priced", fills=[Fill(*f) for f in fills], pnl=_pnl(fills)))
     kept, sized_down, skipped, _ = engine.fit_to_cash(rs)
     return {"trades": len(kept), "sized_down": sized_down, "couldnt_copy": skipped,
-            "end": round(10_000 + sum(r.pnl * f for r, f in kept), 2)}
+            "end": round(10_000 + sum(v for _, v in kept), 2)}
 
 
 def audit_cash(trades):
     from audit import calc
     ts = []
-    for i, (t0, t1, notional, pnl) in enumerate(trades):
-        t = calc.Trade(f"cash-{i}", "day", 1, "priced", pnl=pnl, entry_notional=notional)
-        t.fills = [calc.Fill(t0, 100.0, notional / 100, "entry"), calc.Fill(t1, 100.0, notional / 100, "exit")]
+    for i, fills in enumerate(trades):
+        t = calc.Trade(f"cash-{i}", "day", 1, "priced", pnl=_pnl(fills))
+        t.fills = [calc.Fill(*f) for f in fills]
         ts.append(t)
     row = calc.portfolio(ts, {"end": 10_000.0, "ret_pct": 0.0})
     return {k: row[k] for k in ("trades", "sized_down", "couldnt_copy", "end")}
@@ -261,16 +292,16 @@ def engine_divergences() -> list[dict]:
     for c in cases():
         undo = patch_bars(c.bars)
         try:
-            got = outcome_engine(engine.simulate(to_engine(c.position), c.delay))
+            got = outcome_engine(engine.simulate(to_engine(c.position, c.sizing), c.delay))
         finally:
             for mod, name, fn in undo:
                 setattr(mod, name, fn)
         if not same(got, c.expect):
             out.append({"case": c.name, "contract": c.expect, "engine": got, "why": c.why})
-    trades, want = cash_case()
-    got = engine_cash(trades)
-    if got != want:
-        out.append({"case": "cash under $100", "contract": want, "engine": got, "why": cash_case.__doc__.strip()})
+    for name, trades, want in cash_cases():
+        got = engine_cash(trades)
+        if got != want:
+            out.append({"case": name, "contract": want, "engine": got, "why": cash_cases.__doc__.strip()})
     EB.day_bars  # keep the import used
     return out
 

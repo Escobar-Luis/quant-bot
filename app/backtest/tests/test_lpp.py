@@ -24,12 +24,53 @@ def test_proof_set_keeps_only_those_sessions(tmp_path, monkeypatch):
     assert [p.cite["source_id"] for p in b["positions"]] == ["lpp:2024-08-15"] and b["checks"]["sessions"] == 1
 
 
-def test_next_day_add_carries_into_a_swing(tmp_path, monkeypatch):
+def test_as_taught_next_day_add_carries_into_a_swing(tmp_path, monkeypatch):
     write(tmp_path, monkeypatch, [ev(0, "A", "2024-08-15T13:40:00Z", "open", 100),
                                   ev(0, "B", "2024-08-16T13:40:00Z", "add", 50),
                                   ev(1, "B", "2024-08-16T14:00:00Z", "close")])
-    (p,) = lpp.build("v1")["positions"]
-    assert p.portfolio == "swing" and [lg.action for lg in p.legs] == ["open", "add", "close"]
+    (p,) = lpp.build("v1")["positions"]                                             # as taught: the default
+    assert p.portfolio == "swing" and [lg.action for lg in p.legs] == ["open", "add", "close"] and p.as_taught
+
+
+def test_later_word_does_not_change_an_earlier_decision(tmp_path, monkeypatch):
+    """CAP-12: his next-day add would have carried Thursday's short overnight (rule 11). Under rule 13 Thursday's
+    position is decided at 15:55 Thursday from what he had said: it is the same with or without Friday's words."""
+    thursday = [ev(0, "A", "2024-08-15T13:40:00Z", "open", 100)]
+    friday = [ev(0, "B", "2024-08-16T13:40:00Z", "add", 50), ev(1, "B", "2024-08-16T14:00:00Z", "close")]
+    write(tmp_path, monkeypatch, thursday)
+    (alone,) = lpp.build("v1", ledger="no_look_ahead")["positions"]
+    write(tmp_path, monkeypatch, thursday + friday)
+    first, second = lpp.build("v1", ledger="no_look_ahead")["positions"]
+    assert (first.pid, first.portfolio, first.default_exit, [lg.event_id for lg in first.legs]) == \
+        (alone.pid, "day", "day_close", ["lpp:A:000"])
+    assert second.portfolio == "day" and [lg.action for lg in second.legs] == ["add", "close"]
+
+
+def test_next_day_exit_with_nothing_open_is_skipped(tmp_path, monkeypatch):
+    write(tmp_path, monkeypatch, [ev(0, "A", "2024-08-15T13:40:00Z", "open", 100),
+                                  ev(0, "B", "2024-08-16T13:40:00Z", "close")])
+    b = lpp.build("v1", ledger="no_look_ahead")
+    assert len(b["positions"]) == 1 and b["stats"]["close_without_open"] == 1
+
+
+def test_horizon_said_in_time_keeps_it_overnight(tmp_path, monkeypatch):
+    """Rule 13(b): a horizon on one of its legs, said before 15:55, holds it to that horizon's last session."""
+    write(tmp_path, monkeypatch, [{**ev(0, "A", "2024-08-15T13:40:00Z", "open", 100), "horizon": "2 days"},
+                                  ev(0, "B", "2024-08-16T13:40:00Z", "add", 50),
+                                  ev(0, "C", "2024-08-20T13:40:00Z", "trim", 50)])   # Tuesday: past 2 sessions
+    b = lpp.build("v1", ledger="no_look_ahead")
+    (p,) = b["positions"]
+    end = lpp.bars.et_at(lpp.dt.date(2024, 8, 19), 15, 55)                          # Thursday + 2 weekdays
+    assert p.portfolio == "swing" and p.default_exit == f"at:{end}" and [lg.action for lg in p.legs] == ["open", "add"]
+    assert b["stats"]["close_without_open"] == 1
+
+
+def test_horizon_said_after_the_close_is_too_late(tmp_path, monkeypatch):
+    write(tmp_path, monkeypatch, [ev(0, "A", "2024-08-15T13:40:00Z", "open", 100),
+                                  {**ev(1, "A", "2024-08-15T20:30:00Z", "add", 50), "horizon": "2 days"}])
+    first, second = lpp.build("v1", ledger="no_look_ahead")["positions"]            # 16:30 ET: it already left
+    assert first.portfolio == "day" and len(first.legs) == len(second.legs) == 1   # the add starts afresh,
+    assert second.portfolio == "swing"                                               # held for its own horizon
 
 
 def test_side_less_exit_joins_his_one_open_position(tmp_path, monkeypatch):
@@ -52,3 +93,14 @@ def test_public_files_get_session_keys_not_video_ids(tmp_path, monkeypatch):
     monkeypatch.setattr(lpp, "_session_keys", lambda: {"A4929OT4Jls": "lpp:2024-08-15"})
     (p,) = lpp.build("v1")["positions"]
     assert p.cite["source_id"] == "lpp:2024-08-15" and p.pid == "lpp-2024-08-15-000"
+
+
+def test_buy_with_no_side_is_skipped_and_counted(tmp_path, monkeypatch):
+    """Rules 11/13(a): only an exit with no side is matched to his one open position; a buy with none is skipped."""
+    write(tmp_path, monkeypatch, [ev(0, "A", "2024-08-15T13:40:00Z", "open", 100),
+                                  ev(1, "A", "2024-08-15T13:50:00Z", "add", 50, side=None),
+                                  ev(2, "A", "2024-08-15T14:00:00Z", "close", side=None)])
+    for ledger in lpp.LEDGERS:
+        b = lpp.build("v1", ledger=ledger)
+        (p,) = b["positions"]
+        assert [lg.action for lg in p.legs] == ["open", "close"] and b["stats"]["entry_side_unknown"] == 1

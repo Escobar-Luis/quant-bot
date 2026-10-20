@@ -118,28 +118,92 @@ def test_judge_sets_sealed_word_and_none_benchmark():
     assert bare["sealed"]["word"] is None and bare["sealed"]["outcome"] == "Made money"
 
 
-def test_scaled_sizing_keeps_his_ratios(fake):
-    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
+def test_as_taught_sizing_reads_his_later_adds(fake):
+    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True,
+            as_taught=True)
+
     r = engine.simulate(p, 1)
     assert r.fills[0].qty * r.fills[0].px == pytest.approx(250)    # 100 of his 400 shares -> a quarter of $1,000
     assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
 
 
-def _r(entry_ts, exit_ts, notional, pnl):
+def test_scaled_sizing_keeps_his_ratios_without_look_ahead(fake):
+    """Rule 13(e): the first buy is $1,000 at its fill, whatever he adds later; an add keeps his ratio."""
+    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
+    r = engine.simulate(p, 1)
+    assert r.fills[0].qty * r.fills[0].px == pytest.approx(1000)
+    assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
+
+
+def test_later_add_does_not_change_the_first_buy(fake):
+    """CAP-12: the same first post, with and without a bigger add said later: the first fill is identical."""
+    alone = engine.simulate(pos([Leg("a", T0, "open", 100), Leg("c", T0 + 600, "close")], scale=True), 1)
+    later = engine.simulate(pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 900),
+                                 Leg("c", T0 + 600, "close")], scale=True), 1)
+    assert (later.fills[0].ts, later.fills[0].px, later.fills[0].qty) == \
+        (alone.fills[0].ts, alone.fills[0].px, alone.fills[0].qty)
+
+
+def test_unstated_add_counts_only_what_he_had_said(fake):
+    """An add with no count takes the upper median of counts said up to it, never a count said after it."""
+    legs = [Leg("a", T0, "open", 100), Leg("b", T0 + 120, "add"), Leg("c", T0 + 300, "add", 500),
+            Leg("d", T0 + 600, "close")]
+    r = engine.simulate(pos(legs, scale=True), 1)
+    q0 = r.fills[0].qty
+    assert r.fills[1].qty == pytest.approx(q0)          # only 100 said by then: same size as the first buy
+    assert r.fills[2].qty == pytest.approx(5 * q0)
+
+
+def test_an_add_never_takes_the_trade_past_ten_thousand(fake):
+    """Rule 13(e): a huge stated add is capped at $10,000 held at the add's price."""
+    legs = [Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 100_000), Leg("c", T0 + 600, "close")]
+    r = engine.simulate(pos(legs, scale=True), 1)
+    held = r.fills[0].qty + r.fills[1].qty
+    assert held * r.fills[1].px == pytest.approx(10_000)
+
+
+COST = 5 / 1e4                        # rule 5: 5 bps per side at $100
+
+
+def _r(entry_ts, exit_ts, notional, gain_pct=1.0, pid=None, adds=()):
+    """A copied trade: buy `notional` at $100, (adds: (ts, notional) at $100), all sold at 100 x (1 + gain%)."""
     p = pos([Leg("a", entry_ts, "open")])
-    r = engine.Result(p, 1, "priced", fills=[engine.Fill(entry_ts, 1, notional, "entry"),
-                                             engine.Fill(exit_ts, 1, notional, "exit")], pnl=pnl,
-                      entry_notional=notional)
-    return r
+    p.pid = pid or f"t{entry_ts}"
+    fills = [engine.Fill(entry_ts, 100.0, notional / 100, "entry")]
+    fills += [engine.Fill(ts, 100.0, n / 100, "entry") for ts, n in adds]
+    q = sum(f.qty for f in fills)
+    out = 100.0 * (1 + gain_pct / 100)
+    fills.append(engine.Fill(exit_ts, out, q, "exit"))
+    pnl = q * (out - 100) - (100 * q + out * q) * COST
+    return engine.Result(p, 1, "priced", fills=fills, pnl=pnl, entry_notional=100 * q)
+
+
+def _copied(r, f):
+    """P&L of the same trade bought at fraction f (one buy, one sell)."""
+    q = r.fills[0].qty * f
+    return q * (r.fills[-1].px - 100) - (100 * q + r.fills[-1].px * q) * COST
 
 
 def test_overlapping_trades_never_spend_more_than_the_cash():
-    a = _r(0, 100, 8000, 80)          # uses $8k until t=100
-    b = _r(10, 50, 4000, 40)          # only $2k left: sized down to half
-    c = _r(20, 60, 1000, 10)          # $0 left: skipped
-    d = _r(200, 300, 4000, 40)        # after a and b exit: full size
+    a = _r(0, 100, 8000)              # uses $8k until t=100
+    b = _r(10, 50, 4000)              # only $2k left: sized down to half
+    c = _r(20, 60, 1000)              # $0 left: skipped
+    d = _r(200, 300, 4000)            # after a and b exit: full size
     kept, sized_down, skipped, peak = engine.fit_to_cash([a, b, c, d])
-    assert [f for _, f in kept] == [1.0, 0.5, 1.0] and sized_down == 1 and skipped == 1 and peak == 10000
+    assert [r for r, _ in kept] == [a, b, d] and sized_down == 1 and skipped == 1 and peak == 10000
+    assert [p for _, p in kept] == pytest.approx([a.pnl, _copied(b, 0.5), d.pnl])
+
+
+def test_a_later_add_never_shrinks_an_earlier_buy():
+    """Rule 6 per buy (2026-10-20): trade a's $9,500 add comes later; its first $1,000 buy and trade b's are
+    copied in full, and only the add is sized down to the $8,000 left."""
+    a = _r(0, 100, 1000, pid="a", adds=[(20, 9500)])
+    b = _r(10, 100, 1000, pid="b")
+    kept, sized_down, skipped, peak = engine.fit_to_cash([a, b])
+    assert sized_down == 1 and skipped == 0 and peak == pytest.approx(10000)
+    qa = 10 + 80                                           # 10 sh first buy + 80 sh of the add ($8,000)
+    want_a = qa * 1.0 - (100 * qa + 101 * qa) * COST
+    assert dict((r.position.pid, p) for r, p in kept) == pytest.approx({"a": want_a, "b": b.pnl})
 
 
 def test_day_trade_too_late_to_copy_that_session(fake):
@@ -175,10 +239,11 @@ def test_target_ladder_and_break_even(fake):
 
 
 def test_portfolio_stats_reports_money_in_use_not_account_value():
-    rs = [_r(0, 100, 1000, 50), _r(200, 300, 1000, 50)]
+    rs = [_r(0, 100, 1000, 5.0), _r(200, 300, 1000, 5.0)]
     row, series = engine.portfolio_stats(rs, ["1970-01-01"], {"end": 1, "ret_pct": 0, "sealed_ret_pct": 0},
                                          "1970-01-01")
-    assert row["peak_invested_usd"] == 1000 and row["end"] == 10100 and row["trades"] == 2
+    assert row["peak_invested_usd"] == 1000 and row["trades"] == 2
+    assert row["end"] == round(10000 + 2 * rs[0].pnl, 2)
 
 
 # ---- story audit-2b-engine-fixes: the engine follows contracts.md where the audit found it didn't --------------
@@ -209,10 +274,10 @@ def test_at_horizon_before_the_entry_is_too_late(fake):
 
 
 def test_cash_rule_has_no_minimum():
-    a = _r(0, 100, 9950, 10)
-    b = _r(10, 50, 1000, 20)          # $50 left: sized down to it, not skipped
+    a = _r(0, 100, 9950)
+    b = _r(10, 50, 1000)              # $50 left: sized down to it, not skipped
     kept, sized_down, skipped, _ = engine.fit_to_cash([a, b])
-    assert [round(f, 4) for _, f in kept] == [1.0, 0.05] and sized_down == 1 and skipped == 0
+    assert [p for _, p in kept] == pytest.approx([a.pnl, _copied(b, 0.05)]) and sized_down == 1 and skipped == 0
 
 
 def next_day(fake):
@@ -326,7 +391,15 @@ def test_bars_ending_before_the_default_exit_leave_at_the_last_bar(fake):
 
 
 def test_near_zero_cash_is_couldnt_copy():
-    a = _r(0, 100, 9999.5, 10)
-    b = _r(10, 50, 1000, 20)          # $0.50 left: couldn't copy, not a sub-dollar trade
+    a = _r(0, 100, 9999.5)
+    b = _r(10, 50, 1000)              # $0.50 left: couldn't copy, not a sub-dollar trade
     kept, sized_down, skipped, _ = engine.fit_to_cash([a, b])
     assert len(kept) == 1 and sized_down == 0 and skipped == 1
+
+
+def test_a_sell_in_its_own_entry_bar_returns_the_money():
+    """A target hit in the entry bar sells what that bar bought: the money is back before the next trade."""
+    a = _r(0, 0, 9000)                # bought and sold in the same bar
+    b = _r(10, 100, 9000)             # needs that money back
+    kept, sized_down, skipped, peak = engine.fit_to_cash([a, b])
+    assert sized_down == 0 and skipped == 0 and peak == pytest.approx(9000)

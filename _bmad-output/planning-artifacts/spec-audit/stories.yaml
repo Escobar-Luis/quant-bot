@@ -123,3 +123,9 @@
     CAP-4 follow-up. extras.ranges (3m/6m/1y) re-runs the cash cap on the trades closed by each cutoff instead of slicing the all-time run, so a range can count trades the headline sized down or skipped differently, and it can disagree with by_year and the money curve on the same date.
   invoke_dev_with: >-
     Use the headline's fit_to_cash once, then cut by exit day (as extras.by_year does); add the ranges to app/audit's reconciliation. Writes results/: contract first, rerun app/audit. Do not redeploy.
+- id: "17"
+  title: Extract hold intent
+  description: >-
+    CAP-12 follow-up. A model pass over the LPP captions records what he says about holding (a stated horizon, holding overnight or over a weekend, or saying he won't hold) with its timestamp, into each trade event's `horizon` field, so contracts.md rule 13 can keep a position overnight only on intent said before 15:55 ET.
+  invoke_dev_with: >-
+    Found in the PR #61 review: of the 43 as-taught swing trades, 2 have clear hold intent, 4 are ambiguous and 1 is an explicit no-hold; streams end about 10:30 ET, so most intent, if said, is said early. The model proposes, the code decides: keep the quote (12 words or fewer) and t_s as evidence, trace to PRISM, and never let a statement after 15:55 ET of the session count. Then rerun results (no_look_ahead key) and app/audit. Rule 13 becomes the headline only after this and story 8 (bankroll model). Raw captions stay in data/.

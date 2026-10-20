@@ -2,9 +2,15 @@
 
 Reads data/lpp/events.jsonl (v1) or data/lpp/v2/events.jsonl (v2), written by story/extract-lpp. Only `trade`
 events are copied. Events that failed a code check are left out, except the ledger checks
-(`open_never_closed`, `close_without_open`, `qty_exceeds_position`), which this ledger resolves itself: a position
-he still holds at the end of a session carries to a later session only when his next word on it (within 7 days)
-is an add, trim or close; otherwise it leaves at 15:55 ET (assumed).
+(`open_never_closed`, `close_without_open`, `qty_exceeds_position`), which this ledger resolves itself.
+
+Two ledgers (contracts.md):
+- `as_taught` (rule 11, the headline): a position he still holds at the end of a session carries to a later
+  session when his NEXT word on it (within 7 days) is an add, trim or close. That reads the future.
+- `no_look_ahead` (rule 13, provisional, the `no_look_ahead` key): a position leaves at 15:55 ET of its first
+  session unless one of its legs, posted before that moment, states a horizon past the session; a later word
+  starts afresh. Not the headline until hold intent is extracted (spec-audit story 17) and sizing and cash are
+  look-ahead-free (the bankroll model, story 8).
 """
 import datetime as dt
 import json
@@ -14,12 +20,14 @@ from functools import lru_cache
 from . import bars
 from .common import DATA
 from .engine import Leg, Position
+from .ziptrader import default_exit as horizon_exit
 
 COURSE, NAME, MARKET = "lpp", "Learn Plan Profit", "us_equities"
 WINDOW = {"start": "2024-08-15", "end": "2025-09-12", "sealed_from": "2025-06-12"}
 HOLD = {"symbol": "SPY", "label": "Just holding", "what": "Buy and keep the S&P 500 (SPY)"}
 LEDGER_FAILS = {"open_never_closed", "close_without_open", "qty_exceeds_position"}
-CARRY_DAYS = 7
+CARRY_DAYS = 7                     # rule 11 (as taught, the headline)
+LEDGERS = ("no_look_ahead", "as_taught")
 OPTION_WORDS = ("option", "call", "put")
 
 
@@ -86,37 +94,68 @@ def is_option(e: dict) -> bool:
     return any(w in (e.get("instrument") or "").lower() for w in OPTION_WORDS)
 
 
-def build(version: str, only: set[str] | None = None) -> dict:
+def session_end(day: dt.date, n: int) -> int:
+    """Rule 13(b): 15:55 ET of the n-th weekday after `day` (n = 0: that day)."""
+    while n > 0:
+        day += dt.timedelta(days=1)
+        n -= day.weekday() < 5
+    return bars.et_at(day, 15, 55)
+
+
+def horizon_sessions(e: dict) -> int:
+    """Sessions past its own that a leg's stated horizon holds (the extraction's `horizon` field, rule 12a)."""
+    ex = horizon_exit(e.get("horizon"))
+    return int(ex.split(":")[1]) if ex.startswith("sessions:") else 0
+
+
+def build(version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
     """Positions to copy, plus what the results file needs to say about the events."""
+    if ledger not in LEDGERS:
+        raise ValueError(f"unknown ledger {ledger}")
+    look_ahead = ledger == "as_taught"
     evs = load(version, only)
     trades = sorted((e for e in evs if usable(e)), key=lambda e: (post_ts(e), e["event_id"]))
     options = [e for e in trades if is_option(e) and e["action"] == "open"]
+    # rules 11/13(a): a buy (open or add) that names no side is skipped and counted; an exit with no side is
+    # matched below to his one open position on that ticker
+    no_side = sum(not is_option(e) and e["action"] in ("open", "add") and e.get("side") not in ("long", "short")
+                  for e in trades)
     trades = [e for e in trades if not is_option(e) and (e.get("side") in ("long", "short")
                                                           or e["action"] in ("trim", "close"))]
     by_id = {e["event_id"]: e for e in trades}
-    stats = Counter(calls_not_copied=sum(e["type"] == "call" and e["status"] == "ok" for e in evs))
-    positions, open_pos = [], {}
+    stats = Counter(calls_not_copied=sum(e["type"] == "call" and e["status"] == "ok" for e in evs),
+                    entry_side_unknown=no_side)
+    positions, open_pos, ends = [], {}, {}   # ends: rule 13, the moment each open position leaves
 
     def finish(key):
         legs, first = open_pos.pop(key)
-        days = {bars.et_date(lg.posted_ts) for lg in legs}
-        swing = len(days) > 1
+        end = ends.pop(key, None)
+        if look_ahead:
+            swing = len({bars.et_date(lg.posted_ts) for lg in legs}) > 1
+            exit_ = "sessions:5" if swing else "day_close"
+        else:   # rule 13(d): a swing trade only when he said, in time, he'd hold it past its first session
+            swing = end > session_end(bars.et_date(legs[0].posted_ts), 0)
+            exit_ = f"at:{end}" if swing else "day_close"
         p = Position(pid=f"lpp-{public_key(first)[4:]}-{first['event_id'].rsplit(':', 1)[-1]}", course=COURSE,
                      market=MARKET, ticker=key[0], side=key[1], portfolio="swing" if swing else "day", legs=legs,
-                     default_exit="sessions:5" if swing else "day_close", quote=words(first["quote"], 12),
+                     default_exit=exit_, quote=words(first["quote"], 12), as_taught=look_ahead,
                      cite=cite(first), why=next((by_id[lg.event_id].get("why") for lg in legs
                                                  if by_id[lg.event_id].get("why")), None))
         positions.append(p)
 
     for e in trades:
+        ts = post_ts(e)
+        if not look_ahead:   # rule 13(b, c): positions whose moment to leave has come leave before this word
+            for k in [k for k, end in ends.items() if end <= ts]:
+                finish(k)
         if e.get("side") not in ("long", "short"):   # an exit that didn't say long or short: his one open position
             sides = [k for k in open_pos if k[0] == e["ticker"]]
             if len(sides) != 1:
                 stats["exit_side_unknown"] += 1
                 continue
             e = {**e, "side": sides[0][1]}
-        key, ts = (e["ticker"], e["side"]), post_ts(e)
-        if key in open_pos:
+        key = (e["ticker"], e["side"])
+        if look_ahead and key in open_pos:
             last = open_pos[key][0][-1].posted_ts
             if bars.et_date(last) != bars.et_date(ts):
                 carry = e["action"] in ("add", "trim", "close") and ts - last <= CARRY_DAYS * 86400
@@ -126,14 +165,17 @@ def build(version: str, only: set[str] | None = None) -> dict:
         if e["action"] in ("open", "add"):
             if key not in open_pos:
                 open_pos[key] = ([], e)
+                ends[key] = session_end(bars.et_date(ts), 0)
             open_pos[key][0].append(leg)
         else:
             if key not in open_pos:
                 stats["close_without_open"] += 1
                 continue
             open_pos[key][0].append(leg)
-            if e["action"] == "close":
-                finish(key)
+        if not look_ahead and horizon_sessions(e):   # rule 13(b): a horizon said in time keeps it open longer
+            ends[key] = max(ends[key], session_end(bars.et_date(ts), horizon_sessions(e)))
+        if e["action"] == "close":
+            finish(key)
     for key in list(open_pos):
         finish(key)
     for e in trades:
@@ -194,6 +236,10 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"{stats['close_without_open']} exits had no matching entry and were skipped.")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} trade-delays had no price bars and were skipped.")
+    out.append("As taught, a position stays overnight when his next word on it is an add, trim or close, and "
+               "each trade's buys together are $1,000: both read what he said later (see no_look_ahead).")
+    if stats.get("entry_side_unknown"):
+        out.append(f"{stats['entry_side_unknown']} buys didn't say long or short and were skipped.")
     out.append("Prices are 1-minute market bars, not his own fills.")
     out.append("Costs are estimates: 5 bps per side, 20 under $10.")
     out.append("Just holding SPY leaves out its dividends (about 1% a year).")

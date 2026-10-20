@@ -56,13 +56,13 @@ def by_year(trades: list[calc.Trade], hv: dict, name: str = "just holding") -> d
     """{period id: row} for one portfolio at one delay (contracts.md by_year rules 1-6)."""
     ps = periods(hv)
     years = [p["id"] for p in ps if p["id"] != "all"]
-    kept, _, _ = calc.copied_trades(trades)
+    kept, _, _, _ = calc.copied_trades(trades)
     pnl = {y: 0.0 for y in years}
     count = {y: 0 for y in years}
-    for t, f in kept:
+    for t, v in kept:
         y = str(B.day_of(t.market, t.exit.ts).year)
         y = min(max(y, years[0]), years[-1])        # rule 2: the exit day's calendar year, clamped to the window
-        pnl[y] += t.pnl * f
+        pnl[y] += v
         count[y] += 1
     out, money, hold_prev, price_prev = {}, calc.MONEY_START, calc.MONEY_START, calc.MONEY_START
     for p in ps[:-1]:
@@ -76,7 +76,7 @@ def by_year(trades: list[calc.Trade], hv: dict, name: str = "just holding") -> d
         money += pnl[y]
         hold_prev, price_prev = hv["total"][last], hv["price"][last]
     last = hv["days"][-1]
-    end = round(calc.MONEY_START + sum(t.pnl * f for t, f in kept), 2)
+    end = round(calc.MONEY_START + sum(v for _, v in kept), 2)
     ret = round((end / calc.MONEY_START - 1) * 100, 2)
     h_ret = round((hv["total"][last] / calc.MONEY_START - 1) * 100, 2)
     out["all"] = {"start": calc.MONEY_START, "end": end, "ret_pct": ret, "hold_start": calc.MONEY_START,

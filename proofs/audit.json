@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T19:27:13Z",
- "results_git_sha": "bdf4d184b8ccad7ab69febc6eb9b2fc61d911b97",
+ "generated_at": "2026-10-20T19:32:31Z",
+ "results_git_sha": "8e6d0d34ecfbe405b37949ecc5a22123d66b9699",
  "pass": true,
  "sizing": "trade",
  "hold_close": "official",
@@ -18,7 +18,7 @@
   },
   "lpp/v1": {
    "pass": true,
-   "trades_checked": 3605,
+   "trades_checked": 6027,
    "mismatches": 0,
    "max_abs_diff": 0.0,
    "position_differences": 0,
@@ -27,7 +27,7 @@
   },
   "lpp/v2": {
    "pass": true,
-   "trades_checked": 1071,
+   "trades_checked": 1428,
    "mismatches": 0,
    "max_abs_diff": 0.0,
    "position_differences": 0,
@@ -45,17 +45,19 @@
   }
  },
  "results_sha256": {
-  "cryptowizard/v1": "1c390bab15d5e27ff9d5fa68ecccbdc9a6e4c34e5545b21b2542fc6371b0008b",
-  "lpp/v1": "82cc2268a821f77cd8e513c6b031d2897e1d09f8012ad44c033dd3aee5e85da1",
-  "lpp/v2": "bb7e8ec41904da83b3f5babd41cd72d1a6b52ae5e11d417d54e5c876c9eb1835",
-  "ziptrader/v1": "e0e9de79acc4bcb3548e9b79b61afaf2987d40c1a402e65f7dfb6e97f68050d4"
+  "cryptowizard/v1": "82e6e71ae01890fdd99e87e1f2679852ab08b8cff11cc544266ff9933452309d",
+  "lpp/v1": "530414b0df6c9189d79493347199874a63740903459f9da3dacf9263ad4795a0",
+  "lpp/v2": "ba46926664a895ee5d20651eea54e85e72ad2355304dcb2770e0e9336164974d",
+  "ziptrader/v1": "f02c2f38c03ef44cdd16211ae7a07bbf6ef65da92608c3e63b489b422152a974"
  },
  "tolerance": {
   "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",
   "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, won_pct and word exact)"
  },
  "notes": {
-  "sizing": "LPP sizing 'trade' (all of a trade's buys together are $1,000, in his ratios; an entry with no count takes the upper median of his stated counts; a trim sells his stated share of his holding) was inferred from the engine's ledger output, then written into contracts.md rule 6. It is superseded by the bankroll model (spec-audit CAP-9).",
+  "sizing": "LPP sizing 'trade' (rule 6 as taught, the headline: all of a trade's buys together are $1,000, in his ratios, which reads later adds; a trim sells his stated share of his holding). 'known' (rule 13e, no look-ahead) is checked on the results file's provisional `no_look_ahead` block. Both are superseded by the bankroll model (spec-audit CAP-9).",
+  "ledger": "LPP positions follow contracts.md rule 11 (the headline, reads his next word); rule 13's ledger is rebuilt for `no_look_ahead`.",
+  "cash": "Rule 6's cash cap is applied per buy as it fills (2026-10-20), never reserving money for later adds.",
   "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last 1-minute bar's close is reported as an alternative (--hold-close minute)."
  },
  "positions": {
@@ -75,6 +77,13 @@
     "differences": 0,
     "positions_differing": 0,
     "by_field": {}
+   },
+   "v1-no_look_ahead": {
+    "loader_positions": 346,
+    "audit_positions": 346,
+    "differences": 0,
+    "positions_differing": 0,
+    "by_field": {}
    }
   },
   "lpp/v2": {
@@ -86,6 +95,13 @@
     "by_field": {}
    },
    "v2": {
+    "loader_positions": 51,
+    "audit_positions": 51,
+    "differences": 0,
+    "positions_differing": 0,
+    "by_field": {}
+   },
+   "v2-no_look_ahead": {
     "loader_positions": 51,
     "audit_positions": 51,
     "differences": 0,
