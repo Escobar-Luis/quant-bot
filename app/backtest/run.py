@@ -96,6 +96,22 @@ def trade_row(results: dict[int, engine.Result]) -> dict:
     return row
 
 
+def write_ledger(a, name: str, results) -> None:
+    """Every priced trade at every delay, fills included, to gitignored data/audit/ (the audit's second calculator
+    diffs all of them, not just the 200-trade sample in results/). Writes only; changes no number."""
+    if a.limit:
+        return
+    path = DATA / "audit" / f"{a.course}-{a.version}{name}-ledger.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        for r in results:
+            p = r.position
+            f.write(json.dumps({"pid": p.pid, "portfolio": p.portfolio, "delay": r.delay_min, "status": r.status,
+                                "fills": [[x.ts, x.px, x.qty, x.kind] for x in r.fills], "pnl": r.pnl,
+                                "cost": r.cost, "entry_notional": r.entry_notional,
+                                "assumed_exit": r.assumed_exit, "why": r.why}) + "\n")
+
+
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument("--course", required=True)
@@ -171,10 +187,12 @@ def same_sessions_baseline(mod, a, only, dates, hold) -> dict | None:
     for p in base:
         p.scale = a.scale
     prefetch(base)
-    rows = {}
+    rows, ledger = {}, []
     for d in DELAYS_MIN:
         rs = [engine.simulate(p, d) for p in base]
+        ledger += rs
         rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
+    write_ledger(a, "-same_sessions", ledger)
     same = {"version": "v1", "sessions": len(srcs), "proof_set": bool(only), "portfolio": "all", "by_delay": rows,
             "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
     print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
@@ -270,6 +288,7 @@ def main():
     mod = course_module(a.course)
     built, only, positions = load_positions(mod, a)
     by_pos, status, hold, dates, hold_series = price_positions(mod, positions)
+    write_ledger(a, "", (r for rs in by_pos.values() for r in rs.values()))
     portfolios = build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series)
     same = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
