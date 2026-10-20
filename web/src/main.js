@@ -348,7 +348,7 @@ function howRow(c) {
   const t = [`${(HOW_SURE.families?.[c.family]?.trials ?? c.luck?.trials ?? 1).toLocaleString('en-US')} tried`];
   if (c.luck) t.push(`<span class="${okCls(c.luck.passes)}">luck test ${c.luck.passes ? 'passed' : 'failed'}</span>`);
   else if (c.trades < 30) t.push('too few trades to test');
-  if (c.shuffle) t.push(`<span class="${okCls(c.shuffle.passes)}">beat ${Math.round(c.shuffle.pct_rank)}% of random</span>`);
+  if (c.shuffle) t.push(`<span class="${okCls(c.shuffle.passes)}">beat ${+c.shuffle.pct_rank.toFixed(1)}% of random</span>`);
   if (c.walk_forward) t.push(`<span class="${okCls(c.walk_forward.passes)}">walk-forward ${ptsS(c.walk_forward.oos_ret_pct)}% vs ${ptsS(c.walk_forward.as_is_oos_ret_pct)}% as posted</span>`);
   if (c.sensitivity) { const [lo, hi] = c.sensitivity.edge_range_pts; t.push(`<span class="${okCls(c.sensitivity.passes)}">thresholds moved: ${ptsS(lo)} to ${ptsS(hi)} pts</span>`); }
   if (c.regime && (c.regime.up.months || c.regime.down.months)) t.push(`<span class="${okCls(c.regime.passes)}">S&amp;P up months ${ptsS(c.regime.up.edge_pts)} pts, down ${ptsS(c.regime.down.edge_pts)}</span>`);
