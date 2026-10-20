@@ -40,7 +40,7 @@ class Position:
     target_fracs: list[float] = field(default_factory=list)   # share of the start size closed at each target
     trigger: float | None = None    # entry level to wait for; None = enter at market
     be_after_target: int | None = None   # move the stop to the average entry once this many targets have filled
-    scale: bool = False             # True: his share counts scaled so the first entry is $1,000 (keeps his ratios)
+    scale: bool = False             # True: his share counts scaled so all buys together are $1,000 (keeps his ratios)
     quote: str | None = None
     cite: dict | None = None
     why: str | None = None          # the course's stated reason (paraphrase), used to name the strategy

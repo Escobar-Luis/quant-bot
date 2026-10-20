@@ -1,9 +1,9 @@
 {
  "schema": "audit/1",
- "generated_at": "2026-10-20T17:28:58Z",
+ "generated_at": "2026-10-20T17:38:16Z",
  "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
- "pass": false,
- "sizing": "first",
+ "pass": true,
+ "sizing": "trade",
  "hold_close": "official",
  "command": "cd app && uv run python -m audit.run",
  "files": {
@@ -14,16 +14,16 @@
    "max_abs_diff": 0.0
   },
   "lpp/v1": {
-   "pass": false,
+   "pass": true,
    "trades_checked": 3605,
-   "mismatches": 2705,
-   "max_abs_diff": 3806.05
+   "mismatches": 0,
+   "max_abs_diff": 0.0
   },
   "lpp/v2": {
-   "pass": false,
+   "pass": true,
    "trades_checked": 1071,
-   "mismatches": 826,
-   "max_abs_diff": 846.21
+   "mismatches": 0,
+   "max_abs_diff": 0.0
   },
   "ziptrader/v1": {
    "pass": true,

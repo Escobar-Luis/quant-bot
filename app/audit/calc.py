@@ -78,7 +78,7 @@ SIZINGS = ("first", "trade")
 #   trade: the engine's reading (inferred from its ledger output, not its code): all his entries together are
 #          $1,000 at the first fill price, in his ratios (an entry with no count takes the upper median of his stated counts);
 #          a trim sells the share of his own stated holding that he trimmed (no size: half).
-DEFAULT_SIZING = "first"
+DEFAULT_SIZING = "trade"   # contracts.md rule 6 (clarified 2026-10-20): all of a trade's buys together scale to $1,000
 
 
 def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
