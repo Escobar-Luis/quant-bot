@@ -89,4 +89,6 @@ Every variant tried, with dev and sealed numbers (AGENTS.md rule 4). Code: `app/
 ## 7. Trial log: his strategy as code (spec-audit story 21, 2026-10-20)
 Pre-registered in `notes/research/strategy-as-code.md` (commit sha in `results/strategy-lab.json` `preregistered_sha`). Every version tried:
 1. Universe picker v1, v2, v3 (pre-window data only; v3 kept): spec section 8.
-2. Rule runs: S4 and S5 × variants `P`, `no-stop`, `exit-11`, `gap-10` × (a) his stocks and (b) other stocks, plus control C on all four universes: 20 runs, all published in `results/strategy-lab.json`. Results: spec section 9 (written after the run).
+2. Rule runs: S4 and S5 × variants `P`, `no-stop`, `exit-11`, `gap-10` × (a) his stocks and (b) other stocks, plus control C on all four universes: 20 runs, all published in `results/strategy-lab.json`.
+3. After the first run: one bug fix (gap compared in floating point missed an exactly-5% gap; spec section 8 item 4), no rule change.
+4. Results: spec section 9. Neither S4 nor S5 held up against SPY (+17.68%); S4 beat 2,000 random draws on both universes but earned +6% / +11%; S5 had no edge.

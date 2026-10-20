@@ -147,3 +147,40 @@ adjustment for the window. No other network. `gap-10` sessions are a subset of `
 2. Picker v2 (pre-window): correlation with IBIT, 60 sessions. Picked BTDR, SBET, GLXY, HUT but also WT, TTEK, SNX,
    DLB, IMVT, AMC (noise at 60 points across 1,780 stocks). Dropped.
 3. Picker v3 (pre-window): one year, correlation ≥ 0.4 and beta ≥ 1. Kept (section 3).
+4. 2026-10-20, after the first run: a bug fix, not a rule change. The gap test compared `open >= close × 1.05`;
+   for WULF on 2025-10-09 (12.915 vs 12.30, exactly +5.00%) floating point made 12.30 × 1.05 = 12.915000000000001,
+   so an exactly-5% gap was missed, against the spec's "+5% or more". The audit's independent recompute caught it
+   (a missing-bar error on that session). Fixed by comparing the rounded gap (9 decimals): one trade added
+   (S5 `new-crypto`: 214 → 215 trades, +0.35% → −0.16%). No threshold, list or window changed.
+
+## 9. Results (2026-10-20; `results/strategy-lab.json`, audit 0 mismatches)
+
+SPY total return 2025-09-12 close → 2026-10-16 close: **+17.68%** (worst drop −8.88%). Primary runs (`P`), $10,000,
+$1,000 a trade, base costs:
+
+| Rule | Stocks | Trades | Won | Return | Worst drop | vs SPY | Word | ×2 costs | Small-cap costs | vs random (pct rank) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| S4 short the run-up | (a) his 13 | 62 | 60% | +6.34% | −2.48% | −11.34 | No | +5.40% | +6.03% | 100 (outside the band) |
+| S4 | (b) other 20 | 283 | 51% | +11.01% | −5.09% | −6.68 | No | +4.82% | +3.33% | 99.9 (outside) |
+| S5 short crypto stocks that open up | (a) his 4 | 44 | 41% | −1.77% | −3.08% | −19.45 | No | −2.36% | −1.87% | 1.7 (inside, low) |
+| S5 | (b) other 10 | 215 | 49% | −0.16% | −9.77% | −17.85 | No | −4.47% | −4.17% | 19.8 (inside) |
+| C short every open | his hot | 3,575 | 51% | −6.36% | −39.66% | −24.04 | No | −40.62% | −23.19% | – |
+| C | his crypto | 1,100 | 54% | +5.24% | −25.29% | −12.44 | No | −7.92% | +3.80% | – |
+| C | other hot | 5,500 | 54% | +55.20% | −18.16% | +37.51 | Yes | −3.48% | −13.10% | – |
+| C | other crypto | 2,750 | 51% | −40.43% | −68.03% | −58.11 | No | −65.85% | −65.69% | – |
+
+1. **Neither rule held up** by the pre-registered bar (primary `Yes` on both (a) and (b)).
+2. **S4 has a real edge, but a small one.** Gap-ups of 5%+ in hot stocks fell from the open to the close far more
+   than random sessions of the same stocks (the daily twin sits at the 99.9th-100th percentile of 2,000 random
+   draws, on his stocks and on new ones), and it stays positive at 2× costs. At $1,000 a trade it earned +6% and
+   +11% against SPY's +18%, so it's "No" by the bar. The post-cutoff slice (from 2026-07-01) is flat to negative.
+   The stop cost money: no stop earned more (+8.0% / +16.6%, `Barely` on (b)) with deeper drops. Exiting at 11:00
+   earned less than holding to 15:55.
+3. **S5 doesn't work.** Shorting crypto stocks after a 5%+ gap lost money on his names and broke even on new ones,
+   inside the random band: no edge.
+4. **Shorting every open is noise or worse,** except the "other hot" list (+55%), a list of pump-and-dump names
+   that fell most days. That result dies under realistic costs (−3% at 2×, −13% with small-cap spreads) and 45%
+   of its trades are on hard-to-borrow names, so it isn't tradeable as shown.
+5. Caveats: SPY is fully invested, a rule holds $1,000 for hours; borrow flags are today's, not the trade date's;
+   the "other" lists come from today's asset list (survivorship); 16 rule runs were tried (23 counting the picker
+   versions), so one lucky "Yes" would have been likely.
