@@ -7,6 +7,7 @@ from audit.paths import RESULTS
 
 def record(tmp_path, **kw):
     files = {f"{p.parent.name}/{p.stem}": run.sha256(p) for p in RESULTS.glob("*/*.json")}
+    files |= {p.stem: run.sha256(p) for p in RESULTS.glob("*.json") if not p.stem.startswith("_")}   # strategy-lab
     rec = {"pass": True, "results_git_sha": run.results_git_sha(RESULTS), "results_sha256": files,
            "signoff": None, **kw}
     path = tmp_path / "audit.json"
