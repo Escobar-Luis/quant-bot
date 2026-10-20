@@ -254,6 +254,12 @@ def patch_bars(book_: dict, setattr_=setattr):
     return undo
 
 
+def _pnl(fills) -> float:
+    """A closed long trade's own P&L: sells minus buys, less 5 bps per side (every price here is over $10)."""
+    flow = sum((-1 if k == "entry" else 1) * px * q for _, px, q, k in fills)
+    return flow - sum(px * q for _, px, q, _ in fills) * BPS5
+
+
 def engine_cash(trades):
     from backtest import engine
     from backtest.engine import Fill, Result
@@ -261,7 +267,7 @@ def engine_cash(trades):
     for i, fills in enumerate(trades):
         p = to_engine(pos([Leg(f"x{i}", fills[0][0], "open")]))
         p.pid = f"cash-{i}"
-        rs.append(Result(p, 1, "priced", fills=[Fill(*f) for f in fills]))
+        rs.append(Result(p, 1, "priced", fills=[Fill(*f) for f in fills], pnl=_pnl(fills)))
     kept, sized_down, skipped, _ = engine.fit_to_cash(rs)
     return {"trades": len(kept), "sized_down": sized_down, "couldnt_copy": skipped,
             "end": round(10_000 + sum(v for _, v in kept), 2)}
@@ -271,7 +277,7 @@ def audit_cash(trades):
     from audit import calc
     ts = []
     for i, fills in enumerate(trades):
-        t = calc.Trade(f"cash-{i}", "day", 1, "priced")
+        t = calc.Trade(f"cash-{i}", "day", 1, "priced", pnl=_pnl(fills))
         t.fills = [calc.Fill(*f) for f in fills]
         ts.append(t)
     row = calc.portfolio(ts, {"end": 10_000.0, "ret_pct": 0.0})

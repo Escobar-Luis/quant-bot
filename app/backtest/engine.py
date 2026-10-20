@@ -406,22 +406,24 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
     as it fills, never a later add's; when too little is left it is sized down to the cash, or skipped at $1 or
     less (a first buy skipped = the trade couldn't be copied, and its later buys go with it). Each sell returns
     its share of the money in the position plus its gain; the trade's costs are paid at its last sell. At one
-    moment sells go before buys, then by trade id. Returns [(result, copied P&L)], buys sized down or skipped,
+    moment sells go before buys, then by trade id, except that a trade's own fills keep their order. Returns [(result, copied P&L)], buys sized down or skipped,
     trades skipped, and the most money ever in open positions."""
     order = []
     for i, r in enumerate(results):
         for j, f in enumerate(r.fills):
-            order.append((f.ts, f.kind == "entry", r.position.pid, i, j))
+            # a sell that follows its own trade's buy in the same bar keeps that order (it sells what it bought)
+            after_own_buy = any(g.kind == "entry" and g.ts == f.ts for g in r.fills[:j])
+            order.append((f.ts, f.kind == "entry" or after_own_buy, r.position.pid, i, j))
     order.sort(key=lambda x: x[:3] + (x[4],))
     cash, sized_down, skipped, peak = MONEY_START, 0, 0, 0.0
-    st = [{"on": None, "sim": 0.0, "held": 0.0, "basis": 0.0, "gross": 0.0, "cost": 0.0, "last": -1}
+    st = [{"on": None, "sim": 0.0, "held": 0.0, "basis": 0.0, "gross": 0.0, "cost": 0.0, "last": -1, "fs": []}
           for _ in results]
     for i, r in enumerate(results):
         st[i]["last"] = max(j for j, f in enumerate(r.fills) if f.kind != "entry")
-    for _ts, is_buy, _pid, i, j in order:
+    for _ts, _rank, _pid, i, j in order:
         r, f, s = results[i], results[i].fills[j], st[i]
         sign = 1 if r.position.side == "long" else -1
-        if is_buy:
+        if f.kind == "entry":
             s["sim"] += f.qty
             if s["on"] is False:
                 continue
@@ -432,9 +434,11 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
                         s["on"], skipped = False, skipped + 1
                     else:
                         sized_down += 1
+                        s["fs"].append(0.0)
                     continue
                 q, sized_down = cash / f.px, sized_down + 1
             s["on"] = True
+            s["fs"].append(q / f.qty if f.qty else 1.0)
             cash -= f.px * q
             s["held"] += q
             s["basis"] += f.px * q
@@ -455,7 +459,14 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
                 cash += avg * q + sign * (f.px - avg) * q
             if j == s["last"]:
                 cash -= s["cost"]
-    kept = [(r, st[i]["gross"] - st[i]["cost"]) for i, r in enumerate(results) if st[i]["on"]]
+    def copied_pnl(r, s):
+        """Every buy copied at one fraction f: the trade scales, P&L = f x its own. Else from the copied fills."""
+        fs = s["fs"]
+        if fs and max(fs) - min(fs) <= 1e-12:
+            return r.pnl * fs[0]
+        return s["gross"] - s["cost"]
+
+    kept = [(r, copied_pnl(r, st[i])) for i, r in enumerate(results) if st[i]["on"]]
     kept.sort(key=lambda x: x[0].entry.ts)
     return kept, sized_down, skipped, peak
 

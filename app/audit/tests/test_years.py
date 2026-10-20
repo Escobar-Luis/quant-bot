@@ -51,7 +51,8 @@ def test_compare_records_a_missing_or_broken_key_instead_of_raising():
 def test_loss_is_never_yes():
     ts = [_t(str(i), JAN2, JAN3, -1.0) for i in range(30)]
     for t in ts:
-        t.entry_notional = 100.0   # all 30 fit in the cash
+        t.entry_notional = 100.0   # all 30 fit in the cash (rule 6 takes cash per buy, from its fill)
+        t.fills = [calc.Fill(f.ts, f.px, 1, f.kind) for f in t.fills]
     row = years.by_year(ts, {**HV, "total": {**HV["total"], "2025-01-03": 5000.0}}, "the S&P")["2025"]
     assert row["word"] == "No" and row["outcome"] == "Lost money" and row["vs"] == "less than the S&P"
 

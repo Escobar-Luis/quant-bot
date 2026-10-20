@@ -395,3 +395,11 @@ def test_near_zero_cash_is_couldnt_copy():
     b = _r(10, 50, 1000)              # $0.50 left: couldn't copy, not a sub-dollar trade
     kept, sized_down, skipped, _ = engine.fit_to_cash([a, b])
     assert len(kept) == 1 and sized_down == 0 and skipped == 1
+
+
+def test_a_sell_in_its_own_entry_bar_returns_the_money():
+    """A target hit in the entry bar sells what that bar bought: the money is back before the next trade."""
+    a = _r(0, 0, 9000)                # bought and sold in the same bar
+    b = _r(10, 100, 9000)             # needs that money back
+    kept, sized_down, skipped, peak = engine.fit_to_cash([a, b])
+    assert sized_down == 0 and skipped == 0 and peak == pytest.approx(9000)

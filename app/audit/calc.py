@@ -418,14 +418,21 @@ def verdict(trades: int, ret: float, bench_ret: float | None, name: str | None) 
 
 def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, int, float]:
     """Rule 6's cash cap, per buy (contracts.md, 2026-10-20): walk every fill of every trade by time, sells before
-    buys at one moment, then by trade id. A buy spends its own money as it fills (nothing reserved for buys still
+    buys at one moment, then by trade id (a trade's own fills keep their order). A buy spends its own money as it fills (nothing reserved for buys still
     to come); with less cash than it needs it is sized down to the cash, and with $1 or less it is skipped (a
     first buy skipped = couldn't copy, and that trade's later buys are skipped with it). A sell sells the same
     share of the copied position as the trade's own sell does of its position; it returns the money in what it
     sold plus its gain. ASSUMPTION: a trade's costs (rule 5, on the copied fills) leave cash at its last sell.
     Returns [(trade, copied P&L)], buys sized down or skipped, trades not copied, peak money in positions."""
     trades = [t for t in trades if t.status == "priced" and t.entry and t.exit]
-    steps = sorted(((f.ts, 0 if f.kind != "entry" else 1, t.pid, k, n) for n, t in enumerate(trades)
+    def rank(t, k, f):
+        # buys after sells at one moment; a sell in the same bar as its own trade's earlier buy (a target hit in
+        # the entry bar) waits for that buy: within one trade the fills keep their own order
+        if f.kind == "entry":
+            return 1
+        return 1 if any(x.kind == "entry" and x.ts == f.ts for x in t.fills[:k]) else 0
+
+    steps = sorted(((f.ts, rank(t, k, f), t.pid, k, n) for n, t in enumerate(trades)
                     for k, f in enumerate(t.fills)), key=lambda x: (x[0], x[1], x[2], x[3]))
     last_sell = {n: max(k for k, f in enumerate(t.fills) if f.kind != "entry") for n, t in enumerate(trades)}
     copied: dict[int, bool] = {}                 # n -> True copied, False couldn't copy
@@ -434,11 +441,12 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
     paid = [0.0] * len(trades)                   # money in the copied shares (average-cost basis)
     gain = [0.0] * len(trades)
     fees = [0.0] * len(trades)
+    took: list[list[float]] = [[] for _ in trades]   # per buy: copied shares / the trade's own shares
     cash, shrunk, dropped, peak = MONEY_START, 0, 0, 0.0
     for ts, kind, _, k, n in steps:
         t = trades[n]
         f = t.fills[k]
-        if kind == 1:                            # a buy
+        if f.kind == "entry":                    # a buy
             own_q[n] += f.qty
             if copied.get(n) is False:
                 continue
@@ -450,10 +458,12 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
                         dropped += 1
                     else:
                         shrunk += 1
+                        took[n].append(0.0)
                     continue
                 want = cash / f.px
                 shrunk += 1
             copied[n] = True
+            took[n].append(want / f.qty if f.qty else 1.0)
             cash -= want * f.px
             q[n] += want
             paid[n] += want * f.px
@@ -474,7 +484,14 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
                 paid[n] -= avg * sold
             if k == last_sell[n]:
                 cash -= fees[n]
-    kept = [(t, gain[n] - fees[n]) for n, t in enumerate(trades) if copied.get(n)]
+    def pnl_of(n, t):
+        # when every buy of a trade is copied at the same fraction, the whole trade (sells, costs) scales by it:
+        # its P&L is that fraction of its own; otherwise it is worked out from the copied fills above
+        if took[n] and max(took[n]) - min(took[n]) <= 1e-12:
+            return t.pnl * took[n][0]
+        return gain[n] - fees[n]
+
+    kept = [(t, pnl_of(n, t)) for n, t in enumerate(trades) if copied.get(n)]
     return kept, shrunk, dropped, peak
 
 
