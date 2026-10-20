@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T19:32:31Z",
- "results_git_sha": "8e6d0d34ecfbe405b37949ecc5a22123d66b9699",
+ "generated_at": "2026-10-20T19:48:11Z",
+ "results_git_sha": "590eff8d483dc5b03decabd474200e0a3857717a",
  "pass": true,
  "sizing": "trade",
  "hold_close": "official",
@@ -18,7 +18,7 @@
   },
   "lpp/v1": {
    "pass": true,
-   "trades_checked": 6027,
+   "trades_checked": 6006,
    "mismatches": 0,
    "max_abs_diff": 0.0,
    "position_differences": 0,
@@ -46,7 +46,7 @@
  },
  "results_sha256": {
   "cryptowizard/v1": "82e6e71ae01890fdd99e87e1f2679852ab08b8cff11cc544266ff9933452309d",
-  "lpp/v1": "530414b0df6c9189d79493347199874a63740903459f9da3dacf9263ad4795a0",
+  "lpp/v1": "be2ca561869e425e9e02c30b36908f67b0e9d2ccde99d0248ab25ceecd79f3a9",
   "lpp/v2": "ba46926664a895ee5d20651eea54e85e72ad2355304dcb2770e0e9336164974d",
   "ziptrader/v1": "f02c2f38c03ef44cdd16211ae7a07bbf6ef65da92608c3e63b489b422152a974"
  },
@@ -79,8 +79,8 @@
     "by_field": {}
    },
    "v1-no_look_ahead": {
-    "loader_positions": 346,
-    "audit_positions": 346,
+    "loader_positions": 343,
+    "audit_positions": 343,
     "differences": 0,
     "positions_differing": 0,
     "by_field": {}
