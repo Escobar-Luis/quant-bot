@@ -1,10 +1,13 @@
 """Crypto Wizard: each "Trade Update" setup (entry now, stop, TP1-TP4 with close shares) -> one copyable position.
 
-Reads data/cryptowizard/events.calls.jsonl and events.rules.jsonl, written by story/collect-cryptowizard. A setup's
-targets close their stated shares (`close_pcts`) when price trades them; the stop moves to break-even after the TP
-their "B/E" note names (`be_move`); their linked follow-ups are the course's own exits (rule 4): a take-profit post
-(TP n) sells TP n's share at post time + delay unless the copier's own TP n order already filled (rule 12c), and the
-first "please close" post exits the rest. With no close post, the rest leaves 24 h after entry (rule 4).
+Reads data/cryptowizard/events.calls.jsonl and events.rules.jsonl, written by story/collect-cryptowizard.
+- Entry: wording "Now or as close to" is a market entry; any other wording with a price waits for that price
+  (rule 3's trigger; every setup so far says "Now").
+- Targets close their stated shares (`close_pcts`) when price trades them; the stop moves to break-even after the
+  TP their "B/E" note names (`be_move`; every setup so far says TP2).
+- Their linked follow-ups are the course's own exits (rule 4): a take-profit post (TP n) sells the TP 1..n shares
+  not yet sold at post time + delay, nothing if the copier's own TP n order already filled (rule 12c); the first
+  "please close" post exits the rest. With no close post, the rest leaves 24 h after entry (rule 4).
 """
 import json
 import re

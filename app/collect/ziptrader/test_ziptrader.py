@@ -217,10 +217,34 @@ def test_no_gutters_returns_empty():
 
 
 def test_horizon_said_only_in_the_quote_fills_the_field():
-    """Rule 12(a): the quote's horizon moves into `horizon`; an existing horizon and plain quotes are kept."""
+    """Rule 12(a): the quote's horizon moves into `horizon`, with where it came from; existing ones are kept."""
     from horizon import fill
     ev = {"type": "call", "horizon": None, "quote": "keep working for more than one session"}
-    assert fill(ev) and ev["horizon"] == "more than one session"
-    kept = {"type": "call", "horizon": "today", "quote": "hold 3 days"}
+    assert fill(ev, "quote_backfill_2026-10-20")
+    assert ev["horizon"] == "more than one session" and ev["horizon_source"] == "quote_backfill_2026-10-20"
+    kept = {"type": "call", "horizon": "today", "quote": "hold for 3 days"}
     assert not fill(kept) and kept["horizon"] == "today"
-    assert not fill({"type": "call", "horizon": None, "quote": "looks set to bounce for the day"})
+
+
+@pytest.mark.parametrize("quote", ["above the 200 day moving average", "the 5 day chart looks strong",
+                                   "looks set to bounce for the day", "hold for 0 days", "overnight news hit it",
+                                   "next day's high is the level", "up for 3 days straight", "over 2 days of gains"])
+def test_not_a_horizon(quote):
+    from horizon import from_quote
+    assert from_quote(quote) is None
+
+
+@pytest.mark.parametrize("quote,phrase,n", [
+    ("keep working for more than one session", "more than one session", None),
+    ("hold for 3 days", "3 days", 3), ("swing it over the next two weeks", "two weeks", 10),
+    ("could run into the next session", "into the next session", 1), ("hold it overnight", "hold it overnight", 1),
+    ("holding for a few days", "a few days", None)])
+def test_horizon_phrasing(quote, phrase, n):
+    from horizon import from_quote
+    assert from_quote(quote) == (phrase, n)
+
+
+def test_horizon_past_15_sessions_is_flagged_not_cut():
+    from horizon import fill
+    ev = {"type": "call", "horizon": None, "quote": "hold for 20 sessions"}
+    assert fill(ev) and ev["horizon"] == "20 sessions" and ev["horizon_flag"] == "over_15_sessions"

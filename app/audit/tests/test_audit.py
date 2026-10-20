@@ -68,3 +68,27 @@ def test_altered_result_exits_non_zero(tmp_path):
     assert run.main(args) != 0
     assert any(m["field"] == "exit" and m["delay"] == 5 and m["against"] == "results"
                for m in _diff(tmp_path)["details"])
+
+
+HORIZONS = ["more than one session", "3 days", "two weeks", "into the next session", "hold it overnight",
+            "a few days", "0 days", "today", "into earnings Oct 21", None, "20 sessions", "next trading day",
+            "several sessions", "1 week"]
+
+
+def test_audit_and_engine_read_every_horizon_the_same():
+    """Two independent readings of rule 4/12(a) (audit.positions.horizon_sessions, backtest.ziptrader)."""
+    from audit.positions import horizon_sessions
+    from backtest.ziptrader import default_exit
+    for h in HORIZONS:
+        n = horizon_sessions(h)
+        assert default_exit(h) == (f"sessions:{n}" if n else "day_close"), h
+
+
+def test_audit_horizon_reading_from_the_contract():
+    from audit.positions import horizon_sessions
+    assert horizon_sessions("more than one session") == 5        # rule 4: no count -> 5 sessions
+    assert horizon_sessions("into the next session") == 1
+    assert horizon_sessions("hold it overnight") == 1
+    assert horizon_sessions("two weeks") == 10
+    assert horizon_sessions("0 days") is None
+    assert horizon_sessions("today") is None
