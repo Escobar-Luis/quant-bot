@@ -213,7 +213,8 @@ def build(version: str, only: set[str] | None = None, ledger: str = HEADLINE_LED
 
 
 SIZING = "His own share counts when he said them; $1,000 per entry when he didn't"
-SIZING_SCALED = "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6 (Luis, 2026-10-17)
+SIZING_SCALED = ("$1,000 for his first buy; each add in his ratio to it, from the counts he had said by then; "
+                 "capped at the cash")   # contracts.md rule 13(e), the headline since spec-audit story 18
 
 
 def unknown(stats, assumed, priced, total, status) -> list[str]:

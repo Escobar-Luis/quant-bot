@@ -31,6 +31,25 @@ Raw posts (gitignored): `data/lpp/discord/main_chat_close_posts_2026-10-20.jsonl
 | Indirect hint only | 1 (COIN short, entered 2025-06-24) |
 | No post about the ticker while held | 12 |
 
+The 14 assumed exits (rule 11's stitched swing trades with no stated close, LPP v1, 5 min; ids as in `results/lpp/v1.json`'s `as_taught_stitched` ledger):
+
+| Trade id | Ticker | Side | First leg (ET date) | Chat |
+|---|---|---|---|---|
+| lpp-2024-10-22-009 | NVDA | short | 2024-10-22 | none |
+| lpp-2024-10-24-000 | TSLA | short | 2024-10-24 | none |
+| lpp-2024-11-13-005 | TSLA | long | 2024-11-13 | none |
+| lpp-2024-11-15-001 | TSLA | short | 2024-11-15 | none |
+| lpp-2024-11-26-003 | MSTR | short | 2024-11-26 | none |
+| lpp-2024-12-16-003 | AVGO | short | 2024-12-16 | none |
+| lpp-2024-12-17-006 | TSLA | short | 2024-12-17 | none |
+| lpp-2024-12-23-005 | MSTR | short | 2024-12-23 | none |
+| lpp-2025-01-14-003 | SOUN | short | 2025-01-14 | none |
+| lpp-2025-01-24-001 | SOUN | short | 2025-01-24 | close, 2025-01-29 |
+| lpp-2025-06-20-016 | HIMS | short | 2025-06-20 | none |
+| lpp-2025-06-24-007 | COIN | short | 2025-06-24 | hint, 2025-06-25 |
+| lpp-2025-07-14-005 | SOFI | short | 2025-07-14 | none |
+| lpp-2025-08-26-000 | PLTR | short | 2025-08-26 | none |
+
 1. **SOUN short:** "let me close out my soun short" (2025-01-29, 09:56 ET).
 2. **COIN short:** the next day he "will consider opening one on coin again" (2025-06-25, 16:00 ET), which implies it was already closed, without saying when.
 3. Story 17 (PR #65, merged) found 0 stated holds among the same 43 overnight trades in the streams.
@@ -48,5 +67,5 @@ Reading: a position he still holds at a stream's end is, by his own words, close
 
 1. **A channel we can't see.** On 2024-10-14 (15:06 ET) he answers that he closed earlier and "posted in" a channel that renders as unknown to Luis's account, likely one Luis no longer has access to. Its posts were not read. Story 23.
 2. **Trades off the stream.** His afternoon, premarket and after-hours trades are mentioned in chat but are not in the streams, so the app never copies them. How often is not measured yet. Story 24.
-3. **Exits are not yet rebuilt from chat.** The one chat close (SOUN) and the afternoon closes are not fed to the engine; under rule 13 both trades leave at 15:55 ET of their entry session (assumed), which his policy supports.
+3. **Exits are not yet rebuilt from chat.** The one chat close (SOUN, lpp-2025-01-24-001) and the afternoon closes are not fed to the engine yet (a follow-up once stories 23 and 24 report); under rule 13 both trades leave at 15:55 ET of their entry session (assumed), which his policy supports.
 4. Search is keyword-based; a close worded differently (for example "out of", "covered") may be missed.

@@ -40,7 +40,8 @@ def test_results_file_matches_contract(path):
     testable = {p["id"] for p in d["portfolios"] if p["testable"]}
     assert d["headline_portfolio"] == "all" and "all" in testable
     if d["course"] == "lpp":
-        assert d["sizing"] == "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6
+        from backtest.lpp import SIZING_SCALED
+        assert d["sizing"] == SIZING_SCALED   # contracts.md rule 13(e)
     need = {"end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy", "won_pct",
             "worst_drop_pct", "word", "outcome", "vs", "sealed"}
     words = {"Yes", "Barely", "No", "Not enough trades"}
