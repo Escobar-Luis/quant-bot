@@ -1,0 +1,109 @@
+{
+ "schema": "audit/1",
+ "generated_at": "2026-10-20T17:28:58Z",
+ "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
+ "pass": false,
+ "sizing": "first",
+ "hold_close": "official",
+ "command": "cd app && uv run python -m audit.run",
+ "files": {
+  "cryptowizard/v1": {
+   "pass": true,
+   "trades_checked": 1736,
+   "mismatches": 0,
+   "max_abs_diff": 0.0
+  },
+  "lpp/v1": {
+   "pass": false,
+   "trades_checked": 3605,
+   "mismatches": 2705,
+   "max_abs_diff": 3806.05
+  },
+  "lpp/v2": {
+   "pass": false,
+   "trades_checked": 1071,
+   "mismatches": 826,
+   "max_abs_diff": 846.21
+  },
+  "ziptrader/v1": {
+   "pass": true,
+   "trades_checked": 14,
+   "mismatches": 0,
+   "max_abs_diff": 0.0
+  }
+ },
+ "tolerance": {
+  "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact)",
+  "headline": "$1 (returns 0.01 pts; trades and word exact)"
+ },
+ "alternatives": {
+  "sizing=trade,hold_close=official": {
+   "generated_at": "2026-10-20T17:28:59Z",
+   "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
+   "pass": true,
+   "sizing": "trade",
+   "hold_close": "official",
+   "command": "cd app && uv run python -m audit.run --sizing trade --hold-close official",
+   "files": {
+    "cryptowizard/v1": {
+     "pass": true,
+     "trades_checked": 1736,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "lpp/v1": {
+     "pass": true,
+     "trades_checked": 3605,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "lpp/v2": {
+     "pass": true,
+     "trades_checked": 1071,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "ziptrader/v1": {
+     "pass": true,
+     "trades_checked": 14,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    }
+   }
+  },
+  "sizing=trade,hold_close=minute": {
+   "generated_at": "2026-10-20T17:29:01Z",
+   "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
+   "pass": false,
+   "sizing": "trade",
+   "hold_close": "minute",
+   "command": "cd app && uv run python -m audit.run --sizing trade --hold-close minute",
+   "files": {
+    "cryptowizard/v1": {
+     "pass": true,
+     "trades_checked": 1736,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "lpp/v1": {
+     "pass": false,
+     "trades_checked": 3605,
+     "mismatches": 42,
+     "max_abs_diff": 1.64
+    },
+    "lpp/v2": {
+     "pass": false,
+     "trades_checked": 1071,
+     "mismatches": 56,
+     "max_abs_diff": 1.64
+    },
+    "ziptrader/v1": {
+     "pass": true,
+     "trades_checked": 14,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    }
+   }
+  }
+ }
+}
