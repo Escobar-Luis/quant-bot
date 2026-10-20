@@ -11,7 +11,9 @@ The rules are contracts.md "Copy-trade rules" (code decides, never the model):
 - whatever is still held after the last announced exit leaves at the position's default exit (`assumed`); a post
   whose fill would land at or after that exit comes too late, a horizon that passed before the entry leaves
   nothing to copy (`too_late`), and when the bars end before the exit it leaves at the last bar's close;
-- costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto.
+- costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto;
+- scaled sizing (rule 13e): the first buy is $1,000; each add is sized only from the counts he had stated by then
+  (rule 6's whole-trade scaling, which reads later adds, survives only as `as_taught`).
 """
 import bisect
 import datetime as dt
@@ -46,7 +48,10 @@ class Position:
     target_fracs: list[float] = field(default_factory=list)   # share of the start size closed at each target
     trigger: float | None = None    # entry level to wait for; None = enter at market
     be_after_target: int | None = None   # move the stop to the average entry once this many targets have filled
-    scale: bool = False             # True: his share counts scaled so all buys together are $1,000 (keeps his ratios)
+    scale: bool = False             # True: his share counts scaled to $1,000 (keeps his ratios), see `as_taught`
+    as_taught: bool = False         # scaled sizing: False = rule 13(e), the first buy is $1,000 and each add uses only
+                                    # the counts he had stated by then; True = rule 6 as taught, all buys together
+                                    # are $1,000 (reads his later adds: the `as_taught` alternative only)
     quote: str | None = None
     cite: dict | None = None
     why: str | None = None          # the course's stated reason (paraphrase), used to name the strategy
@@ -226,8 +231,15 @@ def _simulate(p: Position, delay_min: int) -> Result:
     entries = [lg for lg in p.legs if lg.action in ("open", "add")]
     known = sorted(lg.qty for lg in entries if lg.qty)
     typical = known[len(known) // 2] if known else 1.0
-    weight = {id(lg): (lg.qty or typical) for lg in entries}   # scaled mode: his legs' shares of one $1,000 trade
+    weight = {id(lg): (lg.qty or typical) for lg in entries}   # as taught: his legs' shares of one $1,000 trade
     total_w = sum(weight.values()) or 1.0
+    first_leg, first_qty = None, 0.0   # rule 13(e): the first buy, the yardstick for each later add
+
+    def said_by(leg) -> float | None:
+        """Upper median of the counts he stated on this position's buys posted up to `leg` (None: none yet)."""
+        c = sorted(x.qty for x in entries if x.qty and x.posted_ts <= leg.posted_ts)
+        return c[len(c) // 2] if c else None
+
     for leg in sorted(p.legs, key=lambda x: x.posted_ts):
         t = leg.posted_ts + d
         if leg.action in ("open", "add"):
@@ -258,9 +270,17 @@ def _simulate(p: Position, delay_min: int) -> Result:
                     return Result(p, delay_min, "too_late", why="the stated horizon passed before the entry")
                 end_hit = _exit_bar(p, hz)
                 hz_bar = end_hit[0] if end_hit else float("inf")   # no bar after hz: the bars end first
-            if p.scale:
+            if p.scale and p.as_taught:
                 factor = factor or PER_TRADE_USD / (px * total_w)
                 qty = weight[id(leg)] * factor
+            elif p.scale:
+                if first_leg is None:   # rule 13(e): the first buy is $1,000 at its fill
+                    first_leg, qty = leg, PER_TRADE_USD / px
+                    first_qty = qty
+                else:                   # an add: the first buy's shares x (his add / his first buy), as known now
+                    med = said_by(leg)
+                    c_first, c_add = first_leg.qty or med, leg.qty or med
+                    qty = first_qty * (c_add / c_first if c_first and c_add else 1.0)
             elif leg.qty:
                 qty = leg.qty
             else:

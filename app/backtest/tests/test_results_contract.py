@@ -20,10 +20,16 @@ def test_results_file_matches_contract(path):
     testable = {p["id"] for p in d["portfolios"] if p["testable"]}
     assert d["headline_portfolio"] == "all" and "all" in testable
     if d["course"] == "lpp":
-        assert d["sizing"] == "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6
+        assert d["sizing"] == "$1,000 first buy; his adds keep the share ratios he had said by then"   # rule 13(e)
     need = {"end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy", "won_pct",
             "worst_drop_pct", "word", "sealed"}
     words = {"Yes", "Barely", "No", "Not enough trades"}
+    if d["course"] == "lpp":   # rule 13: the look-ahead numbers stay visible beside the headline
+        taught = d["as_taught"]
+        assert taught["rules"] and [p["id"] for p in taught["portfolios"]] == ["all", "day", "swing"]
+        for p in taught["portfolios"]:
+            assert set(p["by_delay"]) == {str(x) for x in DELAYS_MIN}
+            assert all(need <= set(r) and r["word"] in words for r in p["by_delay"].values())
     for p in d["portfolios"]:
         if not p["testable"]:
             assert "count" in p and p["why"]

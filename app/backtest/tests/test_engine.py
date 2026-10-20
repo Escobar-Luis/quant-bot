@@ -93,11 +93,39 @@ def test_word_rule():
     assert engine.word(30, 8, 10) == "No"
 
 
-def test_scaled_sizing_keeps_his_ratios(fake):
-    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
+def test_as_taught_sizing_reads_his_later_adds(fake):
+    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True,
+            as_taught=True)
     r = engine.simulate(p, 1)
     assert r.fills[0].qty * r.fills[0].px == pytest.approx(250)    # 100 of his 400 shares -> a quarter of $1,000
     assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
+
+
+def test_scaled_sizing_keeps_his_ratios_without_look_ahead(fake):
+    """Rule 13(e): the first buy is $1,000 at its fill, whatever he adds later; an add keeps his ratio."""
+    p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
+    r = engine.simulate(p, 1)
+    assert r.fills[0].qty * r.fills[0].px == pytest.approx(1000)
+    assert r.fills[1].qty == pytest.approx(3 * r.fills[0].qty)
+
+
+def test_later_add_does_not_change_the_first_buy(fake):
+    """CAP-12: the same first post, with and without a bigger add said later: the first fill is identical."""
+    alone = engine.simulate(pos([Leg("a", T0, "open", 100), Leg("c", T0 + 600, "close")], scale=True), 1)
+    later = engine.simulate(pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 900),
+                                 Leg("c", T0 + 600, "close")], scale=True), 1)
+    assert (later.fills[0].ts, later.fills[0].px, later.fills[0].qty) == \
+        (alone.fills[0].ts, alone.fills[0].px, alone.fills[0].qty)
+
+
+def test_unstated_add_counts_only_what_he_had_said(fake):
+    """An add with no count takes the upper median of counts said up to it, never a count said after it."""
+    legs = [Leg("a", T0, "open", 100), Leg("b", T0 + 120, "add"), Leg("c", T0 + 300, "add", 500),
+            Leg("d", T0 + 600, "close")]
+    r = engine.simulate(pos(legs, scale=True), 1)
+    q0 = r.fills[0].qty
+    assert r.fills[1].qty == pytest.approx(q0)          # only 100 said by then: same size as the first buy
+    assert r.fills[2].qty == pytest.approx(5 * q0)
 
 
 def _r(entry_ts, exit_ts, notional, pnl):

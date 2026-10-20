@@ -214,6 +214,38 @@ def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list
     return same, ledger
 
 
+def as_taught_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]:
+    """Step 4b, LPP only: the same events through rule 11's ledger and rule 6's whole-trade sizing (both read his
+    later words), so the change to rule 13's no-look-ahead headline stays visible (contracts.md rule 13)."""
+    if not (a.course == "lpp" and not a.limit):
+        return None, []
+    built = mod.build(a.version, only, ledger="as_taught") if only else mod.build(a.version, ledger="as_taught")
+    positions = built["positions"]
+    seen = Counter()
+    for p in positions:
+        seen[p.pid] += 1
+        if seen[p.pid] > 1:
+            p.pid = f"{p.pid}-{seen[p.pid]}"
+        p.scale = a.scale
+    prefetch(positions)
+    by_pos = {p.pid: {d: engine.simulate(p, d) for d in DELAYS_MIN} for p in positions}
+    pfs = []
+    for pid in ["all", "day", "swing"]:
+        rows = {}
+        for d in DELAYS_MIN:
+            rs = [by_pos[p.pid][d] for p in positions if pid == "all" or p.portfolio == pid]
+            rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
+        pfs.append({"id": pid, "by_delay": rows})
+    d5 = str(DEFAULT_DELAY_MIN)
+    print(f"  as taught (rules 6 and 11, look-ahead) @5m: end {pfs[0]['by_delay'][d5]['end']:,.0f}  "
+          f"{pfs[0]['by_delay'][d5]['word']}")
+    block = {"rules": "contracts.md rules 6 and 11 as taught: a position carries overnight when his next word "
+                      "on it is an add, trim or close, and all of a trade's buys together are $1,000. Both read "
+                      "what he said later; the headline uses rule 13.",
+             "positions": len(positions), "portfolios": pfs}
+    return block, [r for rs in by_pos.values() for r in rs.values()]
+
+
 def sample_trades(by_pos) -> list[dict]:
     """Step 5, sample trades: the biggest wins and losses at the default delay, for the trade list."""
     d5 = DEFAULT_DELAY_MIN
@@ -299,7 +331,7 @@ def write_results(out, a, portfolios) -> Path:
     return path
 
 
-COMPARED = ("portfolios", "same_sessions", "trades")
+COMPARED = ("portfolios", "same_sessions", "as_taught", "trades")
 
 
 def ledger_only(a, out, ledgers) -> None:
@@ -325,9 +357,13 @@ def main():
     same, same_ledger = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
     unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
+    taught, taught_ledger = as_taught_alternative(mod, a, only, dates, hold)
     out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
+    if taught:
+        out["as_taught"] = taught
     ledgers = [("", [r for rs in by_pos.values() for r in rs.values()])] + \
-        ([("-same_sessions", same_ledger)] if same else [])
+        ([("-same_sessions", same_ledger)] if same else []) + \
+        ([("-as_taught", taught_ledger)] if taught else [])
     if a.ledger_only:
         ledger_only(a, out, ledgers)
         return
