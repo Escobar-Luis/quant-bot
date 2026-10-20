@@ -62,6 +62,21 @@ def cite(e: dict) -> dict:
     return {"source_id": public_key(e), "locator": f"t={t}s", "label": f"Live session, {e['session_date']}, {at}"}
 
 
+@lru_cache(maxsize=1)
+def _release() -> dict[str, float]:
+    """source_id -> the video's release time (data/lpp/sources.jsonl), for rule 1's post time."""
+    p = DATA / "lpp" / "sources.jsonl"
+    rows = [json.loads(line) for line in open(p) if line.strip()] if p.exists() else []
+    return {s["source_id"]: bars.post_ts(s["release_utc"]) for s in rows if s.get("release_utc")}
+
+
+def post_ts(e: dict) -> float:
+    """Rule 1: release_timestamp + t_s, kept to the fraction of a second (wall_utc is the same moment truncated
+    to the whole second, which can put a fill one bar early); wall_utc only when the release time is unknown."""
+    r = _release().get(e["source_id"])
+    return r + float(e.get("t_s") or 0) if r is not None else bars.post_ts(e["wall_utc"])
+
+
 def usable(e: dict) -> bool:
     return e["type"] == "trade" and bool(e.get("ticker")) and bool(e.get("action")) and \
         (e["status"] == "ok" or (bool(e.get("fail")) and set(e["fail"]) <= LEDGER_FAILS))
@@ -74,7 +89,7 @@ def is_option(e: dict) -> bool:
 def build(version: str, only: set[str] | None = None) -> dict:
     """Positions to copy, plus what the results file needs to say about the events."""
     evs = load(version, only)
-    trades = sorted((e for e in evs if usable(e)), key=lambda e: bars.to_ts(e["wall_utc"]))
+    trades = sorted((e for e in evs if usable(e)), key=lambda e: (post_ts(e), e["event_id"]))
     options = [e for e in trades if is_option(e) and e["action"] == "open"]
     trades = [e for e in trades if not is_option(e) and (e.get("side") in ("long", "short")
                                                           or e["action"] in ("trim", "close"))]
@@ -100,7 +115,7 @@ def build(version: str, only: set[str] | None = None) -> dict:
                 stats["exit_side_unknown"] += 1
                 continue
             e = {**e, "side": sides[0][1]}
-        key, ts = (e["ticker"], e["side"]), bars.to_ts(e["wall_utc"])
+        key, ts = (e["ticker"], e["side"]), post_ts(e)
         if key in open_pos:
             last = open_pos[key][0][-1].posted_ts
             if bars.et_date(last) != bars.et_date(ts):
@@ -169,7 +184,8 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     if stats.get("trim_size_unknown"):
         out.append(f"Half the position assumed sold on {stats['trim_size_unknown']} trims with no size.")
     if stats.get("entry_size_unknown"):
-        out.append(f"$1,000 assumed on {stats['entry_size_unknown']} entries with no share count.")
+        out.append(f"{stats['entry_size_unknown']} entries with no share count took the upper median of his "
+                   "stated counts in that trade.")
     if stats.get("exit_side_unknown"):
         out.append(f"{stats['exit_side_unknown']} exits didn't say which position and were skipped.")
     if stats.get("calls_not_copied"):
