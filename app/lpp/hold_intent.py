@@ -175,8 +175,7 @@ def cache_path(pos: dict):
 
 def _parse(txt: str) -> dict:
     txt = re.sub(r"^```(?:json)?|```$", "", (txt or "").strip()).strip()
-    i, j = txt.find("{"), txt.rfind("}")
-    return json.loads(txt[i:j + 1])
+    return json.JSONDecoder().raw_decode(txt[txt.find("{"):])[0]   # the first object; a second one is ignored
 
 
 def call(msgs: list[dict], max_tokens: int = 6000) -> dict:
