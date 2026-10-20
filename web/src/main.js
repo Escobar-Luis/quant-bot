@@ -1,5 +1,5 @@
 import './ui.css';
-import { COURSE_META, latest, proofSet, PROOF } from './data.js';
+import { COURSE_META, latest, proofSet, PROOF, LAB } from './data.js';
 import { initAuth, signInWithGoogle, signOut, hasClerk } from './auth.js';
 import { drawTrade, destroy as destroyTrade, etTime } from './tradeChart.js';
 
@@ -423,6 +423,34 @@ function renderHelp(v) {
     ...(im.disclosure || []).slice(0, 2)].map(t => `<p class="meta">${esc(t)}</p>`).join('');
   $('#helpLink').innerHTML = link(im.prism_url, 'See the run in PRISM');
 }
+// His strategy on new data (spec-audit CAP-15, story 21): S4 and S5 as code, no post from him, on prices after his
+// window, on his stocks (a) and on stocks he never traded (b). Every number from results/strategy-lab.json; LPP only.
+const UNI_SHORT = { 'his-hot': 'His stocks', 'his-crypto': 'His stocks', 'new-hot': 'Other stocks',
+  'new-crypto': 'Other stocks', 'new-hot-raw': 'Other stocks, corrected list' };
+const C_LIST = { 'his-hot': 'His hot', 'his-crypto': 'His crypto', 'new-hot': 'Other hot', 'new-crypto': 'Other crypto',
+  'new-hot-raw': 'Other hot, corrected list' };
+// Every row shows its return four ways (base costs, 2x costs, borrow fees, small-cap spreads) and its hard-to-borrow count.
+const fourWays = r => `<b class="${r.ret_pct < 0 ? 'neg' : 'pos'}">${pct(r.ret_pct)}</b> · 2× costs ${pct(r.costs.x2.ret_pct)} · borrow fees ${pct(r.borrow.borrow_high_ret_pct)} · small-cap costs ${pct(r.costs.small_cap.ret_pct)}`;
+const htbLine = r => `${r.borrow.htb_trades.toLocaleString('en-US')} of ${nTrades(r.trades)} hard to borrow`;
+function renderLab(c) {
+  const L = LAB, show = !!L && c.key === 'lpp';
+  $('#cLab').hidden = !show;
+  if (!show) return;
+  const spy = L.benchmark.ret_pct, run = (rule, u, vr) => L.runs.find(r => r.rule === rule && r.universe === u && r.variant === vr);
+  const held = Object.entries(L.verdict).filter(([, x]) => x.held_up).map(([k]) => k);
+  $('#labMeta').textContent = `${L.window.from} → ${L.window.to}`;
+  $('#labHead').innerHTML = held.length
+    ? `<b class="pos">${esc(held.join(' and '))} held up</b> on new prices and other stocks.`
+    : `<b class="neg">Neither rule held up</b> on new prices and other stocks. The S&amp;P made ${pct(spy)}.`;
+  const line = (r, name) => `<p class="h-num mono num">${esc(name)}: ${fourWays(r)}</p>
+    <p class="h-num mono num">${esc(r.word === 'Not enough trades' ? 'Too few' : r.word)} · ${nTrades(r.trades)}${r.won_pct != null ? ` · won ${r.won_pct}%` : ''} · worst drop ${pct(r.max_drawdown_pct)} · ${htbLine(r)}</p>`;
+  $('#labRules').innerHTML = L.rules.map(rule => {
+    const rows = rule.universes.map(u => run(rule.id, u, rule.id === 'C' ? 'control' : 'P')).filter(Boolean);
+    if (rule.id === 'C') return `<li><p class="h-text">${esc(rule.label)}: every day, no signal</p>${rows.map(r => line(r, C_LIST[r.universe])).join('')}</li>`;
+    return `<li><p class="h-text">${esc(rule.id)} · ${esc(rule.text)}</p>${rows.map(r => line(r, UNI_SHORT[r.universe])).join('')}</li>`;
+  }).join('');
+  $('#labFine').textContent = `$1,000 a trade from $10,000. The S&P is fully invested; a rule holds money a few hours a trade. ${L.variants_tried} versions tried, all in the file. Rules fixed before the test (${L.preregistered_sha}); the corrected list is a disclosed change made after it.`;
+}
 let shownWord = null;
 function renderVerdict(fresh) {
   const c = COURSES[cur], v = vm(c);
@@ -431,7 +459,7 @@ function renderVerdict(fresh) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
     $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = ''; $('#vSealed').hidden = true;
-    ['cChart', 'cYear', 'cHis', 'cHelp', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    ['cChart', 'cYear', 'cHis', 'cHelp', 'cLab', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
@@ -456,6 +484,7 @@ function renderVerdict(fresh) {
   renderYears(v);
   renderHis(v);
   renderHelp(v);
+  renderLab(c);
   renderStrats(c, v);
   renderBotMix(c);
   const h = sealedSays(v);

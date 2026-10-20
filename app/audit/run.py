@@ -22,6 +22,8 @@ For each results file:
   7. improvements (LPP's full-window file): every variant's change re-applied to the audit's own positions,
      re-priced by audit.calc, its dev and sealed numbers, SPY's total return and the keep decision
      (audit.improvements).
+  Then results/strategy-lab.json (when present, on a full run): every run recomputed by audit.lab from the cached
+  bars (contracts.md section strategy-lab), written to data/audit/diff-strategy-lab.json.
 Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
 proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
 No network: a bar missing from data/bars/ marks that trade no_bars; trades both sides call no_bars are listed
@@ -36,7 +38,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from . import calc, improvements, strategy, years
+from . import calc, improvements, lab, strategy, years
 from . import positions as P
 from .paths import DATA, PROOFS, REPO, RESULTS
 
@@ -442,7 +444,9 @@ def write_proofs(path: Path, a, rdir: Path, ok: bool, summary: dict, reports: di
     old = json.loads(path.read_text()) if path.exists() else {}
     if default:
         rec = {"schema": "audit/2", **run,
-               "results_sha256": {k: r["results_sha256"] for k, r in reports.items()},
+               "results_sha256": {k: r["results_sha256"] for k, r in reports.items()}
+               | ({"strategy-lab": hashlib.sha256((rdir / "strategy-lab.json").read_bytes()).hexdigest()}
+                  if "strategy-lab" in summary else {}),
                "tolerance": {"trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, "
                                       "price and shares)",
                              "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, "
@@ -503,6 +507,15 @@ def main(argv=None) -> int:
         for label, lm in rep["math_on_loader_positions"].items():
             print(f"    math alone (calc on the loaders' positions, {label}): {lm['trades_compared']} trades, "
                   f"{lm['mismatches']} mismatches {lm['by_class']}")
+    lab_file = rdir / "strategy-lab.json"
+    if lab_file.exists() and not a.only:
+        # results/strategy-lab.json (contracts.md section strategy-lab, CAP-15): every run recomputed by audit.lab
+        rep = lab.check(lab_file)
+        (out_dir / "diff-strategy-lab.json").write_text(json.dumps(rep, indent=1))
+        summary["strategy-lab"] = {k: rep[k] for k in ("pass", "runs_checked", "mismatches")} | \
+            {"unverifiable": len(rep["unverifiable"])}
+        print(f"{'strategy-lab':<16} {'PASS' if rep['pass'] else 'FAIL'}  runs checked {rep['runs_checked']:>5}  "
+              f"mismatches {rep['mismatches']:>5}  unverifiable {len(rep['unverifiable'])}")
     ok = all(s["pass"] for s in summary.values())
     if a.proofs:
         write_proofs(Path(a.proofs), a, rdir, ok, summary, reports)

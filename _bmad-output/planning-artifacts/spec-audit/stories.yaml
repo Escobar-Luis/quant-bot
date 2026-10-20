@@ -184,3 +184,15 @@
     CAP-15 follow-up. Story 20 priced 10 distinct rule changes (6 from the model, 4 by the engineer) and kept 4 whose held-out gains are 0.2 to 2 points on about 100 trades. Nothing yet says whether gains that small survive having tried 10 variants.
   invoke_dev_with: >-
     Found by story 20 (notes/research/backtesting.md, section 6). Bootstrap the sealed trades (resample days) for each kept change vs as-is, and a deflated-Sharpe or White's-reality-check style correction with N = every variant in the log; report it in the improvements key only after a contract change in contracts.md. Reuse the 6 cached proposals (no new model call). Rerun under the data lock; audit.run must pass. Do not redeploy.
+- id: "31"
+  title: Compare S4 with the S&P at the same money at risk
+  description: >-
+    CAP-15 follow-up. Story 21 found S4 ("short a hot stock that opened 5%+ up") beats 2,000 random draws on his stocks and on 20 new ones, but at $1,000 a trade it earns +6% / +11% against SPY's +17.7%, a fully invested benchmark. Nothing yet compares it at equal exposure or sizes it to use the account.
+  invoke_dev_with: >-
+    Found by story 21 (notes/research/strategy-as-code.md, section 9). Pre-register first (new spec section, committed before the run): an exposure-matched SPY (same dollars for the same hours) and one sizing rule (e.g. a fixed share of the account per trade, capped by cash, no margin); reuse the cached bars in data/bars (no new fetch unless the spec says so). Feed the frozen rule into story 30 (forward paper test) rather than re-tuning on the spent window. Contract first; audit.lab recomputes. Do not redeploy.
+- id: "32"
+  title: Point-in-time borrow and universe for the strategy lab
+  description: >-
+    CAP-17 follow-up. Story 21 flags hard-to-borrow shorts with Alpaca's easy_to_borrow flag as of today, not the trade date, and picks the "other stocks" from today's asset list, so names delisted since 2025-09-12 are missing (survivorship). 45% of the short-every-open control's trades on the other hot list are hard-to-borrow today.
+  invoke_dev_with: >-
+    Found by story 21. Find a point-in-time source for borrow availability and fees (or bound it: drop hard-to-borrow names as a variant), and rebuild the universe picker from a dated listing that includes delisted names; log both as new variants in notes/research/strategy-as-code.md. Fold into story 29's cost model if it lands first.

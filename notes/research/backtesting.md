@@ -86,3 +86,9 @@ Every variant tried, with dev and sealed numbers (AGENTS.md rule 4). Code: `app/
 
 **Review fix (PR #68, same day, same cached proposals, same keep rule):** `setup` used his reason from any leg, so 35 of 343 positions got a reason he stated after the copy's first buy fill (up to 26 min later). Now only legs posted at or before the first fill count, else `unknown` (engine and audit, the audit from its own copy of the definitions). Only V2 moved: dev −2.27% → −2.68% (+2.46 → +2.05 pts vs as-is), sealed +2.29% → +2.17% (+0.21 → +0.09); still kept. The others are unchanged (V1, V3, V4, V5 don't use `setup`; V6's numbers came out the same). Before the fix V2's numbers were seen with the look-ahead setup: counted as the same variant, not a new one. The key now carries `variants_tried` (10 distinct priced), the disclosure, `kept_label` "held up (not proven)" and the luck test (story 27).
 
+## 7. Trial log: his strategy as code (spec-audit story 21, 2026-10-20)
+Pre-registered in `notes/research/strategy-as-code.md` (commit sha in `results/strategy-lab.json` `preregistered_sha`). Every version tried:
+1. Universe picker v1, v2, v3 (pre-window data only; v3 kept): spec section 8.
+2. Rule runs: S4 and S5 × variants `P`, `no-stop`, `exit-11`, `gap-10` × (a) his stocks and (b) other stocks, plus control C on all four universes: 20 runs, all published in `results/strategy-lab.json`.
+3. After the first run: one bug fix (gap compared in floating point missed an exactly-5% gap; spec section 8 item 4), no rule change.
+4. Results: spec section 9. Neither S4 nor S5 held up against SPY (+17.68%); S4 beat 2,000 random draws on both universes but earned +6% / +11%; S5 had no edge.
