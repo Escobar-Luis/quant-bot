@@ -61,7 +61,7 @@ DISCLOSURE = [
     "The model saw dev-month tables only, but his rules' wording and the setup definitions came from the "
     "strategy profile, built from every month, held-out ones included.",
     "Kept means it held up on the held-out months, not that it is proven: small gains on about 100 trades can be "
-    "luck after this many tries (story 27 tests that).",
+    "luck after this many tries (results/how-sure.json tests that, story 28).",
 ]
 KEEP_RULE = ("kept only if it beats the as-is copy on dev, does not lose on sealed, and keeps 30+ trades in each")
 
@@ -321,7 +321,7 @@ def key(mod, version: str, positions: list, base: dict, cached: dict | None, del
                      "through the cash cap; dev and sealed are its slices by the first buy's day",
             "picked_on": "dev", "keep_rule": KEEP_RULE, "min_trades": MIN_TRADES,
             "kept_label": KEPT_LABEL, "variants_tried": tried(ev), "disclosure": DISCLOSURE,
-            "luck_test": {"story": "27", "status": "not run"},
+            "luck_test": {"story": "28", "status": "run", "where": "results/how-sure.json"},
             "kept_all_trail_spy": all(v["dev"]["vs_spy_pts"] < 0 and v["sealed"]["vs_spy_pts"] < 0
                                       for v in ev["variants"] if v["kept"]),
             **ev}

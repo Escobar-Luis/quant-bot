@@ -1,5 +1,5 @@
 import './ui.css';
-import { COURSE_META, latest, proofSet, PROOF, LAB, PAPER_TEST } from './data.js';
+import { COURSE_META, latest, proofSet, PROOF, LAB, PAPER_TEST, HOW_SURE, howSure } from './data.js';
 import { initAuth, signInWithGoogle, signOut, hasClerk } from './auth.js';
 import { drawTrade, destroy as destroyTrade, etTime } from './tradeChart.js';
 
@@ -335,6 +335,25 @@ function stratName(ref, c) {
 }
 // Plain words for small changes: the code decides, the copy only reports it.
 const pct2 = v => { const r = Math.round(v * 100) / 100, a = Math.abs(r).toFixed(2); return (r > 0 ? '+' : r < 0 ? '−' : '') + a + '%'; };
+// "How sure?" (spec-audit CAP-16, story 28): one row per claim from results/how-sure.json. Anything failing reads
+// "Not proven"; every number is the file's.
+const ptsS = v => { const r = Math.round(v * 10) / 10; return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(1); };
+const okCls = b => (b === true ? 'pos' : b === false ? 'neg' : '');
+function howCount(ids) {
+  const cs = ids.map(howSure).filter(Boolean), n = cs.filter(c => c.proven).length;
+  return n ? `${n} of ${cs.length} survive every test` : `none of ${cs.length} survives every test, so none is proven`;
+}
+function howRow(c) {
+  if (!c) return '';
+  const t = [`${(HOW_SURE.families?.[c.family]?.trials ?? c.luck?.trials ?? 1).toLocaleString('en-US')} tried`];
+  if (c.luck) t.push(`<span class="${okCls(c.luck.passes)}">luck test ${c.luck.passes ? 'passed' : 'failed'}</span>`);
+  else if (c.trades < 30) t.push('too few trades to test');
+  if (c.shuffle) t.push(`<span class="${okCls(c.shuffle.passes)}">beat ${+c.shuffle.pct_rank.toFixed(1)}% of random</span>`);
+  if (c.walk_forward) t.push(`<span class="${okCls(c.walk_forward.passes)}">walk-forward ${ptsS(c.walk_forward.oos_ret_pct)}% vs ${ptsS(c.walk_forward.as_is_oos_ret_pct)}% as posted</span>`);
+  if (c.sensitivity) { const [lo, hi] = c.sensitivity.edge_range_pts; t.push(`<span class="${okCls(c.sensitivity.passes)}">thresholds moved: ${ptsS(lo)} to ${ptsS(hi)} pts</span>`); }
+  if (c.regime && (c.regime.up.months || c.regime.down.months)) t.push(`<span class="${okCls(c.regime.passes)}">S&amp;P up months ${ptsS(c.regime.up.edge_pts)} pts, down ${ptsS(c.regime.down.edge_pts)}</span>`);
+  return `<p class="how mono num"><span class="how-l">How sure?</span> <b class="${c.proven ? 'pos' : 'neg'}">${c.proven ? 'Survives' : 'Not proven'}</b> · ${t.join(' · ')}</p>`;
+}
 const moved = (before, after, where) => { const d = after - before; return (d > 0.05 ? 'Helped' : d < -0.05 ? 'Hurt' : 'No change') + ' on ' + where; };
 // Kept only if the sealed months agree. The file's `kept` and `kept_reason` decide; a file
 // without `kept_reason` whose sealed months didn't gain falls back to the same rule.
@@ -435,7 +454,7 @@ function renderHelp(v) {
       <p class="h-text">${esc(x.text)}</p>
       <p class="h-num mono num">Past ${pct2(x.dev.as_is_ret_pct)} → <b class="${x.dev.vs_as_is_pts > 0 ? 'pos' : 'neg'}">${pct2(x.dev.ret_pct)}</b> · held-out ${pct2(x.sealed.as_is_ret_pct)} → <b class="${x.sealed.vs_as_is_pts >= 0 ? 'pos' : 'neg'}">${pct2(x.sealed.ret_pct)}</b> · ${nTrades(x.sealed.trades)}</p>
       <p class="h-num mono num">vs holding SPY: ${x.sealed.vs_spy_pts >= 0 ? 'ahead' : 'behind'} ${Math.abs(x.sealed.vs_spy_pts).toFixed(2)} pts held-out</p>
-      <p class="bot-kept" data-kept="${!!x.kept}">${esc(helpWhy(x))}</p></li>`;
+      <p class="bot-kept" data-kept="${!!x.kept}">${esc(helpWhy(x))}</p>${howRow(howSure(`improvements:${x.id}`))}</li>`;
   const vs = im.variants || [], kept = vs.filter(x => x.kept), not = vs.filter(x => !x.kept);
   $('#helpKept').innerHTML = kept.length ? kept.map(row).join('') : '<li><p class="h-text">Nothing held up on the held-out months.</p></li>';
   $('#helpNot').innerHTML = not.map(row).join('');
@@ -443,7 +462,7 @@ function renderHelp(v) {
   if (kept.length && im.kept_all_trail_spy) $('#helpBase').innerHTML += ' Every change that held up still trailed the S&P.';
   $('#helpKeptSec').textContent = `${LABEL.toUpperCase()}${tried.distinct_priced ? ` · ${kept.length} of ${tried.distinct_priced} tried` : ''}`;
   $('#helpNote').innerHTML = [
-    `Not proven: gains this small on about 100 trades can be luck after ${tried.distinct_priced || vs.length} tries. Luck test: story ${esc(im.luck_test?.story || '27')}${im.luck_test?.status ? ` (${esc(im.luck_test.status)})` : ''}.`,
+    HOW_SURE ? `Luck test after ${tried.distinct_priced || vs.length} tries: ${howCount(vs.map(x => `improvements:${x.id}`))}.` : `Not proven: gains this small on about 100 trades can be luck after ${tried.distinct_priced || vs.length} tries.`,
     ...(im.disclosure || []).slice(0, 2)].map(t => `<p class="meta">${esc(t)}</p>`).join('');
   $('#helpLink').innerHTML = link(im.prism_url, 'See the run in PRISM');
 }
@@ -467,7 +486,7 @@ function renderLab(c) {
     ? `<b class="pos">${esc(held.join(' and '))} held up</b> on new prices and other stocks.`
     : `<b class="neg">Neither rule held up</b> on new prices and other stocks. The S&amp;P made ${pct(spy)}.`;
   const line = (r, name) => `<p class="h-num mono num">${esc(name)}: ${fourWays(r)}</p>
-    <p class="h-num mono num">${esc(r.word === 'Not enough trades' ? 'Too few' : r.word)} · ${nTrades(r.trades)}${r.won_pct != null ? ` · won ${r.won_pct}%` : ''} · worst drop ${pct(r.max_drawdown_pct)} · ${htbLine(r)}</p>`;
+    <p class="h-num mono num">${esc(r.word === 'Not enough trades' ? 'Too few' : r.word)} · ${nTrades(r.trades)}${r.won_pct != null ? ` · won ${r.won_pct}%` : ''} · worst drop ${pct(r.max_drawdown_pct)} · ${htbLine(r)}</p>${howRow(howSure(`lab:${r.rule}|${r.variant}|${r.universe}`))}`;
   $('#labRules').innerHTML = L.rules.map(rule => {
     const rows = rule.universes.map(u => run(rule.id, u, rule.id === 'C' ? 'control' : 'P')).filter(Boolean);
     if (rule.id === 'C') return `<li><p class="h-text">${esc(rule.label)}: every day, no signal</p>${rows.map(r => line(r, C_LIST[r.universe])).join('')}</li>`;
@@ -519,6 +538,7 @@ function renderVerdict(fresh) {
   $('#vChip').textContent = k.word;
   $('#vMeta').textContent = k.trades != null ? nTrades(k.trades) : '';
   const held = heldLine(v); $('#vSealed').hidden = !held; $('#vSealed').innerHTML = held;
+  const how = range === 'all' ? howRow(howSure(`course:${c.key}`)) : ''; $('#vHow').hidden = !how; $('#vHow').innerHTML = how;
   $('#vFine').innerHTML = fineLine(v.r, v.s).split(' · ').filter(Boolean).map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
   const span = v.head.series?.dates;
   $('#vRanges').innerHTML = RANGES.map(([id, lab, mo]) => {

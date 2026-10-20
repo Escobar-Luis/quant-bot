@@ -389,3 +389,5 @@ body[data-screen=verdict] .seg,body[data-screen=learn] .seg{display:flex}
 .his .h-said .cite{display:block;font-family:var(--mono);font-size:10px;color:var(--ink3)}
 .years .w-Yes{color:var(--yes)}.years .w-No{color:var(--no)}.years .w-Barely{color:var(--barely)}.years .w-few{color:var(--few)}
 .lab-head{font-size:14px;line-height:1.35;margin:2px 0 6px}.lab-head .neg{color:var(--no)}.lab-head .pos{color:var(--yes)}
+.how{font-size:11px;line-height:1.45;color:var(--ink2);margin:4px 0 0}
+.how .how-l{color:var(--ink);font-weight:600}.how .neg{color:var(--no);font-weight:600}.how .pos{color:var(--yes);font-weight:600}

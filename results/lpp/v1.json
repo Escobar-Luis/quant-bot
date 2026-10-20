@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T21:51:45Z",
- "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
+ "generated_at": "2026-10-20T22:11:12Z",
+ "git_sha": "ee83e28050929c01259f00432768ca286915a5c9",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -53898,11 +53898,12 @@
   "disclosure": [
    "The engineer ran 6 smoke tests before the model's call and saw their held-out numbers; they count as tried.",
    "The model saw dev-month tables only, but his rules' wording and the setup definitions came from the strategy profile, built from every month, held-out ones included.",
-   "Kept means it held up on the held-out months, not that it is proven: small gains on about 100 trades can be luck after this many tries (story 27 tests that)."
+   "Kept means it held up on the held-out months, not that it is proven: small gains on about 100 trades can be luck after this many tries (results/how-sure.json tests that, story 28)."
   ],
   "luck_test": {
-   "story": "27",
-   "status": "not run"
+   "story": "28",
+   "status": "run",
+   "where": "results/how-sure.json"
   },
   "kept_all_trail_spy": true,
   "as_is": {
