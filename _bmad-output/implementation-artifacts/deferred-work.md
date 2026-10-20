@@ -41,3 +41,8 @@
 - source_spec: `_bmad-output/planning-artifacts/backend/stories/backend-1-verdict-api.md`
   summary: Move `fastapi` and `uvicorn` into an `api` dependency group or extra, so collectors and the backtest don't install them.
   evidence: They are in the shared main `dependencies` today; harmless but every lane installs them.
+
+## Deferred from: code review of PR #51, AGENTS.md adoption (2026-10-20)
+- Managed-block comment says edits inside are "replaced on refresh" and the block wraps the whole file, so a careless refresh could undo decisions and contracts changed by PR. Approved wording; revisit on the next bmad-project-context refresh (narrow the block or reword).
+- Other docs still name Ninoo as hosting: `app/README.md`, spec-day-trader-ai `SPEC.md` (86, 95), `lanes.md`, `architecture.md`, `stories.yaml`, `review-rubric.md`, `web/pack-ninoo.sh`. Pre-existing; small docs fix.
+- `web/deploy-vercel.sh --prod` can run from any branch worktree; a main-only guard would stop shipping unmerged `web/`, `results/` or `proofs/`. Pre-existing.
