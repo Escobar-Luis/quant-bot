@@ -8,7 +8,7 @@ One account, no deposits, gains and losses compound. The browser and the second 
 - Unpriced statuses (`not_triggered`, `too_late`, `no_bars`, options) are listed with no legs; the simulator skips and counts them.
 
 ## Sizing
-- Each new trade's first leg = `share` × account, where account = cash + open positions at cost, at that moment. `share` is the user's setting (default decided by Luis).
+- Each new trade's first leg = `share` × account, where account = cash + open positions at cost, at that moment. `share` is the user's setting: default 10%, adjustable (Luis, 2026-10-20).
 - Adds and trims keep his stated ratios; where he gave no size, an add is another `share`-sized slice capped at cash, and a trim sells half (as today).
 - Shorts are cash-secured: entry notional is reserved from cash. No margin, no borrowing.
 - Fractional shares allowed. A slice under $100, or no cash left, is skipped and counted; if the account can't fund a $100 slice, copying stops and the app shows the date.
