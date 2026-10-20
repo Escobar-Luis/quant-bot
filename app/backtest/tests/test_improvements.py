@@ -49,3 +49,39 @@ def test_rule_words_come_from_code():
     assert v == {"kind": "max_hold", "when": {"group": ["big tech"]}, "value": 60}
     assert I.describe(v, names) == "Leave 60 min after the first buy: big tech"
     assert I.describe(I.normalize(ok()), names) == "Skip: shorts, tsla"
+
+
+class _Leg:
+    def __init__(self, eid, ts, action="open"):
+        self.event_id, self.posted_ts, self.action = eid, ts, action
+
+
+class _Pos:
+    def __init__(self, legs, side="short"):
+        self.legs, self.side, self.why = legs, side, None
+
+
+class _Mod:
+    @staticmethod
+    def strategy_of(p):
+        return "short-resistance" if "resistance" in (p.why or "") else "other-shorts"
+
+
+def test_setup_uses_only_reasons_stated_by_the_first_fill():
+    p = _Pos([_Leg("a", 100.0), _Leg("b", 900.0, "add")])
+    whys = {"b": "into resistance"}
+    assert I.entry_setup(_Mod, p, whys, at=400.0) == "unknown"          # said after the first fill: not used
+    assert I.entry_setup(_Mod, p, whys, at=900.0) == "short-resistance"
+    assert I.entry_setup(_Mod, p, {"a": "gut call"}, at=400.0) == "other-shorts"
+
+
+def test_proposals_past_six_are_logged_not_dropped():
+    import pytest
+    from backtest import lpp
+    from backtest.common import DATA
+    if not (DATA / "lpp" / "events.jsonl").exists():
+        pytest.skip("needs the local data/ folder")
+    pos, base = I.headline(lpp, "v1", 5)
+    props = [{"text": f"Skip PLTR {i}", "kind": "skip", "when": {"ticker": ["PLTR"]}} for i in range(7)]
+    ev = I.evaluate(lpp, pos, base, props, 5)
+    assert len(ev["variants"]) == 6 and ev["rejected"] == [{"text": "Skip PLTR 6", "why": "over_6_proposals"}]

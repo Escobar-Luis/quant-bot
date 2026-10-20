@@ -45,15 +45,59 @@ KINDS = {
                 "(0.5 to 10)",
 }
 RANGES = {"max_hold": (5, 390), "stop_pct": (0.5, 10.0)}
+# The engineer's smoke tests of the machinery, run before the model's call with their sealed numbers seen
+# (notes/research/backtesting.md section 6). They count toward every variant tried.
+SMOKE_TESTS = [
+    {"rule": "Skip TSLA shorts", "priced": True},
+    {"rule": "No adds against the first buy, big tech", "priced": True, "same_as": "no_add_against big tech"},
+    {"rule": "Leave shorts 60 min after the first buy", "priced": True},
+    {"rule": "2% stop on every trade", "priced": True},
+    {"rule": "Only crypto-linked or hot small and mid caps", "priced": True},
+    {"rule": "Skip trades added to a loser", "priced": False, "why": "look_ahead_or_unknown_feature:adds"},
+]
+KEPT_LABEL = "held up (not proven)"
+DISCLOSURE = [
+    "The engineer ran 6 smoke tests before the model's call and saw their held-out numbers; they count as tried.",
+    "The model saw dev-month tables only, but his rules' wording and the setup definitions came from the "
+    "strategy profile, built from every month, held-out ones included.",
+    "Kept means it held up on the held-out months, not that it is proven: small gains on about 100 trades can be "
+    "luck after this many tries (story 27 tests that).",
+]
 KEEP_RULE = ("kept only if it beats the as-is copy on dev, does not lose on sealed, and keeps 30+ trades in each")
 
 
 # ---- features known at entry (the strategy_profile definitions) ---------------------------------------------
 
-def entry_features(mod, p) -> dict:
+UNKNOWN_SETUP = "unknown"
+
+
+def first_fill_ts(p, r, delay: int) -> float:
+    """The copy's first buy fill; a position not priced as-is: its first buy's post + delay."""
+    if r is not None and r.status == "priced":
+        return r.entry.ts
+    return min(lg.posted_ts for lg in p.legs if lg.action in ("open", "add")) + delay * 60
+
+
+def entry_setup(mod, p, whys: dict, at: float) -> str:
+    """His stated reason, only from legs posted at or before the first fill (no look-ahead); none: unknown."""
+    why = next((whys.get(lg.event_id) for lg in sorted(p.legs, key=lambda lg: lg.posted_ts)
+                if lg.posted_ts <= at and whys.get(lg.event_id)), None)
+    if not why:
+        return UNKNOWN_SETUP
+    q = copy.copy(p)
+    q.why = why
+    return mod.strategy_of(q)
+
+
+def entry_features(mod, p, whys: dict, at: float) -> dict:
     t = dt.datetime.fromtimestamp(p.legs[0].posted_ts, bars.ET)
     return {"side": p.side, "group": strategy.group_of(p.ticker), "ticker": p.ticker,
-            "time15": strategy.time15(t), "time30": strategy.time30(t), "setup": mod.strategy_of(p)}
+            "time15": strategy.time15(t), "time30": strategy.time30(t), "setup": entry_setup(mod, p, whys, at)}
+
+
+def all_features(mod, version: str, positions: list, base: dict, delay: int) -> dict:
+    whys = {e["event_id"]: e.get("why") for e in mod.load(version)}
+    return {p.pid: entry_features(mod, p, whys, first_fill_ts(p, base.get(p.pid), delay)) for p in positions}
 
 
 def describe(v: dict, setups_by_id: dict) -> str:
@@ -111,12 +155,12 @@ def normalize(v: dict) -> dict:
 
 # ---- code applies the change to his positions -----------------------------------------------------------------
 
-def apply(mod, positions: list, base: dict, v: dict, delay: int) -> list:
+def apply(mod, positions: list, base: dict, v: dict, delay: int, feats: dict) -> list:
     """Every headline position under the change: skipped, unchanged (the as-is Result), or re-priced."""
     out = []
     kind, when = v["kind"], v["when"]
     for p in positions:
-        hit = strategy.matches(entry_features(mod, p), when)
+        hit = strategy.matches(feats[p.pid], when)
         r0 = base[p.pid]
         if (kind == "skip" and hit) or (kind == "only" and not hit):
             continue
@@ -180,23 +224,23 @@ def decide(row: dict) -> dict:
     return row
 
 
-def evaluate(mod, positions: list, base: dict, proposals: list, delay: int) -> dict:
+def evaluate(mod, positions: list, base: dict, proposals: list, delay: int, version: str = "v1") -> dict:
     """Every number of the key, from the positions and the model's proposals (checked here)."""
     sealed_from = mod.WINDOW["sealed_from"]
     names = {s["id"]: s["name"] for s in mod.STRATEGIES}
-    feats = [entry_features(mod, p) for p in positions]
-    values = {k: {f[k] for f in feats} for k in ENTRY_FEATURES}
+    feats = all_features(mod, version, positions, base, delay)
+    values = {k: {f[k] for f in feats.values()} for k in ENTRY_FEATURES}
     as_is = split(list(base.values()), sealed_from)
     spy = spy_split(mod)
     variants, rejected = [], []
-    for raw in (proposals if isinstance(proposals, list) else [])[:MAX_VARIANTS]:
-        bad = check(raw, values)
+    for i, raw in enumerate(proposals if isinstance(proposals, list) else []):
+        bad = f"over_{MAX_VARIANTS}_proposals" if i >= MAX_VARIANTS else check(raw, values)
         if bad:
             rejected.append({"text": str((raw or {}).get("text") if isinstance(raw, dict) else raw)[:120],
                              "why": bad})
             continue
         v = normalize(raw)
-        got = split(apply(mod, positions, base, v, delay), sealed_from)
+        got = split(apply(mod, positions, base, v, delay, feats), sealed_from)
         row = {"id": f"V{len(variants) + 1}", "text": raw["text"].strip(), "rule": describe(v, names), **v,
                "why": str(raw.get("why") or "").strip() or None}
         for part in ("dev", "sealed"):
@@ -266,7 +310,7 @@ def key(mod, version: str, positions: list, base: dict, cached: dict | None, del
     """The `improvements` key (contracts.md): proposals from the cached reply, every number from code."""
     if not cached or not isinstance(cached.get("reply"), dict) or not isinstance(cached["reply"].get("changes"), list):
         return None
-    ev = evaluate(mod, positions, base, cached["reply"]["changes"], delay)
+    ev = evaluate(mod, positions, base, cached["reply"]["changes"], delay, version)
     tid = cached.get("trajectory_id")
     return {"agent_id": AGENT_ID, "prompt_version": PROMPT_VERSION, "model": cached.get("model"),
             "trajectory_id": tid, "prism_url": strategy.PRISM_RUN.format(tid) if tid else None,
@@ -276,7 +320,22 @@ def key(mod, version: str, positions: list, base: dict, cached: dict | None, del
             "basis": "The headline's positions (rule 13, all), each re-priced under the change, one full-window run "
                      "through the cash cap; dev and sealed are its slices by the first buy's day",
             "picked_on": "dev", "keep_rule": KEEP_RULE, "min_trades": MIN_TRADES,
+            "kept_label": KEPT_LABEL, "variants_tried": tried(ev), "disclosure": DISCLOSURE,
+            "luck_test": {"story": "27", "status": "not run"},
+            "kept_all_trail_spy": all(v["dev"]["vs_spy_pts"] < 0 and v["sealed"]["vs_spy_pts"] < 0
+                                      for v in ev["variants"] if v["kept"]),
             **ev}
+
+
+def tried(ev: dict) -> dict:
+    """Every variant tried: the model's priced proposals plus the engineer's smoke tests that priced and aren't
+    the same change as one of the model's."""
+    model = {f"{v['kind']} {' '.join(x for vals in v['when'].values() for x in vals)}" for v in ev["variants"]}
+    extra = [t for t in SMOKE_TESTS if t["priced"] and t.get("same_as") not in model]
+    return {"distinct_priced": len(ev["variants"]) + len(extra), "model_priced": len(ev["variants"]),
+            "model_rejected": len(ev["rejected"]), "smoke_tests_run": len(SMOKE_TESTS),
+            "smoke_tests_priced": sum(t["priced"] for t in SMOKE_TESTS), "smoke_tests": SMOKE_TESTS,
+            "log": "notes/research/backtesting.md, section 6"}
 
 
 # ---- run --------------------------------------------------------------------------------------------------------
