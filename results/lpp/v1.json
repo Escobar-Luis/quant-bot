@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T18:48:15Z",
- "git_sha": "69120ff567af3c3ca35c6af56d9fbe29f6b38416",
+ "generated_at": "2026-10-20T19:18:23Z",
+ "git_sha": "7ba00136a6ed3381d3144f1906af55c3c6bd2afa",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -37,6 +37,10 @@
   "what": "Buy and keep the S&P 500 (SPY)"
  },
  "headline_portfolio": "all",
+ "compare_with": {
+  "kind": "hold",
+  "name": "the S&P"
+ },
  "portfolios": [
   {
    "id": "all",
@@ -55,12 +59,17 @@
      "peak_invested_usd": 4726,
      "won_pct": 57,
      "worst_drop_pct": -5.5,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.52,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 9876.32,
@@ -74,12 +83,17 @@
      "peak_invested_usd": 4726,
      "won_pct": 54,
      "worst_drop_pct": -6.0,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.25,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 9763.83,
@@ -93,12 +107,17 @@
      "peak_invested_usd": 4715,
      "won_pct": 49,
      "worst_drop_pct": -6.3,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.16,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9792.76,
@@ -112,12 +131,17 @@
      "peak_invested_usd": 4707,
      "won_pct": 47,
      "worst_drop_pct": -5.5,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.5,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9730.22,
@@ -131,12 +155,17 @@
      "peak_invested_usd": 4702,
      "won_pct": 50,
      "worst_drop_pct": -5.2,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.22,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9796.7,
@@ -150,12 +179,17 @@
      "peak_invested_usd": 4717,
      "won_pct": 47,
      "worst_drop_pct": -5.4,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.31,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9729.64,
@@ -169,12 +203,17 @@
      "peak_invested_usd": 4730,
      "won_pct": 46,
      "worst_drop_pct": -6.1,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.04,
       "hold_ret_pct": 9.56,
-      "trades": 93
-     }
+      "trades": 93,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -2647,12 +2686,17 @@
      "peak_invested_usd": 4004,
      "won_pct": 60,
      "worst_drop_pct": -2.0,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.39,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10162.52,
@@ -2666,12 +2710,17 @@
      "peak_invested_usd": 3997,
      "won_pct": 56,
      "worst_drop_pct": -2.0,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.2,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 10040.72,
@@ -2685,12 +2734,17 @@
      "peak_invested_usd": 3993,
      "won_pct": 51,
      "worst_drop_pct": -2.3,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.2,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 10078.0,
@@ -2704,12 +2758,17 @@
      "peak_invested_usd": 3999,
      "won_pct": 47,
      "worst_drop_pct": -1.9,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.43,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 10127.56,
@@ -2723,12 +2782,17 @@
      "peak_invested_usd": 3999,
      "won_pct": 51,
      "worst_drop_pct": -1.9,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.2,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 10042.11,
@@ -2742,12 +2806,17 @@
      "peak_invested_usd": 3999,
      "won_pct": 47,
      "worst_drop_pct": -2.6,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.29,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9959.42,
@@ -2761,12 +2830,17 @@
      "peak_invested_usd": 4002,
      "won_pct": 45,
      "worst_drop_pct": -2.5,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.2,
       "hold_ret_pct": 9.56,
-      "trades": 81
-     }
+      "trades": 81,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -5239,12 +5313,17 @@
      "peak_invested_usd": 3004,
      "won_pct": 40,
      "worst_drop_pct": -4.6,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.13,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 9713.8,
@@ -5258,12 +5337,17 @@
      "peak_invested_usd": 2990,
      "won_pct": 40,
      "worst_drop_pct": -4.6,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.04,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 9723.11,
@@ -5277,12 +5361,17 @@
      "peak_invested_usd": 2985,
      "won_pct": 40,
      "worst_drop_pct": -4.5,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.96,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9714.75,
@@ -5296,12 +5385,17 @@
      "peak_invested_usd": 2981,
      "won_pct": 47,
      "worst_drop_pct": -4.7,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.06,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9602.66,
@@ -5315,12 +5409,17 @@
      "peak_invested_usd": 2983,
      "won_pct": 44,
      "worst_drop_pct": -5.3,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.02,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9754.59,
@@ -5334,12 +5433,17 @@
      "peak_invested_usd": 2997,
      "won_pct": 44,
      "worst_drop_pct": -4.2,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.6,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9770.21,
@@ -5353,12 +5457,17 @@
      "peak_invested_usd": 2998,
      "won_pct": 49,
      "worst_drop_pct": -4.3,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.16,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -36321,12 +36430,17 @@
      "peak_invested_usd": 3022,
      "won_pct": 60,
      "worst_drop_pct": -3.6,
-     "word": "No",
      "sealed": {
       "ret_pct": -3.1,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 9903.45,
@@ -36340,12 +36454,17 @@
      "peak_invested_usd": 3011,
      "won_pct": 58,
      "worst_drop_pct": -3.4,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.76,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 9839.73,
@@ -36359,12 +36478,17 @@
      "peak_invested_usd": 3004,
      "won_pct": 53,
      "worst_drop_pct": -3.6,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.66,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9831.03,
@@ -36378,12 +36502,17 @@
      "peak_invested_usd": 2998,
      "won_pct": 48,
      "worst_drop_pct": -3.5,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.51,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9717.05,
@@ -36397,12 +36526,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 48,
      "worst_drop_pct": -4.1,
-     "word": "No",
      "sealed": {
       "ret_pct": -2.58,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9750.52,
@@ -36416,12 +36550,17 @@
      "peak_invested_usd": 3024,
      "won_pct": 46,
      "worst_drop_pct": -3.9,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.56,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9809.65,
@@ -36435,12 +36574,17 @@
      "peak_invested_usd": 3027,
      "won_pct": 45,
      "worst_drop_pct": -2.4,
-     "word": "No",
      "sealed": {
       "ret_pct": -1.53,
       "hold_ret_pct": 9.56,
-      "trades": 34
-     }
+      "trades": 34,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -38408,12 +38552,17 @@
      "peak_invested_usd": 1990,
      "won_pct": 53,
      "worst_drop_pct": -2.1,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.02,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10001.44,
@@ -38427,12 +38576,17 @@
      "peak_invested_usd": 1994,
      "won_pct": 49,
      "worst_drop_pct": -2.2,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.08,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 10053.0,
@@ -38446,12 +38600,17 @@
      "peak_invested_usd": 1990,
      "won_pct": 55,
      "worst_drop_pct": -1.8,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.13,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 10016.78,
@@ -38465,12 +38624,17 @@
      "peak_invested_usd": 1987,
      "won_pct": 45,
      "worst_drop_pct": -2.1,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.05,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 10083.22,
@@ -38484,12 +38648,17 @@
      "peak_invested_usd": 2003,
      "won_pct": 53,
      "worst_drop_pct": -1.2,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.19,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 10201.51,
@@ -38503,12 +38672,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 55,
      "worst_drop_pct": -0.7,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.23,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 10035.32,
@@ -38522,12 +38696,17 @@
      "peak_invested_usd": 2019,
      "won_pct": 40,
      "worst_drop_pct": -2.2,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.16,
       "hold_ret_pct": 9.56,
-      "trades": 7
-     }
+      "trades": 7,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -40495,12 +40674,17 @@
      "peak_invested_usd": 2006,
      "won_pct": 63,
      "worst_drop_pct": -1.3,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.28,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 9951.52,
@@ -40514,12 +40698,17 @@
      "peak_invested_usd": 2004,
      "won_pct": 61,
      "worst_drop_pct": -1.2,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.06,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 9858.46,
@@ -40533,12 +40722,17 @@
      "peak_invested_usd": 1997,
      "won_pct": 43,
      "worst_drop_pct": -1.8,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.09,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9948.28,
@@ -40552,12 +40746,17 @@
      "peak_invested_usd": 2003,
      "won_pct": 50,
      "worst_drop_pct": -1.3,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.02,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9954.35,
@@ -40571,12 +40770,17 @@
      "peak_invested_usd": 1990,
      "won_pct": 54,
      "worst_drop_pct": -1.2,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.01,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9758.7,
@@ -40590,12 +40794,17 @@
      "peak_invested_usd": 1986,
      "won_pct": 46,
      "worst_drop_pct": -2.6,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.21,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9730.81,
@@ -40609,12 +40818,17 @@
      "peak_invested_usd": 1989,
      "won_pct": 50,
      "worst_drop_pct": -3.0,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.17,
       "hold_ret_pct": 9.56,
-      "trades": 14
-     }
+      "trades": 14,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -42582,12 +42796,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 46,
      "worst_drop_pct": -2.4,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.6,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 9890.34,
@@ -42601,12 +42820,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 44,
      "worst_drop_pct": -2.6,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.8,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 9890.14,
@@ -42620,12 +42844,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 44,
      "worst_drop_pct": -2.7,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.97,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9901.03,
@@ -42639,12 +42868,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 40,
      "worst_drop_pct": -2.1,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.45,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9955.35,
@@ -42658,12 +42892,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 52,
      "worst_drop_pct": -1.8,
-     "word": "No",
      "sealed": {
       "ret_pct": -0.11,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9986.03,
@@ -42677,12 +42916,17 @@
      "peak_invested_usd": 2002,
      "won_pct": 42,
      "worst_drop_pct": -1.8,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.14,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 10077.58,
@@ -42696,12 +42940,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 40,
      "worst_drop_pct": -1.3,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.59,
       "hold_ret_pct": 9.56,
-      "trades": 12
-     }
+      "trades": 12,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -44669,12 +44918,17 @@
      "peak_invested_usd": 2001,
      "won_pct": 57,
      "worst_drop_pct": -2.0,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.56,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10035.2,
@@ -44688,12 +44942,17 @@
      "peak_invested_usd": 2010,
      "won_pct": 53,
      "worst_drop_pct": -1.8,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.22,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 10028.12,
@@ -44707,12 +44966,17 @@
      "peak_invested_usd": 2014,
      "won_pct": 45,
      "worst_drop_pct": -1.6,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.3,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9951.61,
@@ -44726,12 +44990,17 @@
      "peak_invested_usd": 2010,
      "won_pct": 48,
      "worst_drop_pct": -1.6,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.21,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9875.63,
@@ -44745,12 +45014,17 @@
      "peak_invested_usd": 2010,
      "won_pct": 48,
      "worst_drop_pct": -1.9,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.46,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 10005.34,
@@ -44764,12 +45038,17 @@
      "peak_invested_usd": 2004,
      "won_pct": 42,
      "worst_drop_pct": -1.7,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.76,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9957.38,
@@ -44783,12 +45062,17 @@
      "peak_invested_usd": 2005,
      "won_pct": 45,
      "worst_drop_pct": -1.6,
-     "word": "No",
      "sealed": {
       "ret_pct": 0.56,
       "hold_ret_pct": 9.56,
-      "trades": 20
-     }
+      "trades": 20,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -46756,12 +47040,17 @@
      "peak_invested_usd": 1012,
      "won_pct": 63,
      "worst_drop_pct": -1.0,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.88,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10094.38,
@@ -46775,12 +47064,17 @@
      "peak_invested_usd": 1005,
      "won_pct": 53,
      "worst_drop_pct": -0.9,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 1.06,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 10094.38,
@@ -46794,12 +47088,17 @@
      "peak_invested_usd": 1004,
      "won_pct": 58,
      "worst_drop_pct": -0.9,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 1.12,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 10144.02,
@@ -46813,12 +47112,17 @@
      "peak_invested_usd": 1008,
      "won_pct": 58,
      "worst_drop_pct": -0.8,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 1.32,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 10144.63,
@@ -46832,12 +47136,17 @@
      "peak_invested_usd": 1005,
      "won_pct": 47,
      "worst_drop_pct": -0.7,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 1.19,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 10094.6,
@@ -46851,12 +47160,17 @@
      "peak_invested_usd": 1009,
      "won_pct": 63,
      "worst_drop_pct": -0.6,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.79,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 10118.9,
@@ -46870,12 +47184,17 @@
      "peak_invested_usd": 1021,
      "won_pct": 68,
      "worst_drop_pct": -0.4,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": 0.75,
       "hold_ret_pct": 9.56,
-      "trades": 6
-     }
+      "trades": 6,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "the S&P did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     }
    },
    "series": {
@@ -48798,7 +49117,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10032.14,
@@ -48806,7 +49127,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 9994.37,
@@ -48814,7 +49137,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9955.41,
@@ -48822,7 +49147,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9938.71,
@@ -48830,7 +49157,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9929.53,
@@ -48838,7 +49167,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9972.73,
@@ -48846,7 +49177,9 @@
      "hold_end": 10798.0,
      "hold_ret_pct": 7.98,
      "trades": 44,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    }
   },
@@ -48859,7 +49192,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10150.19,
@@ -48867,7 +49202,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 10075.71,
@@ -48875,7 +49212,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 9982.0,
@@ -48883,7 +49222,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9884.88,
@@ -48891,7 +49232,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 10070.74,
@@ -48899,7 +49242,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9808.95,
@@ -48907,7 +49252,9 @@
      "hold_end": 11095.54,
      "hold_ret_pct": 10.96,
      "trades": 100,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    }
   },
@@ -48920,7 +49267,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "3": {
      "end": 10119.18,
@@ -48928,7 +49277,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "5": {
      "end": 10000.91,
@@ -48936,7 +49287,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "10": {
      "end": 10006.01,
@@ -48944,7 +49297,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Made money",
+     "vs": "the S&P did better"
     },
     "15": {
      "end": 9909.76,
@@ -48952,7 +49307,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "30": {
      "end": 9905.99,
@@ -48960,7 +49317,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     },
     "60": {
      "end": 9769.92,
@@ -48968,7 +49327,9 @@
      "hold_end": 11737.03,
      "hold_ret_pct": 17.37,
      "trades": 289,
-     "word": "No"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "the S&P did better"
     }
    }
   }

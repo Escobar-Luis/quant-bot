@@ -6,8 +6,8 @@
  "source_agent_id": "extract-cryptowizard-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T18:48:17Z",
- "git_sha": "69120ff567af3c3ca35c6af56d9fbe29f6b38416",
+ "generated_at": "2026-10-20T19:18:23Z",
+ "git_sha": "7ba00136a6ed3381d3144f1906af55c3c6bd2afa",
  "window": {
   "start": "2025-10-17",
   "end": "2026-10-16",
@@ -37,6 +37,10 @@
   "what": "Buy and keep Bitcoin (BTC)"
  },
  "headline_portfolio": "all",
+ "compare_with": {
+  "kind": "hold",
+  "name": "Bitcoin"
+ },
  "portfolios": [
   {
    "id": "all",
@@ -55,12 +59,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 48,
      "worst_drop_pct": -8.1,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.24,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9253.5,
@@ -74,12 +83,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 48,
      "worst_drop_pct": -8.1,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.19,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9290.3,
@@ -93,12 +107,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 48,
      "worst_drop_pct": -7.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.08,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9296.69,
@@ -112,12 +131,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 46,
      "worst_drop_pct": -7.6,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.16,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9306.96,
@@ -131,12 +155,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 47,
      "worst_drop_pct": -7.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.1,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9353.91,
@@ -150,12 +179,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 47,
      "worst_drop_pct": -7.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.61,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9292.81,
@@ -169,12 +203,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 45,
      "worst_drop_pct": -7.9,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.29,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    },
    "series": {
@@ -3502,12 +3541,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 48,
      "worst_drop_pct": -8.1,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.24,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9253.5,
@@ -3521,12 +3565,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 48,
      "worst_drop_pct": -8.1,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.19,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9290.3,
@@ -3540,12 +3589,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 48,
      "worst_drop_pct": -7.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.08,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9296.69,
@@ -3559,12 +3613,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 46,
      "worst_drop_pct": -7.6,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.16,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9306.96,
@@ -3578,12 +3637,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 47,
      "worst_drop_pct": -7.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.1,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9353.91,
@@ -3597,12 +3661,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 47,
      "worst_drop_pct": -7.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.61,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9292.81,
@@ -3616,12 +3685,17 @@
      "peak_invested_usd": 5000,
      "won_pct": 45,
      "worst_drop_pct": -7.9,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.29,
       "hold_ret_pct": 26.04,
-      "trades": 35
-     }
+      "trades": 35,
+      "word": "No",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    },
    "series": {
@@ -18372,12 +18446,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 43,
      "worst_drop_pct": -3.0,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.05,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9722.99,
@@ -18391,12 +18470,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 43,
      "worst_drop_pct": -3.1,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.03,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9729.81,
@@ -18410,12 +18494,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 43,
      "worst_drop_pct": -3.0,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.0,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Broke even",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9775.05,
@@ -18429,12 +18518,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 43,
      "worst_drop_pct": -2.6,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.11,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9766.7,
@@ -18448,12 +18542,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 43,
      "worst_drop_pct": -2.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.17,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9784.77,
@@ -18467,12 +18566,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 45,
      "worst_drop_pct": -2.4,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.12,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9801.29,
@@ -18486,12 +18590,17 @@
      "peak_invested_usd": 2000,
      "won_pct": 40,
      "worst_drop_pct": -2.2,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.02,
       "hold_ret_pct": 26.04,
-      "trades": 10
-     }
+      "trades": 10,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    },
    "series": {
@@ -21124,12 +21233,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 51,
      "worst_drop_pct": -5.0,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.1,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9568.42,
@@ -21143,12 +21257,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 51,
      "worst_drop_pct": -4.9,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.06,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9601.59,
@@ -21162,12 +21281,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 51,
      "worst_drop_pct": -4.6,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.13,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9562.95,
@@ -21181,12 +21305,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 50,
      "worst_drop_pct": -4.8,
-     "word": "Yes",
      "sealed": {
       "ret_pct": -0.05,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9593.68,
@@ -21200,12 +21329,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 53,
      "worst_drop_pct": -4.7,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.17,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9625.71,
@@ -21219,12 +21353,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 53,
      "worst_drop_pct": -5.1,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.75,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9558.75,
@@ -21238,12 +21377,17 @@
      "peak_invested_usd": 3000,
      "won_pct": 51,
      "worst_drop_pct": -5.8,
-     "word": "Yes",
      "sealed": {
       "ret_pct": 0.66,
       "hold_ret_pct": 26.04,
-      "trades": 23
-     }
+      "trades": 23,
+      "word": "Not enough trades",
+      "outcome": "Made money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    },
    "series": {
@@ -23876,12 +24020,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 42,
      "worst_drop_pct": -0.5,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.19,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9962.09,
@@ -23895,12 +24044,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 42,
      "worst_drop_pct": -0.5,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.22,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9958.9,
@@ -23914,12 +24068,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 42,
      "worst_drop_pct": -0.5,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.21,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9958.69,
@@ -23933,12 +24092,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 33,
      "worst_drop_pct": -0.5,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.22,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9946.58,
@@ -23952,12 +24116,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 25,
      "worst_drop_pct": -0.5,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.24,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9943.44,
@@ -23971,12 +24140,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 17,
      "worst_drop_pct": -0.6,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.26,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9932.77,
@@ -23990,12 +24164,17 @@
      "peak_invested_usd": 1000,
      "won_pct": 25,
      "worst_drop_pct": -0.7,
-     "word": "Not enough trades",
      "sealed": {
       "ret_pct": -0.34,
       "hold_ret_pct": 26.04,
-      "trades": 2
-     }
+      "trades": 2,
+      "word": "Not enough trades",
+      "outcome": "Lost money",
+      "vs": "Bitcoin did better"
+     },
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    },
    "series": {
@@ -26583,7 +26762,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9771.22,
@@ -26591,7 +26772,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9770.38,
@@ -26599,7 +26782,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9794.1,
@@ -26607,7 +26792,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9800.54,
@@ -26615,7 +26802,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9801.03,
@@ -26623,7 +26812,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9795.89,
@@ -26631,7 +26822,9 @@
      "hold_end": 8831.42,
      "hold_ret_pct": -11.69,
      "trades": 27,
-     "word": "Not enough trades"
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    }
   },
@@ -26644,7 +26837,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9713.59,
@@ -26652,7 +26847,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9725.18,
@@ -26660,7 +26857,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9752.11,
@@ -26668,7 +26867,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9744.23,
@@ -26676,7 +26877,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9762.91,
@@ -26684,7 +26887,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9813.82,
@@ -26692,7 +26897,9 @@
      "hold_end": 6946.24,
      "hold_ret_pct": -30.54,
      "trades": 45,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    }
   },
@@ -26705,7 +26912,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "3": {
      "end": 9253.5,
@@ -26713,7 +26922,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "5": {
      "end": 9290.3,
@@ -26721,7 +26932,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "10": {
      "end": 9296.69,
@@ -26729,7 +26942,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "15": {
      "end": 9306.96,
@@ -26737,7 +26952,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "30": {
      "end": 9353.91,
@@ -26745,7 +26962,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     },
     "60": {
      "end": 9292.81,
@@ -26753,7 +26972,9 @@
      "hold_end": 7543.43,
      "hold_ret_pct": -24.57,
      "trades": 122,
-     "word": "Yes"
+     "word": "No",
+     "outcome": "Lost money",
+     "vs": "less than Bitcoin"
     }
    }
   }
