@@ -135,6 +135,7 @@ Rules for the file:
 | `daytrader-verdict-v1`, `daytrader-verdict-v2` | The verdict for one course and results version | story 2 |
 | `daytrader-improver-v1` | One proposed change (later, CAP-9) | story 1 |
 | `daytrader-strategy-v1` | LPP's strategy as rules from the copied trades (spec-audit CAP-14); `conversation_id` `strategy-lpp-<version>` | spec-audit story 19 (`app/backtest/strategy.py`) |
+| `daytrader-improver-v2` | Up to 6 rule changes from LPP's losses, as code filters on his trades (spec-audit CAP-15); `conversation_id` `improve-lpp-<version>` | spec-audit story 20 (`app/backtest/improvements.py`, `python -m backtest.improver --v2`) |
 
 ## Trace and step conventions
 
@@ -246,3 +247,40 @@ LPP v1 only (a proof-set file has none, rule 9). Written by `app/backtest/strate
                   "kept_if": {"min_trades": 15, "min_follows_pct": 60}, "pattern_min_trades": 15}
 }
 ```
+
+## `improvements` (additive, optional; spec-audit CAP-15, story audit-20-improve)
+
+LPP v1 only (a proof-set file has none, rule 9). Written by `app/backtest/improvements.py` (`python -m backtest.improver --v2`; `backtest.run` re-attaches it from the cached model reply in `data/improver/v2/`, recomputing every number), reconciled by `app/audit` (`audit.improvements`, from the audit's own positions and calculator), shown by `web/` as the "What would have helped" card; a missing key hides the card. `schema` stays `results/1`.
+
+1. **Proposals (model, `daytrader-improver-v2`):** given only the `strategy_profile` tables, setups and losing patterns recomputed on the **dev months** (first buy before `window.sealed_from`), and his rules' wording, the model proposes up to 6 changes: `text` (≤ 20 words), `kind`, `when` (a condition as in `strategy_profile` rule 4), `value`, `why` (≤ 15 words). It never sees a sealed-month number.
+2. **Code checks and applies each change** to every headline position (rule 13, portfolio `all`, `delay_min` 5). `when` may use only features known when the first buy fills: `side`, `group`, `ticker`, `time15`, `time30`, `setup` (definitions: `strategy_profile.definitions`); anything else is rejected (`look_ahead_or_unknown_feature`), as are kinds off the menu, values out of range, text over 20 words, and `skip`/`only` with an empty `when`. Rejected proposals are listed in `rejected` with the check. Kinds:
+   - `skip`: positions matching `when` are not copied. `only`: only positions matching `when` are copied.
+   - `no_add_against`: in a matching position, every `add` leg after the first buy whose fill (the open of the first 1-minute bar at or after its post + delay) is worse than the copy's first buy fill (higher for a short, lower for a long; equal is not worse) is removed; the position is then re-priced as usual (rules 1–6, 13).
+   - `max_hold` (`value` minutes, 5–390): a matching position's default exit becomes the earlier of its own (rule 13b; 15:55 ET of the first post's session for a day trade) and the copy's first buy fill time + `value` minutes; stated exits before it still apply.
+   - `stop_pct` (`value` %, 0.5–10): a matching position gets a stop `value` % against the copy's first buy fill price (long: × (1 − v/100), short: × (1 + v/100)); a stated stop that is tighter stays. Rule 4's stop handling applies.
+   A position that doesn't match, or wasn't priced as-is, keeps its as-is result. Re-pricing never changes the first buy (the change is decided from it).
+3. **Numbers:** one full-window run of the changed positions through the cash cap (rule 6); a trade is **dev** when its first buy's ET day is before `sealed_from`, else **sealed**. `ret_pct` = the part's summed copied P&L / $10,000 (0.01 pt; as the headline's sealed block). `as_is` is the same with no change (dev + sealed = the headline's `end − 10,000`; sealed = `portfolios[all].by_delay["5"].sealed.ret_pct`). `spy`: SPY total return from by_year's holding run (rule 4 of by_year): `dev_ret_pct` = value at `dev_to` (the last close before `sealed_from`) / $10,000 − 1; `sealed_ret_pct` = value at the window's last close / value at `dev_to` − 1. Per part: `trades`, `ret_pct`, `as_is_ret_pct`, `vs_as_is_pts`, `spy_ret_pct`, `vs_spy_pts` (gaps 0.01 pt).
+4. **Kept** (code): only when dev `vs_as_is_pts` > 0 (it beats the as-is copy where it was picked) AND sealed `vs_as_is_pts` ≥ 0 (it does not lose on the held-out months) AND `trades` ≥ `min_trades` (30) in dev and in sealed. `kept_reason` says which test failed: "fewer than 30 trades left …", "no gain on the months it was picked on (dev)", "gained on dev, lost on the held-out (sealed) months", or "gained on dev and did not lose on the held-out (sealed) months". Nothing is re-tuned after the sealed numbers are read; every variant tried is logged in `notes/research/backtesting.md`.
+5. `rule` is the change in plain words, by code (what was tested); `text` and `why` are the model's.
+
+```json
+"improvements": {
+  "agent_id": "daytrader-improver-v2", "prompt_version": "improver-v2", "model": "anthropic/claude-sonnet-5-5",
+  "trajectory_id": "…", "prism_url": "https://prism.blockconvey.com/trajectories/…",
+  "version": "v1", "portfolio": "all", "delay_min": 5,
+  "window": {"dev_from": "2024-08-15", "sealed_from": "2025-06-12", "sealed_to": "2025-09-12"},
+  "basis": "…", "picked_on": "dev", "keep_rule": "…", "min_trades": 30,
+  "as_is": {"dev": {"trades": 239, "ret_pct": -4.73}, "sealed": {"trades": 103, "ret_pct": 2.08}},
+  "spy": {"symbol": "SPY", "basis": "total_return", "dev_to": "2025-06-11", "dev_ret_pct": 10.47, "sealed_ret_pct": 9.64},
+  "variants": [{"id": "V1", "text": "In big tech trades, skip adds priced worse than the first buy's fill",
+                "rule": "No adds below the first buy (above it for shorts): big tech",
+                "kind": "no_add_against", "when": {"group": ["big tech"]}, "why": "…",
+                "dev": {"trades": 239, "ret_pct": 6.94, "as_is_ret_pct": -4.73, "vs_as_is_pts": 11.67,
+                        "spy_ret_pct": 10.47, "vs_spy_pts": -3.53},
+                "sealed": {"trades": 104, "ret_pct": 4.12, "as_is_ret_pct": 2.08, "vs_as_is_pts": 2.04,
+                           "spy_ret_pct": 9.64, "vs_spy_pts": -5.52},
+                "kept": true, "kept_reason": "gained on dev and did not lose on the held-out (sealed) months"}],
+  "rejected": [{"text": "…", "why": "look_ahead_or_unknown_feature:adds"}]
+}
+```
+
