@@ -20,22 +20,22 @@ Code: `app/backtest/strategy.py` (`cd app && uv run python -m backtest.strategy`
 
 1. Trades: the headline's 342 copied trades (rule 13, no look-ahead; portfolio `all`; entered 5 min after each post; after the cash cap). 187 sessions, 2024-08-15 to 2025-09-12. Copied P&L −$264.55 (the headline's $9,735.45), 50% won.
 2. Features per trade, by code: ticker and its group, long or short, the ET time he posted the first leg, his stated reason (the keyword setups from `app/backtest/lpp.py`), adds (to a loser: any add at a worse price than his average so far), how it ended (stated on the stream, or assumed at 15:55 ET), hold time, his size on the first buy, and his trades that day.
-3. Model step (`daytrader-strategy-v1`, Claude Sonnet via Nicrron): given only the tables and 40 short rule quotes, it proposed 8 rules, each with a checkable `when` (situation) and `does` (what he does). Code kept a rule only with 15+ trades and followed 60%+ of the time: all 8 passed. PRISM run: https://prism.blockconvey.com/trajectories/678d0b05-4e5a-45d8-9bd7-08e9b22ef604. Spend: $0.08 of the $3 cap (two calls: prompt strategy-v1, then strategy-v1.1 asking for specific rules and quotes that agree; replies cached in `data/lpp/strategy/`).
+3. Model step (`daytrader-strategy-v1`, Claude Sonnet via Nicrron): given only the tables and 40 short rule quotes, it proposed 8 rules, each with a checkable `when` (situation) and `does` (what he does). Code kept a rule only with 15+ trades and followed 60%+ of the time, and drops a rule whose `does` repeats its `when` or allows every value: all 8 passed. Hedge words ("usually", "almost always") are replaced by the measured share. PRISM run: https://prism.blockconvey.com/trajectories/678d0b05-4e5a-45d8-9bd7-08e9b22ef604. Spend: $0.08 of the $3 cap (two calls: prompt strategy-v1, then strategy-v1.1 asking for specific rules and quotes that agree; replies cached in `data/lpp/strategy/`).
 
 ## 2. The rules (code-checked; P&L is the copied P&L of the trades that follow the rule)
 
-| # | Rule (model's wording) | Situation | Follows | Trades | Won | P&L |
+| # | Rule (model's wording, hedges replaced by the measured share) | Situation | Follows | Trades | Won | P&L |
 |---|---|---|---|---|---|---|
-| S1 | He mostly trades the short side, betting stocks will fall, in about four of every five trades | all 342 | 80.1% | 274 | 51% | −$610.85 |
-| S2 | He opens most trades in the first half hour after the market opens | all 342 | 70.5% | 241 | 52% | −$334.64 |
-| S3 | When he trades Tesla, he is almost always betting it will fall | 83 TSLA | 78.3% | 65 | 45% | −$1,613.39 |
-| S4 | He shorts hot small and mid caps after a big run-up, in the first hour of trading | 45 | 93.3% | 42 | 57% | +$568.72 |
-| S5 | His crypto-linked trades, such as Coinbase and MicroStrategy, are mostly shorts | 61 | 85.2% | 52 | 54% | +$569.49 |
-| S6 | When he buys a dip, he enters in the opening half hour | 49 | 61.2% | 30 | 43% | +$16.85 |
-| S7 | When he adds to a losing trade, he usually ends up holding it for three hours or more | 133 | 66.2% | 88 | 38% | −$1,942.65 |
-| S8 | He keeps his first buy under $50,000, usually $10,000 to $50,000 | all 342 | 64.9% | 222 | 54% | −$104.96 |
+| S1 | He trades the short side, betting stocks will fall (80% of the time).  | all 342 | 80.1% | 274 | 51% | −$610.85 |
+| S2 | He opens trades in the first half hour after the market opens (71% of the time).  | all 342 | 70.5% | 241 | 52% | −$334.64 |
+| S3 | When he trades Tesla, he is betting it will fall (78% of the time).  | 83 TSLA | 78.3% | 65 | 45% | −$1,613.39 |
+| S4 | He shorts hot small and mid caps after a big run-up, in the first hour of trading (93% of the time).  | 45 | 93.3% | 42 | 57% | +$568.72 |
+| S5 | His crypto-linked trades, such as Coinbase and MicroStrategy, are shorts (85% of the time).  | 61 | 85.2% | 52 | 54% | +$569.49 |
+| S6 | When he buys a dip, he enters in the opening half hour (61% of the time).  | 49 | 61.2% | 30 | 43% | +$16.85 |
+| S7 | When he adds to a losing trade, he ends up holding it for three hours or more (66% of the time).  | 133 | 66.2% | 88 | 38% | −$1,942.65 |
+| S8 | He keeps his first buy under $50,000, $10,000 to $50,000 (65% of the time).  | all 342 | 64.9% | 222 | 54% | −$104.96 |
 
-Quotes the model attached (his own words): "I want to wait for those overbought levels" (2025-01-21, S4); "just be mindful of your position size" (2025-03-07, S8); "remember if you enter early watch that position size" (2025-02-14, S2). S1's quote ("an overbought oversold reversal setup") doesn't say he mostly shorts: quotes are the model's pick and not code-checked (story 25).
+Quotes the model attached (his own words): "I want to wait for those overbought levels" (2025-01-21, S4); "remember if you enter early watch that position size" (2025-02-14, S2). Review of PR #67: S1's quote (a reversal setup) and S8's (mind your size) don't say what their rule says, so both show no quote (`quote_hidden`); story 25 checks every pair.
 
 ## 3. The tables (342 trades)
 

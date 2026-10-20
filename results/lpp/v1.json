@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T20:35:14Z",
- "git_sha": "7a1b6f09ab73f3231335b2874086b2acf41ba374",
+ "generated_at": "2026-10-20T20:52:14Z",
+ "git_sha": "7e0012ed6cf0512d7b19cd6cdfd0f80472233c7e",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -51842,7 +51842,8 @@
   "rules": [
    {
     "id": "S1",
-    "text": "He mostly trades the short side, betting stocks will fall, in about four of every five trades.",
+    "text": "He trades the short side, betting stocks will fall (80% of the time).",
+    "proposed_text": "He mostly trades the short side, betting stocks will fall, in about four of every five trades.",
     "when": {},
     "does": {
      "side": [
@@ -51857,18 +51858,13 @@
     "avg_win_usd": 45.96,
     "avg_loss_usd": -51.85,
     "share_pct": 80.1,
-    "quote": {
-     "text": "it's just an overbought oversold reversal setup",
-     "cite": {
-      "source_id": "lpp:2024-11-13",
-      "locator": "t=2484s",
-      "label": "Live session, 2024-11-13, 41:24"
-     }
-    }
+    "quote": null,
+    "quote_hidden": "says a reversal setup, not that he mostly shorts"
    },
    {
     "id": "S2",
-    "text": "He opens most trades in the first half hour after the market opens.",
+    "text": "He opens trades in the first half hour after the market opens (71% of the time).",
+    "proposed_text": "He opens most trades in the first half hour after the market opens.",
     "when": {},
     "does": {
      "time30": [
@@ -51894,7 +51890,8 @@
    },
    {
     "id": "S3",
-    "text": "When he trades Tesla, he is almost always betting it will fall.",
+    "text": "When he trades Tesla, he is betting it will fall (78% of the time).",
+    "proposed_text": "When he trades Tesla, he is almost always betting it will fall.",
     "when": {
      "ticker": [
       "TSLA"
@@ -51917,7 +51914,8 @@
    },
    {
     "id": "S4",
-    "text": "He shorts hot small and mid caps after a big run-up, in the first hour of trading.",
+    "text": "He shorts hot small and mid caps after a big run-up, in the first hour of trading (93% of the time).",
+    "proposed_text": "He shorts hot small and mid caps after a big run-up, in the first hour of trading.",
     "when": {
      "group": [
       "hot small and mid caps"
@@ -51954,7 +51952,8 @@
    },
    {
     "id": "S5",
-    "text": "His crypto-linked trades, such as Coinbase and MicroStrategy, are mostly shorts.",
+    "text": "His crypto-linked trades, such as Coinbase and MicroStrategy, are shorts (85% of the time).",
+    "proposed_text": "His crypto-linked trades, such as Coinbase and MicroStrategy, are mostly shorts.",
     "when": {
      "group": [
       "crypto-linked"
@@ -51984,7 +51983,8 @@
    },
    {
     "id": "S6",
-    "text": "When he buys a dip, he enters in the opening half hour.",
+    "text": "When he buys a dip, he enters in the opening half hour (61% of the time).",
+    "proposed_text": "When he buys a dip, he enters in the opening half hour.",
     "when": {
      "setup": [
       "buy-the-dip"
@@ -52010,7 +52010,8 @@
    },
    {
     "id": "S7",
-    "text": "When he adds to a losing trade, he usually ends up holding it for three hours or more.",
+    "text": "When he adds to a losing trade, he ends up holding it for three hours or more (66% of the time).",
+    "proposed_text": "When he adds to a losing trade, he usually ends up holding it for three hours or more.",
     "when": {
      "adds": [
       "to_loser"
@@ -52033,7 +52034,8 @@
    },
    {
     "id": "S8",
-    "text": "He keeps his first buy under $50,000, usually $10,000 to $50,000.",
+    "text": "He keeps his first buy under $50,000, $10,000 to $50,000 (65% of the time).",
+    "proposed_text": "He keeps his first buy under $50,000, usually $10,000 to $50,000.",
     "when": {},
     "does": {
      "size": [
@@ -52049,14 +52051,8 @@
     "avg_win_usd": 53.54,
     "avg_loss_usd": -64.02,
     "share_pct": 64.9,
-    "quote": {
-     "text": "just be mindful of your position size",
-     "cite": {
-      "source_id": "lpp:2025-03-07",
-      "locator": "t=750s",
-      "label": "Live session, 2025-03-07, 12:30"
-     }
-    }
+    "quote": null,
+    "quote_hidden": "says mind your size, not his size range"
    }
   ],
   "dropped": [],
