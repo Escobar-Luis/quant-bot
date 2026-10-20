@@ -1,7 +1,7 @@
 """The second calculator: contracts.md's copy-trade rules, written again from the contract alone.
 
-It reuses only the course loaders' positions (the same list of trades to copy); every price, size, cost, exit and
-portfolio number is worked out here from cached bars. Where the contract is silent, the choice made is written
+It prices positions built by audit.positions from the events (never the engine's); every price, size, cost, exit
+and portfolio number is worked out here from cached bars. Where the contract is silent, the choice made is written
 next to the code as ASSUMPTION, so a mismatch with the engine can be traced to a rule, not a guess.
 """
 import datetime as dt
@@ -77,7 +77,8 @@ def horizon_ts(p, entry_ts: int) -> int:
 SIZINGS = ("first", "trade")
 # Rule 6 says LPP "scales the host's share counts so each trade starts at $1,000, keeping his add/trim ratios".
 #   first: read literally: the first entry is $1,000; later adds and trims are his counts times the same factor.
-#   trade: the engine's reading (inferred from its ledger output, not its code): all his entries together are
+#   trade: inferred from the engine's ledger output (not its code), then written into contracts.md rule 6, and
+#          superseded by the bankroll model (spec-audit CAP-9): all his entries together are
 #          $1,000 at the first fill price, in his ratios (an entry with no count takes the upper median of his stated counts);
 #          a trim sells the share of his own stated holding that he trimmed (no size: half).
 DEFAULT_SIZING = "trade"   # contracts.md rule 6 (clarified 2026-10-20): all of a trade's buys together scale to $1,000
