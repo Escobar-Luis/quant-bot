@@ -440,8 +440,9 @@ function renderLab(c) {
   $('#labRules').innerHTML = L.rules.map(rule => {
     const rows = rule.universes.map(u => run(rule.id, u, rule.id === 'C' ? 'control' : 'P')).filter(Boolean);
     if (rule.id === 'C') {
-      const best = rows.reduce((a, b) => (b.ret_pct > a.ret_pct ? b : a), rows[0]);
-      return `<li><p class="h-text">${esc(rule.label)}</p><p class="h-num mono num">Every day, no signal: best of ${rows.length} lists ${pct(best.ret_pct)} · ${esc(best.word)}</p></li>`;
+      const LIST = { 'his-hot': 'his hot', 'his-crypto': 'his crypto', 'new-hot': 'other hot', 'new-crypto': 'other crypto' };
+      return `<li><p class="h-text">${esc(rule.label)}: every day, no signal</p><p class="h-num mono num">${rows.map(r =>
+        `${esc(LIST[r.universe])} <b class="${r.ret_pct < 0 ? 'neg' : 'pos'}">${pct(r.ret_pct)}</b> (${pct(r.costs.x2.ret_pct)} at 2× costs)`).join(' · ')}</p></li>`;
     }
     return `<li><p class="h-text">${esc(rule.id)} · ${esc(rule.text)}</p>${rows.map(line).join('')}</li>`;
   }).join('');
