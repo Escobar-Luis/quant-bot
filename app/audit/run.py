@@ -11,8 +11,8 @@ For each results file:
   3. trades: the audit's own positions go through the second calculator (audit.calc) at every delay; each trade
      (status, entry and exit time and price, P&L, and every fill) is checked against the ledger, and the trades
      the results file shows are checked directly: 1 cent at stored precision, times exact;
-  4. headlines, per testable portfolio and delay (plus `same_sessions` and LPP's `as_taught`, the rule 11 ledger
-     with rule 6's whole-trade sizing, rebuilt by the audit's own as-taught ledger): end, return, just-holding end and
+  4. headlines, per testable portfolio and delay (plus `same_sessions` and LPP's provisional `no_look_ahead`,
+     rule 13's ledger and sizing, rebuilt by the audit's own rule 13 ledger): end, return, just-holding end and
      return, trades, not_triggered, couldnt_copy, sized_down, won_pct, worst_drop_pct, word and the sealed block.
 Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
 proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
@@ -45,13 +45,13 @@ MARKET = {"lpp": "us_equities", "ziptrader": "us_equities", "cryptowizard": "cry
 HOLD_BARS = {"SPY": "SPY", "BTC": "BTCUSDT"}
 
 NOTES = {
-    "sizing": "LPP sizing 'known' (contracts.md rule 13e, no look-ahead): the first buy is $1,000; each add is "
-              "sized from the counts he had stated by then; a trim sells his stated share of his holding. The "
-              "as-taught reading 'trade' (all of a trade's buys together are $1,000, which reads later adds) is "
-              "checked only on the results file's `as_taught` block. Both are superseded by the bankroll model "
-              "(spec-audit CAP-9).",
-    "ledger": "LPP positions follow contracts.md rule 13 (a position stays overnight only on a horizon he said "
-              "before 15:55 ET); rule 11's next-word carry is rebuilt only for `as_taught`.",
+    "sizing": "LPP sizing 'trade' (rule 6 as taught, the headline: all of a trade's buys together are $1,000, in "
+              "his ratios, which reads later adds; a trim sells his stated share of his holding). 'known' (rule "
+              "13e, no look-ahead) is checked on the results file's provisional `no_look_ahead` block. Both are "
+              "superseded by the bankroll model (spec-audit CAP-9).",
+    "ledger": "LPP positions follow contracts.md rule 11 (the headline, reads his next word); rule 13's ledger "
+              "is rebuilt for `no_look_ahead`.",
+    "cash": "Rule 6's cash cap is applied per buy as it fills (2026-10-20), never reserving money for later adds.",
     "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last "
                   "1-minute bar's close is reported as an alternative (--hold-close minute).",
 }
@@ -209,7 +209,7 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
     loader_math: dict[str, dict] = {}
     worst, checked = 0.0, 0
 
-    def own_positions(ver, only, label, ledger="no_look_ahead"):
+    def own_positions(ver, only, label, ledger="as_taught"):
         rep = P.compare(course, ver, only, ledger)
         position_reports[label] = {k: rep[k] for k in ("loader_positions", "audit_positions", "differences",
                                                        "positions_differing", "by_field")}
@@ -260,7 +260,7 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
                     worst = max(worst, w)
         return mine
 
-    def math_only(ver, only, ledger_name, portfolios, ledger="no_look_ahead", sz=None):
+    def math_only(ver, only, ledger_name, portfolios, ledger="as_taught", sz=None):
         """The same reconciliation on the loaders' own positions: what is left is the math alone."""
         mm, cmp, unv = [], [], []
         run_set(P.loader_positions(course, ver, only, ledger), ledger_name, portfolios, mm, cmp, unv, main=False,
@@ -299,12 +299,12 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
         run_set(base, "-same_sessions", ss)
         math_only(same["version"], srcs, "-same_sessions", ss)
 
-    if d.get("as_taught"):
-        # rule 11's ledger and rule 6's whole-trade sizing (both read later words), kept visible beside rule 13
-        tp = [(x["id"], x["by_delay"]) for x in d["as_taught"]["portfolios"]]
-        taught = own_positions(version, only, f"{version}-as_taught", "as_taught")
-        run_set(taught, "-as_taught", tp, sz="trade")
-        math_only(version, only, "-as_taught", tp, "as_taught", "trade")
+    if d.get("no_look_ahead"):
+        # rule 13 (provisional): its own ledger and sizing, beside the as-taught headline
+        tp = [(x["id"], x["by_delay"]) for x in d["no_look_ahead"]["portfolios"]]
+        nla = own_positions(version, only, f"{version}-no_look_ahead", "no_look_ahead")
+        run_set(nla, "-no_look_ahead", tp, sz="known")
+        math_only(version, only, "-no_look_ahead", tp, "no_look_ahead", "known")
 
     hold_note = {"symbol": symbol, "first_open": hold_row["px0"], "official_close": hold_row["official_close"],
                  "minute_close": hold_row["minute_close"], "used": hold_row["used"],
@@ -364,9 +364,9 @@ def main(argv=None) -> int:
     ap.add_argument("--out-dir", default=str(DATA / "audit"))
     ap.add_argument("--proofs", default=str(PROOFS / "audit.json"), help="'' to skip writing it")
     ap.add_argument("--sizing", choices=calc.SIZINGS, default=calc.DEFAULT_SIZING,
-                    help="LPP sizing: known = rule 13(e), no look-ahead (default); trade = rule 6 as taught, all "
-                         "of a trade's buys together are $1,000; first = his first entry is $1,000, adds at the "
-                         "same factor")
+                    help="LPP sizing: trade = rule 6 as taught, all of a trade's buys together are $1,000 "
+                         "(default, the headline); known = rule 13(e), no look-ahead; first = his first entry is "
+                         "$1,000, adds at the same factor")
     ap.add_argument("--hold-close", choices=calc.HOLD_CLOSES, default=calc.DEFAULT_HOLD_CLOSE,
                     help="rule 7's last price: official = the session close (daily cache); minute = last 1-min bar")
     ap.add_argument("--only", action="append", help="course/version, e.g. lpp/v1 (repeatable)")

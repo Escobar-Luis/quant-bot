@@ -27,8 +27,8 @@ def test_calc_matches_the_contract(case, use_bars):
         assert got["pnl"] == pytest.approx(case.expect["pnl"], abs=1e-9), case.why
 
 
-def test_calc_cash_rule_has_no_minimum():
-    trades, want = S.cash_case()
+@pytest.mark.parametrize("name,trades,want", S.cash_cases(), ids=[c[0] for c in S.cash_cases()])
+def test_calc_cash_rule_per_buy(name, trades, want):
     assert S.audit_cash(trades) == want
 
 

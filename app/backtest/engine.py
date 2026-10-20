@@ -281,6 +281,7 @@ def _simulate(p: Position, delay_min: int) -> Result:
                     med = said_by(leg)
                     c_first, c_add = first_leg.qty or med, leg.qty or med
                     qty = first_qty * (c_add / c_first if c_first and c_add else 1.0)
+                    qty = min(qty, max(0.0, MONEY_START / px - held))   # 13(e): never past $10,000 held
             elif leg.qty:
                 qty = leg.qty
             else:
@@ -355,34 +356,62 @@ def word(trades: int, ret_pct: float, hold_ret_pct: float) -> str:
 MIN_CASH_USD = 1.0   # at $1 of cash or less a trade is couldn't-copy: no sub-dollar trade counts toward rule 9's 30
 
 
-def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int, int]:
-    """Copy trades in entry order with $10k of cash: a trade uses its entry money until it exits, and realized
-    gains or losses change the cash. When open trades leave too little, the next trade is sized down to what is
-    left, or skipped when $1 or less is left (counted as "couldn't copy"), so the account never spends money it
-    doesn't have. Rule 6 names no minimum size; the $1 floor only keeps sub-dollar trades out of the count."""
-    kept, sized_down, skipped, peak = [], 0, 0, 0.0
-    open_: list[tuple[int, float, float]] = []      # (exit ts, money in use, pnl to book at exit)
-    cash = MONEY_START
-    for r in sorted(results, key=lambda r: r.entry.ts):
-        still = []
-        for ts, used, pnl in open_:
-            if ts <= r.entry.ts:
-                cash += used + pnl
-            else:
-                still.append((ts, used, pnl))
-        open_ = still
-        need = r.entry_notional
-        f = 1.0
-        if need > cash + 1e-9:
-            if cash <= MIN_CASH_USD:
-                skipped += 1
+def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int, int, float]:
+    """Copy every fill in time order with $10k of cash (rule 6's cash cap, per buy): each buy takes its own money
+    as it fills, never a later add's; when too little is left it is sized down to the cash, or skipped at $1 or
+    less (a first buy skipped = the trade couldn't be copied, and its later buys go with it). Each sell returns
+    its share of the money in the position plus its gain; the trade's costs are paid at its last sell. At one
+    moment sells go before buys, then by trade id. Returns [(result, copied P&L)], buys sized down or skipped,
+    trades skipped, and the most money ever in open positions."""
+    order = []
+    for i, r in enumerate(results):
+        for j, f in enumerate(r.fills):
+            order.append((f.ts, f.kind == "entry", r.position.pid, i, j))
+    order.sort(key=lambda x: x[:3] + (x[4],))
+    cash, sized_down, skipped, peak = MONEY_START, 0, 0, 0.0
+    st = [{"on": None, "sim": 0.0, "held": 0.0, "basis": 0.0, "gross": 0.0, "cost": 0.0, "last": -1}
+          for _ in results]
+    for i, r in enumerate(results):
+        st[i]["last"] = max(j for j, f in enumerate(r.fills) if f.kind != "entry")
+    for _ts, is_buy, _pid, i, j in order:
+        r, f, s = results[i], results[i].fills[j], st[i]
+        sign = 1 if r.position.side == "long" else -1
+        if is_buy:
+            s["sim"] += f.qty
+            if s["on"] is False:
                 continue
-            f = cash / need
-            sized_down += 1
-        cash -= need * f
-        open_.append((r.last_exit.ts, need * f, r.pnl * f))
-        peak = max(peak, sum(u for _, u, _ in open_))
-        kept.append((r, f))
+            q = f.qty
+            if f.px * q > cash + 1e-9:
+                if cash <= MIN_CASH_USD:
+                    if s["on"] is None:
+                        s["on"], skipped = False, skipped + 1
+                    else:
+                        sized_down += 1
+                    continue
+                q, sized_down = cash / f.px, sized_down + 1
+            s["on"] = True
+            cash -= f.px * q
+            s["held"] += q
+            s["basis"] += f.px * q
+            s["cost"] += f.px * q * cost_bps(r.position.market, f.px) / 1e4
+            peak = max(peak, sum(x["basis"] for x in st))
+        else:
+            share = min(1.0, f.qty / s["sim"]) if s["sim"] > 1e-12 else 1.0
+            s["sim"] = max(0.0, s["sim"] - f.qty)
+            if not s["on"]:
+                continue
+            q = s["held"] * share
+            if q > 1e-12:
+                avg = s["basis"] / s["held"]
+                s["gross"] += sign * (f.px - avg) * q
+                s["cost"] += f.px * q * cost_bps(r.position.market, f.px) / 1e4
+                s["held"] -= q
+                s["basis"] -= avg * q
+                cash += avg * q + sign * (f.px - avg) * q
+            if j == s["last"]:
+                cash -= s["cost"]
+    kept = [(r, st[i]["gross"] - st[i]["cost"]) for i, r in enumerate(results) if st[i]["on"]]
+    kept.sort(key=lambda x: x[0].entry.ts)
     return kept, sized_down, skipped, peak
 
 
@@ -390,9 +419,9 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
     """One delay of one portfolio: the by_delay entry and its daily money series (realized at each exit)."""
     kept, sized_down, skipped, peak = fit_to_cash([r for r in results if r.status == "priced"])
     pnl_by_day: dict[str, float] = {}
-    for r, f in kept:
+    for r, pnl in kept:
         day = bars.day_of(r.position.market, r.last_exit.ts).isoformat()
-        pnl_by_day[day] = pnl_by_day.get(day, 0.0) + r.pnl * f
+        pnl_by_day[day] = pnl_by_day.get(day, 0.0) + pnl
     by_point = [0.0] * len(dates)  # a day off the date list counts on the next listed date (or the last one)
     for day, v in pnl_by_day.items():
         by_point[min(bisect.bisect_left(dates, day), len(dates) - 1)] += v
@@ -402,9 +431,9 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
         series.append(round(money, 2))
         high = max(high, money)
         worst = min(worst, (money - high) / high * 100 if high else 0.0)
-    end = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
+    end = round(MONEY_START + sum(pnl for _, pnl in kept), 2)
     ret = round((end / MONEY_START - 1) * 100, 2)   # the word is decided on the numbers the file shows
-    sealed = [(r, f) for r, f in kept if bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed_from]
+    sealed = [(r, pnl) for r, pnl in kept if bars.day_of(r.position.market, r.entry.ts).isoformat() >= sealed_from]
     entry = {
         "end": round(end, 2), "ret_pct": round(ret, 2),
         "hold_end": hold["end"], "hold_ret_pct": hold["ret_pct"],
@@ -412,10 +441,10 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
         "not_triggered": sum(r.status == "not_triggered" for r in results),
         "couldnt_copy": skipped + sum(r.status == "too_late" for r in results), "sized_down": sized_down,
         "peak_invested_usd": round(peak),
-        "won_pct": round(100 * sum(r.pnl > 0 for r, _ in kept) / len(kept)) if kept else 0,
+        "won_pct": round(100 * sum(pnl > 0 for _, pnl in kept) / len(kept)) if kept else 0,
         "worst_drop_pct": round(worst, 1),
         "word": word(len(kept), ret, hold["ret_pct"]),
-        "sealed": {"ret_pct": round(100 * sum(r.pnl * f for r, f in sealed) / MONEY_START, 2),
+        "sealed": {"ret_pct": round(100 * sum(pnl for _, pnl in sealed) / MONEY_START, 2),
                    "hold_ret_pct": hold["sealed_ret_pct"], "trades": len(sealed)},
     }
     return entry, series

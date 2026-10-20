@@ -41,6 +41,7 @@ class Trade:
     assumed_exit: bool = False
     why: str | None = None
     market: str = "us_equities"
+    side: str = "long"
 
     @property
     def entry(self) -> Fill | None:
@@ -77,19 +78,20 @@ def horizon_ts(p, entry_ts: int) -> int:
 
 SIZINGS = ("known", "trade", "first")
 # Rule 6 says LPP "scales the host's share counts so each trade starts at $1,000, keeping his add/trim ratios".
-#   known: contracts.md rule 13(e), no look-ahead (the headline): the first buy is $1,000 at its fill; each add buys
+#   known: contracts.md rule 13(e), no look-ahead (provisional `no_look_ahead` key): the first buy is $1,000 at its fill; each add buys
 #          the first buy's shares x (his count for the add / his count for the first buy), a count he didn't
 #          state being the upper median of the counts he had stated on this position's buys posted up to that
-#          add (both equal when he has stated none); a trim sells the share of his stated holding he trimmed.
-#   trade: rule 6 as taught (the `as_taught` alternative): all his entries together are $1,000 at the first fill
+#          add (both equal when he has stated none), never past $10,000 held at the add's price; a trim sells
+#          the share of his stated holding he trimmed.
+#   trade: rule 6 as taught (the headline): all his entries together are $1,000 at the first fill
 #          price, in his ratios, which reads adds he only announces later; trims as in `known`.
 #   first: rule 6 read literally: the first entry is $1,000; later adds and trims are his counts times the same factor.
-DEFAULT_SIZING = "known"   # contracts.md rule 13(e)
+DEFAULT_SIZING = "trade"   # contracts.md rule 6 as taught (the headline); "known" checks `no_look_ahead`
 
 
 def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
     """Copy one position at one delay (rules 1-6). A missing bar marks the trade no_bars, naming the bar."""
-    t = Trade(p.pid, p.portfolio, delay, "priced", market=p.market)
+    t = Trade(p.pid, p.portfolio, delay, "priced", market=p.market, side=p.side)
     try:
         return _simulate(p, delay, t, sizing)
     except B.MissingBar as e:
@@ -235,6 +237,10 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
                 typical = statistics.median_high(said) if said else None
                 mine, base = lg.qty or typical, first.qty or typical
                 q = q0 * mine / base if (mine and base) else q0
+                q = min(q, max(0.0, MONEY_START / px - held))   # rule 13(e): never past $10,000 held
+                if q <= 1e-12:
+                    his += lg.qty or 0.0
+                    return
                 his += lg.qty or 0.0
             elif whole:
                 q = (lg.qty or known) * scale
@@ -378,43 +384,85 @@ def word(trades: int, ret: float, hold_ret: float) -> str:
     return "Yes" if diff >= 2 else "No" if diff <= -2 else "Barely"
 
 
+def copy_with_cash(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, int, float]:
+    """Rule 6's cash cap, per buy (contracts.md, 2026-10-20): walk every fill of every trade by time, sells before
+    buys at one moment, then by trade id. A buy spends its own money as it fills (nothing reserved for buys still
+    to come); with less cash than it needs it is sized down to the cash, and with $1 or less it is skipped (a
+    first buy skipped = couldn't copy, and that trade's later buys are skipped with it). A sell sells the same
+    share of the copied position as the trade's own sell does of its position; it returns the money in what it
+    sold plus its gain. ASSUMPTION: a trade's costs (rule 5, on the copied fills) leave cash at its last sell.
+    Returns [(trade, copied P&L)], buys sized down or skipped, trades not copied, peak money in positions."""
+    steps = sorted(((f.ts, 0 if f.kind != "entry" else 1, t.pid, k, n) for n, t in enumerate(trades)
+                    for k, f in enumerate(t.fills)), key=lambda x: (x[0], x[1], x[2], x[3]))
+    last_sell = {n: max(k for k, f in enumerate(t.fills) if f.kind != "entry") for n, t in enumerate(trades)}
+    copied: dict[int, bool] = {}                 # n -> True copied, False couldn't copy
+    own_q = [0.0] * len(trades)                  # the trade's own shares held (its fills)
+    q = [0.0] * len(trades)                      # the copied shares held
+    paid = [0.0] * len(trades)                   # money in the copied shares (average-cost basis)
+    gain = [0.0] * len(trades)
+    fees = [0.0] * len(trades)
+    cash, shrunk, dropped, peak = MONEY_START, 0, 0, 0.0
+    for ts, kind, _, k, n in steps:
+        t = trades[n]
+        f = t.fills[k]
+        if kind == 1:                            # a buy
+            own_q[n] += f.qty
+            if copied.get(n) is False:
+                continue
+            want = f.qty
+            if want * f.px > cash + 1e-9:
+                if cash <= MIN_CASH:
+                    if n not in copied:
+                        copied[n] = False
+                        dropped += 1
+                    else:
+                        shrunk += 1
+                    continue
+                want = cash / f.px
+                shrunk += 1
+            copied[n] = True
+            cash -= want * f.px
+            q[n] += want
+            paid[n] += want * f.px
+            fees[n] += cost_of(t.market, f.px, want)
+            peak = max(peak, sum(paid))
+            continue
+        frac = f.qty / own_q[n] if own_q[n] > 1e-12 else 1.0
+        own_q[n] -= f.qty
+        if copied.get(n):
+            sold = q[n] * min(frac, 1.0)
+            if sold > 1e-12:
+                avg = paid[n] / q[n]
+                g = (f.px - avg) * sold * (1 if t.side == "long" else -1)
+                gain[n] += g
+                fees[n] += cost_of(t.market, f.px, sold)
+                cash += avg * sold + g
+                q[n] -= sold
+                paid[n] -= avg * sold
+            if k == last_sell[n]:
+                cash -= fees[n]
+    kept = [(t, gain[n] - fees[n]) for n, t in enumerate(trades) if copied.get(n)]
+    return kept, shrunk, dropped, peak
+
+
 def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None) -> dict:
     """End value, return, trade count, word and the rest of a by_delay row, for one portfolio at one delay.
 
-    Rule 6's cash cap: trades are copied in entry order; open trades hold their entry money until they exit,
-    when their P&L lands in cash. A trade bigger than the cash left is sized down to it; with no cash left it is
-    couldn't-copy. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md names no minimum; the $1 floor
-    keeps sub-dollar trades out of rule 9's count; bankroll-rules.md's $100 is CAP-9's).
-    won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade money from its high,
-    booked on each exit's day (the contract's `unknown` says the drop counts closed trades only).
-    sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000."""
-    priced = sorted((t for t in trades if t.status == "priced" and t.entry and t.exit), key=lambda t: t.entry.ts)
-    cash_book, open_, end_pnl = 0.0, [], 0.0     # open_: (exit ts, notional, pnl)
-    copied = sized_down = couldnt = 0
-    kept: list[tuple[Trade, float]] = []
-    for t in priced:
-        now = t.entry.ts
-        for x in [o for o in open_ if o[0] <= now]:
-            cash_book += x[2]
-            open_.remove(x)
-        room = MONEY_START + cash_book - sum(o[1] for o in open_)
-        f = 1.0
-        if t.entry_notional > room + 1e-9:          # rule 6: open exposure capped at cash
-            if room <= MIN_CASH:
-                couldnt += 1
-                continue
-            f = room / t.entry_notional
-            sized_down += 1
-        copied += 1
-        open_.append((t.exit.ts, t.entry_notional * f, t.pnl * f))
-        end_pnl += t.pnl * f
-        kept.append((t, f))
-    end = round(MONEY_START + end_pnl, 2)
+    Rule 6's cash cap, per buy: see copy_with_cash. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md
+    names no minimum; the $1 floor keeps sub-dollar trades out of rule 9's count; bankroll-rules.md's $100 is
+    CAP-9's). sized_down counts buys sized down or skipped; couldnt_copy counts trades whose first buy was
+    skipped, plus too_late. won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade
+    money from its high, booked on each exit's day (the contract's `unknown` says the drop counts closed trades
+    only). sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000."""
+    priced = [t for t in trades if t.status == "priced" and t.entry and t.exit]
+    kept, sized_down, couldnt, _ = copy_with_cash(priced)
+    copied = len(kept)
+    end = round(MONEY_START + sum(v for _, v in kept), 2)
     ret = round((end / MONEY_START - 1) * 100, 2)
     by_day: dict[dt.date, float] = {}
-    for t, f in kept:
+    for t, v in kept:
         day = B.day_of(t.market, t.exit.ts)
-        by_day[day] = by_day.get(day, 0.0) + t.pnl * f
+        by_day[day] = by_day.get(day, 0.0) + v
     money, high, worst = MONEY_START, MONEY_START, 0.0
     for day in sorted(by_day):
         money += by_day[day]
@@ -423,11 +471,11 @@ def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = Non
     row = {"end": end, "ret_pct": ret, "hold_end": hold_row["end"], "hold_ret_pct": hold_row["ret_pct"],
            "trades": copied, "not_triggered": sum(t.status == "not_triggered" for t in trades),
            "couldnt_copy": couldnt + sum(t.status == "too_late" for t in trades), "sized_down": sized_down,
-           "won_pct": round(100 * sum(t.pnl > 0 for t, _ in kept) / len(kept)) if kept else 0,
+           "won_pct": round(100 * sum(v > 0 for _, v in kept) / len(kept)) if kept else 0,
            "worst_drop_pct": round(worst, 1),
            "word": word(copied, ret, hold_row["ret_pct"])}
     if sealed_from:
-        sk = [(t, f) for t, f in kept if B.day_of(t.market, t.entry.ts).isoformat() >= sealed_from]
-        row["sealed"] = {"ret_pct": round(100 * sum(t.pnl * f for t, f in sk) / MONEY_START, 2),
+        sk = [(t, v) for t, v in kept if B.day_of(t.market, t.entry.ts).isoformat() >= sealed_from]
+        row["sealed"] = {"ret_pct": round(100 * sum(v for _, v in sk) / MONEY_START, 2),
                          "hold_ret_pct": hold_row.get("sealed_ret_pct"), "trades": len(sk)}
     return row

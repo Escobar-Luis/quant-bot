@@ -5,11 +5,12 @@ events are copied. Events that failed a code check are left out, except the ledg
 (`open_never_closed`, `close_without_open`, `qty_exceeds_position`), which this ledger resolves itself.
 
 Two ledgers (contracts.md):
-- `no_look_ahead` (rule 13, the headline): a position leaves at 15:55 ET of its first session unless one of its
-  legs, posted before that moment, states a horizon past the session; a later word starts afresh.
-- `as_taught` (rule 11, reported as the `as_taught` alternative): a position he still holds at the end of a
-  session carries to a later session when his NEXT word on it (within 7 days) is an add, trim or close. That
-  reads the future, so it is no longer the headline.
+- `as_taught` (rule 11, the headline): a position he still holds at the end of a session carries to a later
+  session when his NEXT word on it (within 7 days) is an add, trim or close. That reads the future.
+- `no_look_ahead` (rule 13, provisional, the `no_look_ahead` key): a position leaves at 15:55 ET of its first
+  session unless one of its legs, posted before that moment, states a horizon past the session; a later word
+  starts afresh. Not the headline until hold intent is extracted (spec-audit story 17) and sizing and cash are
+  look-ahead-free (the bankroll model, story 8).
 """
 import datetime as dt
 import json
@@ -25,7 +26,7 @@ COURSE, NAME, MARKET = "lpp", "Learn Plan Profit", "us_equities"
 WINDOW = {"start": "2024-08-15", "end": "2025-09-12", "sealed_from": "2025-06-12"}
 HOLD = {"symbol": "SPY", "label": "Just holding", "what": "Buy and keep the S&P 500 (SPY)"}
 LEDGER_FAILS = {"open_never_closed", "close_without_open", "qty_exceeds_position"}
-CARRY_DAYS = 7                     # rule 11 (as_taught only)
+CARRY_DAYS = 7                     # rule 11 (as taught, the headline)
 LEDGERS = ("no_look_ahead", "as_taught")
 OPTION_WORDS = ("option", "call", "put")
 
@@ -107,7 +108,7 @@ def horizon_sessions(e: dict) -> int:
     return int(ex.split(":")[1]) if ex.startswith("sessions:") else 0
 
 
-def build(version: str, only: set[str] | None = None, ledger: str = "no_look_ahead") -> dict:
+def build(version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
     """Positions to copy, plus what the results file needs to say about the events."""
     if ledger not in LEDGERS:
         raise ValueError(f"unknown ledger {ledger}")
@@ -115,10 +116,15 @@ def build(version: str, only: set[str] | None = None, ledger: str = "no_look_ahe
     evs = load(version, only)
     trades = sorted((e for e in evs if usable(e)), key=lambda e: (post_ts(e), e["event_id"]))
     options = [e for e in trades if is_option(e) and e["action"] == "open"]
+    # rules 11/13(a): a buy (open or add) that names no side is skipped and counted; an exit with no side is
+    # matched below to his one open position on that ticker
+    no_side = sum(not is_option(e) and e["action"] in ("open", "add") and e.get("side") not in ("long", "short")
+                  for e in trades)
     trades = [e for e in trades if not is_option(e) and (e.get("side") in ("long", "short")
                                                           or e["action"] in ("trim", "close"))]
     by_id = {e["event_id"]: e for e in trades}
-    stats = Counter(calls_not_copied=sum(e["type"] == "call" and e["status"] == "ok" for e in evs))
+    stats = Counter(calls_not_copied=sum(e["type"] == "call" and e["status"] == "ok" for e in evs),
+                    entry_side_unknown=no_side)
     positions, open_pos, ends = [], {}, {}   # ends: rule 13, the moment each open position leaves
 
     def finish(key):
@@ -206,8 +212,7 @@ def build(version: str, only: set[str] | None = None, ledger: str = "no_look_ahe
 
 
 SIZING = "His own share counts when he said them; $1,000 per entry when he didn't"
-SIZING_SCALED = ("His share counts, scaled so his first buy is $1,000; "
-                 "each add uses only what he had said by then")   # contracts.md rule 13(e)
+SIZING_SCALED = "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6 (Luis, 2026-10-17)
 
 
 def unknown(stats, assumed, priced, total, status) -> list[str]:
@@ -231,8 +236,10 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"{stats['close_without_open']} exits had no matching entry and were skipped.")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} trade-delays had no price bars and were skipped.")
-    out.append("No look-ahead: a position stays open overnight only if he said so before 15:55 ET; a later add "
-               "starts a new trade, sized from what he had said by then (contracts.md rule 13).")
+    out.append("As taught, a position stays overnight when his next word on it is an add, trim or close, and "
+               "each trade's buys together are $1,000: both read what he said later (see no_look_ahead).")
+    if stats.get("entry_side_unknown"):
+        out.append(f"{stats['entry_side_unknown']} buys didn't say long or short and were skipped.")
     out.append("Prices are 1-minute market bars, not his own fills.")
     out.append("Costs are estimates: 5 bps per side, 20 under $10.")
     out.append("Just holding SPY leaves out its dividends (about 1% a year).")

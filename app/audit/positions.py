@@ -108,10 +108,10 @@ def lpp_copyable(e: dict) -> bool:
     return e["status"] == "ok" or (bool(fails) and fails <= LEDGER_FAILS)
 
 
-def lpp(version: str, only: set[str] | None = None, ledger: str = "no_look_ahead") -> dict:
-    """LPP trade legs -> round trips, contracts.md rules 1, 4, 8 and 13 (no look-ahead; rule 11 as `as_taught`).
+def lpp(version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
+    """LPP trade legs -> round trips, contracts.md rules 1, 4, 8 and 11 (the headline), or 13 (`no_look_ahead`).
 
-    Rule 13 (ledger="no_look_ahead", read from the rule's text, not from backtest.lpp):
+    Rule 13 (ledger="no_look_ahead", provisional, read from the rule's text, not from backtest.lpp):
     - which events are copied, positions per ticker and side, side-less exits, exits with no open position: as
       rule 11 below;
     - every open position has a moment it leaves: 15:55 ET of the session its first leg was posted in, pushed to
@@ -122,7 +122,7 @@ def lpp(version: str, only: set[str] | None = None, ledger: str = "no_look_ahead
       opens a new position, a trim or close finds nothing open and is skipped);
     - a position whose moment lies past its first session is a swing trade leaving at that moment (`at:`), any
       other a day trade (15:55 ET).
-    Rule 11 (ledger="as_taught"), kept so the look-ahead numbers can be reconciled too:
+    Rule 11 (ledger="as_taught", the headline; reads his next word):
     - rule 11: `trade` events that passed every check, or failed only the ledger checks; options are counted,
       never priced (rule 8);
     - rule 1: post time = release + t_s, kept to the fraction of a second;
@@ -219,7 +219,7 @@ def _lpp_no_look_ahead(trades: list, keys: dict, stats: Counter) -> list[Positio
 
 
 def _lpp_as_taught(trades: list, keys: dict, stats: Counter) -> list[Position]:
-    """Rule 11 as written before rule 13 (reads his next word: the `as_taught` alternative)."""
+    """Rule 11, the headline (reads his next word; rule 13 is the provisional `no_look_ahead` key)."""
     positions: list[Position] = []
     open_: dict[tuple, dict] = {}            # (ticker, side) -> {"legs", "first"}
 
@@ -375,7 +375,7 @@ def ziptrader(version: str = "v1") -> dict:
     return {"positions": positions, "stats": dict(stats)}
 
 
-def build(course: str, version: str, only: set[str] | None = None, ledger: str = "no_look_ahead") -> list[Position]:
+def build(course: str, version: str, only: set[str] | None = None, ledger: str = "as_taught") -> list[Position]:
     if course == "lpp":
         return lpp(version, only, ledger)["positions"]
     if course == "cryptowizard":
@@ -455,7 +455,7 @@ def diff_positions(theirs: list, ours: list[Position]) -> list[dict]:
 
 
 def loader_positions(course: str, version: str, only: set[str] | None = None,
-                     ledger: str = "no_look_ahead") -> list:
+                     ledger: str = "as_taught") -> list:
     """The engine-side loaders' positions (the thing under audit), with results/'s unique ids."""
     if course == "lpp":
         from backtest import lpp as mod
@@ -496,7 +496,7 @@ def _causes(course: str, version: str, theirs: list, d: list[dict]) -> None:
             x["cause"] = "loader copies an event that failed a check: " + "; ".join(why)
 
 
-def compare(course: str, version: str, only: set[str] | None = None, ledger: str = "no_look_ahead") -> dict:
+def compare(course: str, version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
     theirs = loader_positions(course, version, only, ledger)
     ours = build(course, version, only, ledger)
     d = diff_positions(theirs, ours)

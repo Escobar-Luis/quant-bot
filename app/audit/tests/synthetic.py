@@ -191,16 +191,24 @@ def cases() -> list[Case]:
 
 # ---- the portfolio's cash rule (rule 6) ------------------------------------------------------------------------
 
-def cash_case():
-    """A $9,950 trade still open when a $1,000 trade enters: $50 of cash left.
+def cash_cases():
+    """The portfolio's cash rule (rule 6, per buy as it fills), worked out by hand. Each trade is its fills,
+    (ts, price, shares, kind); costs 5 bps per side at these prices.
 
-    Rule 6: "total open exposure is capped at cash, and trades that don't fit are sized down or counted as
-    couldn't-copy". $50 is cash, so the second trade is sized down to $50 (no minimum in contracts.md).
-    Expected: 2 trades, sized_down 1, couldnt_copy 0, P&L = 10 + 0.05 x 20 = 11."""
-    return [  # (entry ts, exit ts, notional, pnl)
-        (at(9, 31), at(15, 0), 9950.0, 10.0),
-        (at(10, 0), at(11, 0), 1000.0, 20.0),
-    ], {"trades": 2, "sized_down": 1, "couldnt_copy": 0, "end": 10_011.0}
+    1. A $9,950 trade still open when a $1,000 trade enters: $50 of cash left, so the second buy is sized down to
+       $50 (no minimum in contracts.md): 0.5 sh, 0.5 x 2 - (50 + 51) x 5 bps = 0.9495; the first loses its costs,
+       19,900 x 5 bps = 9.95. End 10,000 - 9.95 + 0.9495 = 9,991.00.
+    2. A later add never shrinks an earlier buy: a buys $1,000 at 09:31, b $1,000 at 09:45, a's 95-share add at
+       10:00 finds $8,000 and is sized down to 80 sh. a: 90 x 1 - (9,000 + 9,090) x 5 bps = 80.955; b: 10 -
+       (1,000 + 1,010) x 5 bps = 8.995. End 10,089.95 (the old whole-trade reservation would have shrunk a's
+       first buy)."""
+    one = ([[(at(9, 31), 100.0, 99.5, "entry"), (at(15, 0), 100.0, 99.5, "exit")],
+            [(at(10, 0), 100.0, 10.0, "entry"), (at(11, 0), 102.0, 10.0, "exit")]],
+           {"trades": 2, "sized_down": 1, "couldnt_copy": 0, "end": 9_991.0})
+    two = ([[(at(9, 31), 100.0, 10.0, "entry"), (at(10, 0), 100.0, 95.0, "entry"), (at(15, 0), 101.0, 105.0, "exit")],
+            [(at(9, 45), 100.0, 10.0, "entry"), (at(15, 0), 101.0, 10.0, "exit")]],
+           {"trades": 2, "sized_down": 1, "couldnt_copy": 0, "end": 10_089.95})
+    return [("cash under $100", *one), ("later add never shrinks an earlier buy", *two)]
 
 
 # ---- engine side -----------------------------------------------------------------------------------------------
@@ -250,24 +258,21 @@ def engine_cash(trades):
     from backtest import engine
     from backtest.engine import Fill, Result
     rs = []
-    for i, (t0, t1, notional, pnl) in enumerate(trades):
-        p = to_engine(pos([Leg(f"x{i}", t0, "open")]))
+    for i, fills in enumerate(trades):
+        p = to_engine(pos([Leg(f"x{i}", fills[0][0], "open")]))
         p.pid = f"cash-{i}"
-        r = Result(p, 1, "priced", fills=[Fill(t0, 100.0, notional / 100, "entry"), Fill(t1, 100.0, notional / 100,
-                                                                                            "exit")],
-                   pnl=pnl, entry_notional=notional)
-        rs.append(r)
+        rs.append(Result(p, 1, "priced", fills=[Fill(*f) for f in fills]))
     kept, sized_down, skipped, _ = engine.fit_to_cash(rs)
     return {"trades": len(kept), "sized_down": sized_down, "couldnt_copy": skipped,
-            "end": round(10_000 + sum(r.pnl * f for r, f in kept), 2)}
+            "end": round(10_000 + sum(v for _, v in kept), 2)}
 
 
 def audit_cash(trades):
     from audit import calc
     ts = []
-    for i, (t0, t1, notional, pnl) in enumerate(trades):
-        t = calc.Trade(f"cash-{i}", "day", 1, "priced", pnl=pnl, entry_notional=notional)
-        t.fills = [calc.Fill(t0, 100.0, notional / 100, "entry"), calc.Fill(t1, 100.0, notional / 100, "exit")]
+    for i, fills in enumerate(trades):
+        t = calc.Trade(f"cash-{i}", "day", 1, "priced")
+        t.fills = [calc.Fill(*f) for f in fills]
         ts.append(t)
     row = calc.portfolio(ts, {"end": 10_000.0, "ret_pct": 0.0})
     return {k: row[k] for k in ("trades", "sized_down", "couldnt_copy", "end")}
@@ -287,10 +292,10 @@ def engine_divergences() -> list[dict]:
                 setattr(mod, name, fn)
         if not same(got, c.expect):
             out.append({"case": c.name, "contract": c.expect, "engine": got, "why": c.why})
-    trades, want = cash_case()
-    got = engine_cash(trades)
-    if got != want:
-        out.append({"case": "cash under $100", "contract": want, "engine": got, "why": cash_case.__doc__.strip()})
+    for name, trades, want in cash_cases():
+        got = engine_cash(trades)
+        if got != want:
+            out.append({"case": name, "contract": want, "engine": got, "why": cash_cases.__doc__.strip()})
     EB.day_bars  # keep the import used
     return out
 

@@ -214,12 +214,14 @@ def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list
     return same, ledger
 
 
-def as_taught_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]:
-    """Step 4b, LPP only: the same events through rule 11's ledger and rule 6's whole-trade sizing (both read his
-    later words), so the change to rule 13's no-look-ahead headline stays visible (contracts.md rule 13)."""
+def no_look_ahead_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]:
+    """Step 4b, LPP only: the same events through rule 13 (no look-ahead), shown beside the as-taught headline.
+    Provisional (contracts.md rule 13): not the headline until hold intent is extracted and sizing and cash are
+    look-ahead-free."""
     if not (a.course == "lpp" and not a.limit):
         return None, []
-    built = mod.build(a.version, only, ledger="as_taught") if only else mod.build(a.version, ledger="as_taught")
+    built = mod.build(a.version, only, ledger="no_look_ahead") if only else \
+        mod.build(a.version, ledger="no_look_ahead")
     positions = built["positions"]
     seen = Counter()
     for p in positions:
@@ -237,11 +239,13 @@ def as_taught_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]
             rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
         pfs.append({"id": pid, "by_delay": rows})
     d5 = str(DEFAULT_DELAY_MIN)
-    print(f"  as taught (rules 6 and 11, look-ahead) @5m: end {pfs[0]['by_delay'][d5]['end']:,.0f}  "
-          f"{pfs[0]['by_delay'][d5]['word']}")
-    block = {"rules": "contracts.md rules 6 and 11 as taught: a position carries overnight when his next word "
-                      "on it is an add, trim or close, and all of a trade's buys together are $1,000. Both read "
-                      "what he said later; the headline uses rule 13.",
+    print(f"  no look-ahead (rule 13, provisional) @5m: end {pfs[0]['by_delay'][d5]['end']:,.0f}  "
+          f"{pfs[0]['by_delay'][d5]['word']}  peak {pfs[0]['by_delay'][d5]['peak_invested_usd']:,}")
+    block = {"provisional": True, "label": "Provisional: no look-ahead",
+             "rules": "contracts.md rule 13: a position stays overnight only on a horizon he said before 15:55 "
+                      "ET, a later add starts a new trade, and each add is sized from what he had said by then.",
+             "why_provisional": "Not the headline until his hold intent is extracted (he rarely says it in a "
+                                "field we read) and sizing and cash are look-ahead-free (the bankroll model).",
              "positions": len(positions), "portfolios": pfs}
     return block, [r for rs in by_pos.values() for r in rs.values()]
 
@@ -331,7 +335,7 @@ def write_results(out, a, portfolios) -> Path:
     return path
 
 
-COMPARED = ("portfolios", "same_sessions", "as_taught", "trades")
+COMPARED = ("portfolios", "same_sessions", "no_look_ahead", "trades")
 
 
 def ledger_only(a, out, ledgers) -> None:
@@ -357,13 +361,13 @@ def main():
     same, same_ledger = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
     unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
-    taught, taught_ledger = as_taught_alternative(mod, a, only, dates, hold)
+    nla, nla_ledger = no_look_ahead_alternative(mod, a, only, dates, hold)
     out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
-    if taught:
-        out["as_taught"] = taught
+    if nla:
+        out["no_look_ahead"] = nla
     ledgers = [("", [r for rs in by_pos.values() for r in rs.values()])] + \
         ([("-same_sessions", same_ledger)] if same else []) + \
-        ([("-as_taught", taught_ledger)] if taught else [])
+        ([("-no_look_ahead", nla_ledger)] if nla else [])
     if a.ledger_only:
         ledger_only(a, out, ledgers)
         return

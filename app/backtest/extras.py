@@ -100,7 +100,7 @@ def ranges(results_all: dict, dates: list, hold_series: list, window: dict) -> d
             closed = [r for r in results_all[d] if r.status == "priced"
                       and bars.day_of(r.position.market, r.last_exit.ts) <= stop]
             kept, *_ = engine.fit_to_cash(closed)
-            money = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
+            money = round(MONEY_START + sum(pnl for _, pnl in kept), 2)
             ret = round((money / MONEY_START - 1) * 100, 2)
             rows[str(d)] = {"end": money, "ret_pct": ret, "hold_end": hold_end, "hold_ret_pct": hold_ret,
                             "trades": len(kept), "word": engine.word(len(kept), ret, hold_ret)}
@@ -120,7 +120,7 @@ def best_stop(all_portfolio: dict, hold_series: list) -> dict:
 
 def _account(results: list) -> tuple[float, int]:
     kept, *_ = engine.fit_to_cash([r for r in results if r.status == "priced"])
-    return round(100 * sum(r.pnl * f for r, f in kept) / MONEY_START, 2), len(kept)
+    return round(100 * sum(pnl for _, pnl in kept) / MONEY_START, 2), len(kept)
 
 
 def combos(mod, positions: list, by_pos: dict, dates: list, hold: dict, hold_series: list, window: dict,

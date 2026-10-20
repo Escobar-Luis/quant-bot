@@ -119,9 +119,9 @@ def test_audit_ledger_ignores_what_he_says_later(tmp_path, monkeypatch):
     thu = [_ev("A", 0, "2024-08-15T13:40:00Z", "open", 100)]
     fri = [_ev("B", 0, "2024-08-16T13:40:00Z", "add", 50), _ev("B", 1, "2024-08-16T14:00:00Z", "close")]
     P = _lpp_events(tmp_path, monkeypatch, thu)
-    (alone,) = P.lpp("v1")["positions"]
+    (alone,) = P.lpp("v1", ledger="no_look_ahead")["positions"]
     P = _lpp_events(tmp_path, monkeypatch, thu + fri)
-    first, second = P.lpp("v1")["positions"]
+    first, second = P.lpp("v1", ledger="no_look_ahead")["positions"]
     assert (first.pid, first.portfolio, first.default_exit, [lg.event_id for lg in first.legs]) == \
         (alone.pid, "day", "day_close", ["lpp:A:000"])
     assert [lg.action for lg in second.legs] == ["add", "close"]
@@ -133,7 +133,7 @@ def test_audit_ledger_horizon_said_in_time(tmp_path, monkeypatch):
     P = _lpp_events(tmp_path, monkeypatch, [_ev("A", 0, "2024-08-15T13:40:00Z", "open", 100, horizon="2 days"),
                                             _ev("B", 0, "2024-08-16T13:40:00Z", "trim", 50),
                                             _ev("C", 0, "2024-08-20T13:40:00Z", "close")])
-    built = P.lpp("v1")
+    built = P.lpp("v1", ledger="no_look_ahead")
     (p,) = built["positions"]
     assert p.portfolio == "swing" and p.default_exit == f"at:{P.leaves_at(dt.date(2024, 8, 19), 0)}"
     assert [lg.action for lg in p.legs] == ["open", "trim"] and built["stats"]["exit_without_open"] == 1
@@ -144,8 +144,9 @@ def test_audit_first_buy_is_the_same_whatever_he_adds_later(monkeypatch):
     from audit.tests import synthetic as S
     S.patch_bars(S.book(S.DAY), monkeypatch.setattr)
     legs = [Leg("o", S.at(9, 30), "open", qty=100), Leg("c", S.at(10, 0), "close")]
-    alone = calc.simulate(S.pos(legs, course="lpp"), 1)
-    later = calc.simulate(S.pos([legs[0], Leg("a", S.at(9, 40), "add", qty=900), legs[1]], course="lpp"), 1)
+    alone = calc.simulate(S.pos(legs, course="lpp"), 1, "known")
+    later = calc.simulate(S.pos([legs[0], Leg("a", S.at(9, 40), "add", qty=900), legs[1]], course="lpp"), 1,
+                          "known")
     assert later.fills[0] == alone.fills[0] and alone.fills[0].qty * alone.fills[0].px == pytest.approx(1000)
     taught = calc.simulate(S.pos([legs[0], Leg("a", S.at(9, 40), "add", qty=900), legs[1]], course="lpp"), 1,
                            "trade")
