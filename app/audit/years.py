@@ -13,7 +13,7 @@ from .paths import BARS
 
 MONEY_FIELDS = ("start", "end", "hold_start", "hold_end")
 POINT_FIELDS = ("ret_pct", "hold_ret_pct", "hold_price_ret_pct")
-EXACT_FIELDS = ("trades", "word")
+EXACT_FIELDS = ("trades", "word", "outcome", "vs")
 
 
 def _cached(kind: str, symbol: str, window: dict) -> dict:
@@ -52,7 +52,7 @@ def periods(hv: dict) -> list[dict]:
     return out + [{"id": "all", "from": days[0], "to": days[-1]}]
 
 
-def by_year(trades: list[calc.Trade], hv: dict) -> dict:
+def by_year(trades: list[calc.Trade], hv: dict, name: str = "just holding") -> dict:
     """{period id: row} for one portfolio at one delay (contracts.md by_year rules 1-6)."""
     ps = periods(hv)
     years = [p["id"] for p in ps if p["id"] != "all"]
@@ -61,7 +61,7 @@ def by_year(trades: list[calc.Trade], hv: dict) -> dict:
     count = {y: 0 for y in years}
     for t, f in kept:
         y = str(B.day_of(t.market, t.exit.ts).year)
-        y = min(max(y, years[0]), years[-1])        # rule 2: after the last trading day = the last year
+        y = min(max(y, years[0]), years[-1])        # rule 2: the exit day's calendar year, clamped to the window
         pnl[y] += t.pnl * f
         count[y] += 1
     out, money, hold_prev, price_prev = {}, calc.MONEY_START, calc.MONEY_START, calc.MONEY_START
@@ -72,7 +72,7 @@ def by_year(trades: list[calc.Trade], hv: dict) -> dict:
         out[y] = {"start": round(money, 2), "end": round(money + pnl[y], 2), "ret_pct": ret,
                   "hold_start": round(hold_prev, 2), "hold_end": round(hv["total"][last], 2),
                   "hold_ret_pct": h_ret, "hold_price_ret_pct": round((hv["price"][last] / price_prev - 1) * 100, 2),
-                  "trades": count[y], "word": calc.word(count[y], ret, h_ret)}
+                  "trades": count[y], **calc.verdict(count[y], ret, h_ret, name)}
         money += pnl[y]
         hold_prev, price_prev = hv["total"][last], hv["price"][last]
     last = hv["days"][-1]
@@ -82,42 +82,58 @@ def by_year(trades: list[calc.Trade], hv: dict) -> dict:
     out["all"] = {"start": calc.MONEY_START, "end": end, "ret_pct": ret, "hold_start": calc.MONEY_START,
                   "hold_end": round(hv["total"][last], 2), "hold_ret_pct": h_ret,
                   "hold_price_ret_pct": round((hv["price"][last] / calc.MONEY_START - 1) * 100, 2),
-                  "trades": len(kept), "word": calc.word(len(kept), ret, h_ret)}
+                  "trades": len(kept), **calc.verdict(len(kept), ret, h_ret, name)}
     return out
 
 
-def compare(by_year_key: dict, mine: dict, delays: list[int], hv: dict, money_tol: float, ret_tol: float) -> list:
-    """Mismatches between the file's by_year and this recompute (mine: {(pid, delay): Trade})."""
+def compare(by_year_key: dict, mine: dict, expected: list[str], delays: list[int], hv: dict, name: str,
+            money_tol: float, ret_tol: float) -> list:
+    """Mismatches between the file's by_year and this recompute (mine: {(pid, delay): Trade}), for every expected
+    portfolio and delay. Anything missing or malformed in the file is recorded, never raised."""
     out = []
 
     def miss(where, field, theirs, ours, diff=None):
         out.append({"kind": "by_year", "portfolio": where, "field": field, "theirs": theirs, "ours": ours,
                     **({} if diff is None else {"diff": round(diff, 4)})})
 
+    if not isinstance(by_year_key, dict):
+        miss("file", "by_year", type(by_year_key).__name__, "object")
+        return out
     ps = periods(hv)
     if by_year_key.get("periods") != ps:
         miss("periods", "periods", by_year_key.get("periods"), ps)
-    basis = (by_year_key.get("hold") or {}).get("basis")
-    if basis != hv["basis"]:
-        miss("hold", "basis", basis, hv["basis"])
-    if (by_year_key.get("hold") or {}).get("dividends", 0) != hv["dividends"]:
-        miss("hold", "dividends", (by_year_key.get("hold") or {}).get("dividends"), hv["dividends"])
-    for pid, pf in (by_year_key.get("portfolios") or {}).items():
-        if set(pf["by_delay"]) != {str(d) for d in delays}:
-            miss(pid, "delays", sorted(pf["by_delay"]), [str(d) for d in delays])
-        for dl, rows in pf["by_delay"].items():
-            ts = [t for (_, x), t in mine.items() if x == int(dl) and (pid == "all" or t.portfolio == pid)]
-            ours = by_year(ts, hv)
-            if set(rows) != set(ours):
-                miss(f"{pid}@{dl}", "periods", sorted(rows), sorted(ours))
-            for y in set(rows) & set(ours):
-                a, b = rows[y], ours[y]
+    hold = by_year_key.get("hold") if isinstance(by_year_key.get("hold"), dict) else {}
+    if hold.get("basis") != hv["basis"]:
+        miss("hold", "basis", hold.get("basis"), hv["basis"])
+    if hold.get("dividends", 0) != hv["dividends"]:
+        miss("hold", "dividends", hold.get("dividends"), hv["dividends"])
+    pfs = by_year_key.get("portfolios") if isinstance(by_year_key.get("portfolios"), dict) else {}
+    for pid in sorted(set(pfs) - set(expected)):
+        miss(pid, "portfolio", "in by_year", "not a testable portfolio")
+    for pid in expected:
+        by_delay = (pfs.get(pid) or {}).get("by_delay") if isinstance(pfs.get(pid), dict) else None
+        if not isinstance(by_delay, dict):
+            miss(pid, "by_delay", "missing", [str(d) for d in delays])
+            continue
+        for d in delays:
+            rows = by_delay.get(str(d))
+            if not isinstance(rows, dict):
+                miss(f"{pid}@{d}", "rows", "missing", [p["id"] for p in ps])
+                continue
+            ts = [t for (_, x), t in mine.items() if x == d and (pid == "all" or t.portfolio == pid)]
+            ours = by_year(ts, hv, name)
+            if list(rows) != list(ours):
+                miss(f"{pid}@{d}", "periods", list(rows), list(ours))
+            for y, b in ours.items():
+                a = rows.get(y) if isinstance(rows.get(y), dict) else {}
                 for f in MONEY_FIELDS + POINT_FIELDS + EXACT_FIELDS:
                     if f not in a:
-                        miss(f"{pid}@{dl}:{y}", f, "missing", b[f])
+                        miss(f"{pid}@{d}:{y}", f, "missing", b[f])
                     elif f in EXACT_FIELDS:
                         if a[f] != b[f]:
-                            miss(f"{pid}@{dl}:{y}", f, a[f], b[f])
+                            miss(f"{pid}@{d}:{y}", f, a[f], b[f])
+                    elif not isinstance(a[f], (int, float)):
+                        miss(f"{pid}@{d}:{y}", f, a[f], b[f])
                     elif abs(a[f] - b[f]) > (money_tol if f in MONEY_FIELDS else ret_tol) + 1e-9:
-                        miss(f"{pid}@{dl}:{y}", f, a[f], b[f], abs(a[f] - b[f]))
+                        miss(f"{pid}@{d}:{y}", f, a[f], b[f], abs(a[f] - b[f]))
     return out

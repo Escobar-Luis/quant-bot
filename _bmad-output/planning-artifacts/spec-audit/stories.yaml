@@ -87,11 +87,11 @@
   invoke_dev_with: >-
     Owner: app/prism (story 2 lane). No new PRISM runs needed for the numbers; rebuild via prism.proofs from current results. The KB answer text is model output: either rerun the verdict run or mark it as the text of that dated run. Then update the README note in "Architecture".
 - id: "15"
-  title: Audit ledgers per branch, not one shared folder
+  title: Ledgers per worktree, so parallel reruns don't clobber each other
   description: >-
-    CAP-3 follow-up. backtest.run writes data/audit/<course>-<version>-ledger.jsonl in the main checkout's shared data/, so parallel branches overwrite each other's ledgers and audit.run (and test_altered_result_exits_non_zero) fail as "stale" on whichever branch ran first. Today a /tmp lock serializes the lanes.
+    CAP-3 hygiene. backtest.run writes data/audit/<course>-<version>-ledger.jsonl into the one shared data/ folder (every worktree reads it via DATA_DIR or the main checkout), so two branches regenerating results at once overwrite each other's ledgers and audit.run then fails as stale on whichever branch ran first.
   invoke_dev_with: >-
-    Key the ledger path by the results file's sha256 (or keep several stamped ledgers side by side) so audit.run picks the one matching its results file; no number changes. Owner: app/backtest/run.py write_ledger and app/audit/run.py read_ledger.
+    Found by story 4 (audit-4-honest-words) while stories 9 and 3 regenerate results on other branches. Key the ledger file by results sha256 (or branch) and let audit.run pick the ledger whose stamp matches the results file; keep inputs (events, bars) shared. Contract 6 lists data/audit/; amend it first if the path changes.
 - id: "16"
   title: Time-range chips slice the one all-time run
   description: >-

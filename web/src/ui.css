@@ -326,6 +326,8 @@ body[data-screen=verdict] .seg,body[data-screen=learn] .seg{display:flex}
 .vchart svg{display:block;width:100%;height:auto;overflow:visible}
 .vchart text{font-family:var(--mono);font-size:10px;fill:#8a8882}
 .stop{font-size:13px;color:var(--ink2)}
+.held{font-size:13px;color:var(--ink2)}
+.held b{font-weight:600}
 .stop b{color:var(--barely2);font-weight:600}
 .strats{display:flex;flex-direction:column}
 .strats>li+li{border-top:1px solid #2f2e2b}

@@ -4,7 +4,6 @@
 All code, no model: strategies come from each course module's keyword rules (`STRATEGIES`, `strategy_of`), and
 every number is the same engine output the portfolios use.
 """
-import bisect
 import datetime as dt
 from statistics import median
 
@@ -48,7 +47,8 @@ def _quotes(group: list, n: int = 3) -> list[dict]:
     return out
 
 
-def strategies(mod, version: str, positions: list, by_pos: dict, dates: list, hold: dict, window: dict) -> list:
+def strategies(mod, version: str, positions: list, by_pos: dict, dates: list, hold: dict, window: dict,
+               name: str = "just holding") -> list:
     if not hasattr(mod, "STRATEGIES"):
         return []
     soft = mod.untestable(version) if hasattr(mod, "untestable") else []
@@ -60,7 +60,7 @@ def strategies(mod, version: str, positions: list, by_pos: dict, dates: list, ho
         rows, series = {}, {}
         for d in DELAYS_MIN:
             rs = [by_pos[p.pid][d] for p in group]
-            rows[str(d)], series[str(d)] = engine.portfolio_stats(rs, dates, hold, window["sealed_from"])
+            rows[str(d)], series[str(d)] = engine.portfolio_stats(rs, dates, hold, window["sealed_from"], name)
         kinds = [p.portfolio for p in group]
         words = spec.get("words") or ()
         mine = [r for r in soft if any(w in r.lower() for w in words)] or soft[len(out)::7]
@@ -84,7 +84,7 @@ def _add_months(day: dt.date, n: int) -> dt.date:
             continue
 
 
-def ranges(results_all: dict, dates: list, hold_series: list, window: dict) -> dict:
+def ranges(results_all: dict, dates: list, hold_series: list, window: dict, name: str = "just holding") -> dict:
     """3m / 6m / 1y from the window start: trades closed by then, against holding to the same day."""
     start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
     out = {}
@@ -105,7 +105,9 @@ def ranges(results_all: dict, dates: list, hold_series: list, window: dict) -> d
             money = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
             ret = round((money / MONEY_START - 1) * 100, 2)
             rows[str(d)] = {"end": money, "ret_pct": ret, "hold_end": hold_end, "hold_ret_pct": hold_ret,
-                            "trades": len(kept), "word": engine.word(len(kept), ret, hold_ret)}
+                            "trades": len(kept), "word": engine.word(len(kept), ret, hold_ret),
+                            "outcome": engine.outcome(len(kept), ret),
+                            "vs": engine.versus(len(kept), ret, hold_ret, name)}
         out[key] = {"until": dates[last], "by_delay": rows}
     return out
 
@@ -183,12 +185,12 @@ def hold_paths(market: str, symbol: str, window: dict) -> dict:
                      "dividends": len([d for d in divs if d > dates[0]])}}
 
 
-def by_year(port_results: dict, hold: dict) -> dict:
+def by_year(port_results: dict, hold: dict, name: str = "just holding") -> dict:
     """Per portfolio and delay, each calendar year in the window plus "all" (contracts.md section by_year).
 
     port_results: {portfolio id: {delay: [Result]}}. The copied trades and their sizes are the headline's own
-    (`engine.fit_to_cash` over every priced trade); each one is booked in the year of its exit day, placed on the
-    date list the same way `portfolio_stats` places it in `series`."""
+    (`engine.fit_to_cash` over every priced trade); each one is booked in the calendar year of its exit day
+    (ET for stocks, UTC for crypto), clamped to the window's years. Words follow rule 9 (`engine.judge`)."""
     dates, total, price = hold["dates"], hold["total"], hold["price"]
     years = sorted({d[:4] for d in dates})
     last = {y: max(i for i, d in enumerate(dates) if d[:4] == y) for y in years}
@@ -211,8 +213,8 @@ def by_year(port_results: dict, hold: dict) -> dict:
             kept, *_ = engine.fit_to_cash([r for r in results if r.status == "priced"])
             pnl, n = {y: 0.0 for y in years}, {y: 0 for y in years}
             for r, f in kept:
-                day = bars.day_of(r.position.market, r.last_exit.ts).isoformat()
-                y = dates[min(bisect.bisect_left(dates, day), len(dates) - 1)][:4]
+                y = str(bars.day_of(r.position.market, r.last_exit.ts).year)
+                y = min(max(y, years[0]), years[-1])
                 pnl[y] += r.pnl * f
                 n[y] += 1
             row, money = {}, MONEY_START
@@ -220,13 +222,14 @@ def by_year(port_results: dict, hold: dict) -> dict:
                 ret = round(100 * pnl[y] / money, 2)
                 h = holds[y]
                 row[y] = {"start": round(money, 2), "end": round(money + pnl[y], 2), "ret_pct": ret, **h,
-                          "trades": n[y], "word": engine.word(n[y], ret, h["hold_ret_pct"])}
+                          "trades": n[y]}
+                engine.judge(row[y], h["hold_ret_pct"], None, name)
                 money += pnl[y]
             end = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)   # the headline's own sum
             ret = round((end / MONEY_START - 1) * 100, 2)
             h = holds["all"]
-            row["all"] = {"start": MONEY_START, "end": end, "ret_pct": ret, **h, "trades": len(kept),
-                          "word": engine.word(len(kept), ret, h["hold_ret_pct"])}
+            row["all"] = {"start": MONEY_START, "end": end, "ret_pct": ret, **h, "trades": len(kept)}
+            engine.judge(row["all"], h["hold_ret_pct"], None, name)
             rows[str(d)] = row
         out[pid] = {"by_delay": rows}
     return {"hold": hold["meta"], "periods": periods, "portfolios": out}

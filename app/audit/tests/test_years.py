@@ -28,13 +28,32 @@ def test_years_chain_and_trades_go_to_their_exit_year():
 
 def test_compare_flags_an_altered_year():
     mine = {("a", 5): _t("a", DEC30, DEC31, 100.0), ("c", 5): _t("c", JAN2, JAN3, 30.0)}
-    rows = years.by_year(list(mine.values()), HV)
+    rows = years.by_year(list(mine.values()), HV, "the S&P")
     key = {"hold": {"basis": "total_return", "dividends": 0}, "periods": years.periods(HV),
            "portfolios": {"all": {"by_delay": {"5": rows}}}}
-    assert years.compare(key, mine, [5], HV, 1.0, 0.01) == []
+    assert years.compare(key, mine, ["all"], [5], HV, "the S&P", 1.0, 0.01) == []
     bad = {**rows, "2025": {**rows["2025"], "end": rows["2025"]["end"] + 2, "word": "Yes"}}
     key["portfolios"]["all"]["by_delay"]["5"] = bad
-    assert {m["field"] for m in years.compare(key, mine, [5], HV, 1.0, 0.01)} == {"end", "word"}
+    assert {m["field"] for m in years.compare(key, mine, ["all"], [5], HV, "the S&P", 1.0, 0.01)} == {"end", "word"}
+
+
+def test_compare_records_a_missing_or_broken_key_instead_of_raising():
+    mine = {("a", 5): _t("a", DEC30, DEC31, 100.0)}
+    assert years.compare("oops", mine, ["all"], [5], HV, "the S&P", 1.0, 0.01)[0]["field"] == "by_year"
+    key = {"hold": {"basis": "total_return", "dividends": 0}, "periods": years.periods(HV),
+           "portfolios": {"all": {"by_delay": {"5": {"2024": {"end": "x"}}}}, "zzz": {}}}
+    fields = {(m["portfolio"], m["field"]) for m in years.compare(key, mine, ["all", "day"], [5], HV, "the S&P",
+                                                                 1.0, 0.01)}
+    assert ("day", "by_delay") in fields and ("zzz", "portfolio") in fields
+    assert ("all@5:2024", "end") in fields and ("all@5", "periods") in fields
+
+
+def test_loss_is_never_yes():
+    ts = [_t(str(i), JAN2, JAN3, -1.0) for i in range(30)]
+    for t in ts:
+        t.entry_notional = 100.0   # all 30 fit in the cash
+    row = years.by_year(ts, {**HV, "total": {**HV["total"], "2025-01-03": 5000.0}}, "the S&P")["2025"]
+    assert row["word"] == "No" and row["outcome"] == "Lost money" and row["vs"] == "less than the S&P"
 
 
 @pytest.mark.parametrize("y", ["2024", "2025"])

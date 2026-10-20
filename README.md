@@ -16,14 +16,14 @@ Computed by today's copy engine at a flat $1,000 per trade (a compounding bankro
 
 | Course | Window | Trades copied | $10k became | Just holding | Word | Held-out (sealed) last 3 months |
 |---|---|---|---|---|---|---|
-| Learn Plan Profit ([`lpp/v1`](results/lpp/v1.json)) | 2024-08-15 → 2025-09-12 | 315 | **$9,763.83** (−2.36%) | $11,963.79 SPY (+19.64%) | **No** | −2.16% vs SPY +9.56% (93 trades) |
-| Crypto Wizard ([`cryptowizard/v1`](results/cryptowizard/v1.json)) | 2025-10-17 → 2026-10-16 | 122 | **$9,290.30** (−7.10%) | $7,543.43 BTC (−24.57%) | **Yes**, see note | −0.08% vs BTC +26.04% (35 trades) |
-| ZipTrader ([`ziptrader/v1`](results/ziptrader/v1.json)) | 2026-10-01 → 2026-10-16 | 1 | $10,007.02 (+0.07%) | $9,985.61 SPY (−0.14%) | **Not enough trades** | same window |
+| Learn Plan Profit ([`lpp/v1`](results/lpp/v1.json)) | 2024-08-15 → 2025-09-12 | 315 | **$9,763.83** (−2.36%) | $11,963.79 SPY (+19.64%) | **No**: lost money, the S&P did better | **No**: −2.16% vs SPY +9.56% (93 trades) |
+| Crypto Wizard ([`cryptowizard/v1`](results/cryptowizard/v1.json)) | 2025-10-17 → 2026-10-16 | 122 | **$9,290.30** (−7.10%) | $7,543.43 BTC (−24.57%) | **No**: lost money, less than Bitcoin | **No**: −0.08% vs BTC +26.04% (35 trades) |
+| ZipTrader ([`ziptrader/v1`](results/ziptrader/v1.json)) | 2026-10-01 → 2026-10-16 | 1 | $10,007.02 (+0.07%) | $9,985.61 SPY (−0.14%) | **Not enough trades**: made money, about the same as the S&P | same window |
 
-1. **Crypto Wizard's "Yes" lost money.** It lost 7.1%, less than Bitcoin's 24.6% drop. In the held-out months it trailed Bitcoin by 26 points. Story 4 rewords this verdict.
-2. **The word** (`contracts.md` rule 9): under 30 trades = Not enough trades; else beat holding by 2+ points = Yes, within 2 = Barely, behind by 2+ = No.
-3. **Delay doesn't flip it.** LPP is "No" at every delay from 1 to 60 minutes (−0.57% to −2.70%). Crypto Wizard is "Yes" at every delay (−6.46% to −7.62%).
-4. **LPP v2** ([`lpp/v2`](results/lpp/v2.json)) re-extracts only the 30-session PRISM proof set: $10,300.52 vs v1's $10,287.41 on the same sessions (`same_sessions`). Never compare it with the full-year SPY return.
+1. **Crypto Wizard lost money.** It lost 7.1%, less than Bitcoin's 24.6% drop, so it reads "No: lost money, less than Bitcoin" (it read "Yes" before story 4). In the held-out months it trailed Bitcoin by 26 points: No.
+2. **The word** (`contracts.md` rule 9): under 30 trades = Not enough trades; lost money = No; else beat holding by 2+ points = Yes, within 2 = Barely, behind by 2+ = No. Each card says the outcome first, then the comparison, then the held-out months' word.
+3. **Delay doesn't flip it.** LPP is "No" at every delay from 1 to 60 minutes (−0.57% to −2.70%). Crypto Wizard is "No" (lost money, less than Bitcoin) at every delay (−6.46% to −7.62%).
+4. **LPP v2** ([`lpp/v2`](results/lpp/v2.json)) re-extracts only the 30-session PRISM proof set: $10,300.52 vs v1's $10,287.41 on the same sessions (`same_sessions`). It is never compared with the full-year SPY return: its file's `compare_with` is v1 on the same sessions.
 
 Held-out (sealed) months: each course's last 3 months, kept apart so a later tweak can't be tuned on them.
 

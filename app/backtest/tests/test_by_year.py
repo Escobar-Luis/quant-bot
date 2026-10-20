@@ -38,6 +38,7 @@ def test_years_slice_the_all_time_run_and_trades_belong_to_their_exit_year():
     assert row["2025"]["hold_start"] == 10150.0 and row["2025"]["hold_ret_pct"] == pytest.approx(3.0, abs=0.01)
     assert row["all"]["hold_ret_pct"] == 4.55 and row["all"]["hold_price_ret_pct"] == 4.04
     assert all(r["word"] == "Not enough trades" for r in row.values())
+    assert row["2025"]["outcome"] == "Lost money" and row["2025"]["vs"] == "just holding did better"
 
 
 def test_all_equals_the_headline_cash_cap_included():
@@ -45,6 +46,7 @@ def test_all_equals_the_headline_cash_cap_included():
     rs = [_res(str(i), dt.date(2024, 12, 30), dt.date(2025, 1, 2), 1000, 10.0 * (i + 1)) for i in range(12)]
     head, _ = engine.portfolio_stats(rs, DATES, {"end": 1, "ret_pct": 0, "sealed_ret_pct": 0}, "2025-01-03")
     row = extras.by_year({"all": {5: rs}}, HOLD)["portfolios"]["all"]["by_delay"]["5"]
+    assert row["all"]["outcome"] == head["outcome"]
     assert head["sized_down"] or head["couldnt_copy"]
     assert (row["all"]["end"], row["all"]["ret_pct"], row["all"]["trades"]) == \
         (head["end"], head["ret_pct"], head["trades"])
@@ -60,3 +62,9 @@ def test_dividends_are_reinvested_at_the_ex_date_close(monkeypatch):
     assert h["meta"]["dividends"] == 1                      # the buy day's ex-date pays nothing
     assert h["price"] == [10000.0, 10000.0, 11000.0]
     assert h["total"] == pytest.approx([10000.0, 10100.0, 11110.0])
+
+
+def test_a_trade_s_year_is_its_exit_day_clamped_to_the_window():
+    late = _res("z", dt.date(2025, 1, 3), dt.date(2026, 1, 5), 1000, 7.0)   # exits after the window: last year
+    row = extras.by_year({"all": {5: [late]}}, HOLD)["portfolios"]["all"]["by_delay"]["5"]
+    assert row["2025"]["trades"] == 1 and row["2024"]["trades"] == 0
