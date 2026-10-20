@@ -1,7 +1,7 @@
 {
  "schema": "strategy-lab/1",
- "generated_at": "2026-10-20T21:47:15Z",
- "git_sha": "197aaa3e2c4f08b7e83eb751aa8cc4ec26706ba6",
+ "generated_at": "2026-10-20T21:51:50Z",
+ "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
  "preregistered_sha": "eb6c3e8",
  "spec": "notes/research/strategy-as-code.md",
  "window": {

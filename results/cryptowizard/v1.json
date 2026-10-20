@@ -6,8 +6,8 @@
  "source_agent_id": "extract-cryptowizard-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T21:47:13Z",
- "git_sha": "197aaa3e2c4f08b7e83eb751aa8cc4ec26706ba6",
+ "generated_at": "2026-10-20T21:51:48Z",
+ "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
  "window": {
   "start": "2025-10-17",
   "end": "2026-10-16",
@@ -18376,7 +18376,7 @@
   "$1,000 per setup: most of the $10k sits in cash, earning nothing.",
   "Prices are Binance 1-minute bars; costs 25 bps per side.",
   "Worst drop counts closed trades only, not open ones.",
-  "Costs are estimates. The numbers above use simple costs; cost_cases prices the headline with realistic costs (spread, slippage, borrow fees on shorts) and with those doubled. Borrow flags are today's, not each trade date's."
+  "Costs are estimates. The headline is shown with realistic costs (spread, slippage, borrow fees on shorts), with simple flat costs and with realistic doubled; the chart, years and the cards below use simple costs. Hard-to-borrow status is as of today, not each trade date."
  ],
  "checks": {
   "events_total": 398,
