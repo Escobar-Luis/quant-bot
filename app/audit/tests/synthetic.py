@@ -122,6 +122,26 @@ def cases() -> list[Case]:
                     "scale 1000/(100 x 200) = 0.05: 5 sh at 100 + 5 at 104 (avg 102); trim 50/200 = 2.5 sh at 106; "
                     "unsized = half of 7.5 at 108; rest 3.75 at 110: 62.5 - 1.05125"))
 
+    # 8b. the same posts under rule 13(e), no look-ahead: the first buy is $1,000 whatever he adds later
+    p = pos([Leg("o", at(9, 30), "open", qty=100), Leg("a", at(9, 40), "add", qty=100),
+             Leg("t1", at(9, 50), "trim", qty=50), Leg("t2", at(10, 0), "trim"), Leg("c", at(10, 10), "close")],
+            course="lpp")
+    out.append(Case("adds, sized trim, unsized trim, close (LPP, no look-ahead)", p, 1, b,
+                    {"status": "priced", "entry": (at(9, 31), 100.0), "exit": (at(10, 11), 110.0),
+                     "pnl": 5 * 4 + 7.5 * 6 + 7.5 * 8 - (1000 + 1040 + 530 + 810 + 825) * BPS5},
+                    "first buy $1,000 / 100 = 10 sh; add 10 x 100/100 = 10 sh at 104 (avg 102); trim 50/200 = 5 sh "
+                    "at 106; unsized = half of 15 at 108; rest 7.5 at 110: 125 - 2.1025", sizing="known"))
+
+    # 8c. no count on the first buy: an add with a count meets the median of what he had said (its own count)
+    b2 = book(DAY, m0931=[100, 100.5, 99.5, 100], m0941=[104, 104.5, 103.5, 104], m1001=[108, 108.5, 107.5, 108])
+    p = pos([Leg("o", at(9, 30), "open"), Leg("a", at(9, 40), "add", qty=300), Leg("c", at(10, 0), "close")],
+            course="lpp")
+    out.append(Case("first buy with no count, later add (LPP, no look-ahead)", p, 1, b2,
+                    {"status": "priced", "entry": (at(9, 31), 100.0), "exit": (at(10, 1), 108.0),
+                     "pnl": 10 * 8 + 10 * 4 - (1000 + 1040 + 2160) * BPS5},
+                    "first buy 10 sh at 100; at the add his only count is 300, so both counts read 300: 10 sh at "
+                    "104; close 20 at 108: 80 + 40 - 2.10", sizing="known"))
+
     # 9. break-even stop after TP2, filled in the same bar that hit TP2
     b = book(DAY, m0940=[100, 101.2, 99.8, 101], m0945=[100.5, 102.2, 99.9, 101])
     p = pos([Leg("o", at(9, 30), "open")], stop=98.0, targets=[101.0, 102.0, 103.0],
@@ -185,13 +205,13 @@ def cash_case():
 
 # ---- engine side -----------------------------------------------------------------------------------------------
 
-def to_engine(p: Position):
+def to_engine(p: Position, sizing: str = "trade"):
     from backtest.engine import Leg as ELeg, Position as EPos
     return EPos(pid=p.pid, course=p.course, market=p.market, ticker=p.ticker, side=p.side, portfolio=p.portfolio,
                 legs=[ELeg(lg.event_id, int(lg.posted_ts), lg.action, lg.qty, lg.frac) for lg in p.legs],
                 default_exit=p.default_exit, stop=p.stop, targets=list(p.targets),
                 target_fracs=list(p.target_fracs), trigger=p.trigger, be_after_target=p.be_after_target,
-                scale=p.course == "lpp")
+                scale=p.course == "lpp", as_taught=sizing == "trade")
 
 
 def outcome_engine(r) -> dict:
@@ -261,7 +281,7 @@ def engine_divergences() -> list[dict]:
     for c in cases():
         undo = patch_bars(c.bars)
         try:
-            got = outcome_engine(engine.simulate(to_engine(c.position), c.delay))
+            got = outcome_engine(engine.simulate(to_engine(c.position, c.sizing), c.delay))
         finally:
             for mod, name, fn in undo:
                 setattr(mod, name, fn)

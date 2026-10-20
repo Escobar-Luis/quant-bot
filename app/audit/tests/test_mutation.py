@@ -27,7 +27,7 @@ def reconcile(tmp_path, monkeypatch) -> list[dict]:
     for i, c in enumerate(FIXTURE):
         undo = S.patch_bars(c.bars)
         try:
-            p = S.to_engine(c.position)
+            p = S.to_engine(c.position, c.sizing)
             p.pid = f"case-{i}"
             rows = [engine.simulate(p, d) for d in DELAYS]
             a = SimpleNamespace(limit=None, course="syn", version=f"v{i}", ledger_only=False)

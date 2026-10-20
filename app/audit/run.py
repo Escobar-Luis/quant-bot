@@ -11,7 +11,8 @@ For each results file:
   3. trades: the audit's own positions go through the second calculator (audit.calc) at every delay; each trade
      (status, entry and exit time and price, P&L, and every fill) is checked against the ledger, and the trades
      the results file shows are checked directly: 1 cent at stored precision, times exact;
-  4. headlines, per testable portfolio and delay (plus `same_sessions`): end, return, just-holding end and
+  4. headlines, per testable portfolio and delay (plus `same_sessions` and LPP's `as_taught`, the rule 11 ledger
+     with rule 6's whole-trade sizing, rebuilt by the audit's own as-taught ledger): end, return, just-holding end and
      return, trades, not_triggered, couldnt_copy, sized_down, won_pct, worst_drop_pct, word and the sealed block.
 Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
 proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
@@ -44,10 +45,13 @@ MARKET = {"lpp": "us_equities", "ziptrader": "us_equities", "cryptowizard": "cry
 HOLD_BARS = {"SPY": "SPY", "BTC": "BTCUSDT"}
 
 NOTES = {
-    "sizing": "LPP sizing 'trade' (all of a trade's buys together are $1,000, in his ratios; an entry with no "
-              "count takes the upper median of his stated counts; a trim sells his stated share of his holding) "
-              "was inferred from the engine's ledger output, then written into contracts.md rule 6. It is "
-              "superseded by the bankroll model (spec-audit CAP-9).",
+    "sizing": "LPP sizing 'known' (contracts.md rule 13e, no look-ahead): the first buy is $1,000; each add is "
+              "sized from the counts he had stated by then; a trim sells his stated share of his holding. The "
+              "as-taught reading 'trade' (all of a trade's buys together are $1,000, which reads later adds) is "
+              "checked only on the results file's `as_taught` block. Both are superseded by the bankroll model "
+              "(spec-audit CAP-9).",
+    "ledger": "LPP positions follow contracts.md rule 13 (a position stays overnight only on a horizon he said "
+              "before 15:55 ET); rule 11's next-word carry is rebuilt only for `as_taught`.",
     "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last "
                   "1-minute bar's close is reported as an alternative (--hold-close minute).",
 }
@@ -205,17 +209,18 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
     loader_math: dict[str, dict] = {}
     worst, checked = 0.0, 0
 
-    def own_positions(ver, only, label):
-        rep = P.compare(course, ver, only)
+    def own_positions(ver, only, label, ledger="no_look_ahead"):
+        rep = P.compare(course, ver, only, ledger)
         position_reports[label] = {k: rep[k] for k in ("loader_positions", "audit_positions", "differences",
                                                        "positions_differing", "by_field")}
         for x in rep["details"]:
             mismatches.append({**x, "against": f"loader:{label}"})
-        return P.build(course, ver, only)
+        return P.build(course, ver, only, ledger)
 
-    def run_set(positions, ledger_name, portfolios, mm=mismatches, cmp=compared, unv=unverifiable, main=True):
+    def run_set(positions, ledger_name, portfolios, mm=mismatches, cmp=compared, unv=unverifiable, main=True,
+                sz=None):
         nonlocal worst, checked
-        mine = {(p.pid, dl): calc.simulate(p, dl, sizing) for p in positions for dl in d["delays_min"]}
+        mine = {(p.pid, dl): calc.simulate(p, dl, sz or sizing) for p in positions for dl in d["delays_min"]}
         lpath = ledger_dir / f"{course}-{version}{ledger_name}-ledger.jsonl"
         meta, ledger = read_ledger(lpath)
         if ledger is None:
@@ -249,16 +254,17 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
         for pf_id, rows in portfolios:
             for dl, theirs in rows.items():
                 ts = [t for (pid, x), t in mine.items() if x == int(dl) and (pf_id == "all" or t.portfolio == pf_id)]
-                w = compare_head(pf_id if ledger_name == "" else f"same_sessions:{pf_id}", dl,
+                w = compare_head(pf_id if ledger_name == "" else f"{ledger_name[1:]}:{pf_id}", dl,
                                  theirs, calc.portfolio(ts, hold_row, sealed_from), mm)
                 if main:
                     worst = max(worst, w)
         return mine
 
-    def math_only(ver, only, ledger_name, portfolios):
+    def math_only(ver, only, ledger_name, portfolios, ledger="no_look_ahead", sz=None):
         """The same reconciliation on the loaders' own positions: what is left is the math alone."""
         mm, cmp, unv = [], [], []
-        run_set(P.loader_positions(course, ver, only), ledger_name, portfolios, mm, cmp, unv, main=False)
+        run_set(P.loader_positions(course, ver, only, ledger), ledger_name, portfolios, mm, cmp, unv, main=False,
+                sz=sz)
         loader_math[ledger_name or "main"] = {
             "trades_compared": len(cmp), "mismatches": len(mm),
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
@@ -292,6 +298,13 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
         ss = [(same.get("portfolio", "all"), same["by_delay"])]
         run_set(base, "-same_sessions", ss)
         math_only(same["version"], srcs, "-same_sessions", ss)
+
+    if d.get("as_taught"):
+        # rule 11's ledger and rule 6's whole-trade sizing (both read later words), kept visible beside rule 13
+        tp = [(x["id"], x["by_delay"]) for x in d["as_taught"]["portfolios"]]
+        taught = own_positions(version, only, f"{version}-as_taught", "as_taught")
+        run_set(taught, "-as_taught", tp, sz="trade")
+        math_only(version, only, "-as_taught", tp, "as_taught", "trade")
 
     hold_note = {"symbol": symbol, "first_open": hold_row["px0"], "official_close": hold_row["official_close"],
                  "minute_close": hold_row["minute_close"], "used": hold_row["used"],
@@ -351,8 +364,9 @@ def main(argv=None) -> int:
     ap.add_argument("--out-dir", default=str(DATA / "audit"))
     ap.add_argument("--proofs", default=str(PROOFS / "audit.json"), help="'' to skip writing it")
     ap.add_argument("--sizing", choices=calc.SIZINGS, default=calc.DEFAULT_SIZING,
-                    help="LPP rule 6 reading: trade = all of a trade's buys together are $1,000 (contracts.md "
-                         "rule 6); first = his first entry is $1,000 (the rule's earlier wording)")
+                    help="LPP sizing: known = rule 13(e), no look-ahead (default); trade = rule 6 as taught, all "
+                         "of a trade's buys together are $1,000; first = his first entry is $1,000, adds at the "
+                         "same factor")
     ap.add_argument("--hold-close", choices=calc.HOLD_CLOSES, default=calc.DEFAULT_HOLD_CLOSE,
                     help="rule 7's last price: official = the session close (daily cache); minute = last 1-min bar")
     ap.add_argument("--only", action="append", help="course/version, e.g. lpp/v1 (repeatable)")

@@ -75,14 +75,16 @@ def horizon_ts(p, entry_ts: int) -> int:
     raise ValueError(f"unknown default exit {p.default_exit}")
 
 
-SIZINGS = ("first", "trade")
+SIZINGS = ("known", "trade", "first")
 # Rule 6 says LPP "scales the host's share counts so each trade starts at $1,000, keeping his add/trim ratios".
-#   first: read literally: the first entry is $1,000; later adds and trims are his counts times the same factor.
-#   trade: inferred from the engine's ledger output (not its code), then written into contracts.md rule 6, and
-#          superseded by the bankroll model (spec-audit CAP-9): all his entries together are
-#          $1,000 at the first fill price, in his ratios (an entry with no count takes the upper median of his stated counts);
-#          a trim sells the share of his own stated holding that he trimmed (no size: half).
-DEFAULT_SIZING = "trade"   # contracts.md rule 6 (clarified 2026-10-20): all of a trade's buys together scale to $1,000
+#   known: contracts.md rule 13(e), no look-ahead (the headline): the first buy is $1,000 at its fill; each add buys
+#          the first buy's shares x (his count for the add / his count for the first buy), a count he didn't
+#          state being the upper median of the counts he had stated on this position's buys posted up to that
+#          add (both equal when he has stated none); a trim sells the share of his stated holding he trimmed.
+#   trade: rule 6 as taught (the `as_taught` alternative): all his entries together are $1,000 at the first fill
+#          price, in his ratios, which reads adds he only announces later; trims as in `known`.
+#   first: rule 6 read literally: the first entry is $1,000; later adds and trims are his counts times the same factor.
+DEFAULT_SIZING = "known"   # contracts.md rule 13(e)
 
 
 def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
@@ -194,8 +196,11 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     q0 = PER_TRADE / e_px
     entry_legs = [lg for lg in legs if lg.action in ("open", "add")]
     whole = p.course == "lpp" and sizing == "trade"
-    his = 0.0                            # trade sizing: his own stated holding, in his share counts
-    if whole:
+    so_far = p.course == "lpp" and sizing == "known"
+    his = 0.0                            # trade/known sizing: his own stated holding, in his share counts
+    if so_far:
+        his = first.qty or 0.0           # q0 stays $1,000 at the first fill: nothing later is known yet
+    elif whole:
         stated = [lg.qty for lg in entry_legs if lg.qty]
         known = statistics.median_high(stated) if stated else 1.0
         scale = PER_TRADE / (e_px * sum(lg.qty or known for lg in entry_legs))
@@ -225,7 +230,13 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
         nonlocal his, hit, stop
         if lg.action in ("open", "add"):
 
-            if whole:
+            if so_far:
+                said = [x.qty for x in entry_legs if x.qty and x.posted_ts <= lg.posted_ts]
+                typical = statistics.median_high(said) if said else None
+                mine, base = lg.qty or typical, first.qty or typical
+                q = q0 * mine / base if (mine and base) else q0
+                his += lg.qty or 0.0
+            elif whole:
                 q = (lg.qty or known) * scale
                 his += lg.qty or 0.0
             else:
@@ -246,7 +257,7 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
             if p.be_after_target and hit >= p.be_after_target:
                 stop = avg
         elif lg.action == "trim":
-            if whole:
+            if whole or so_far:
                 f = min(1.0, lg.qty / his) if (lg.qty and his > 0) else 0.5
                 his = his * (1 - f)
                 q = f * held

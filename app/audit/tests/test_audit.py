@@ -1,4 +1,5 @@
 """The audit fails loudly on a result it can't reproduce, and passes an untouched one."""
+import datetime as dt
 import json
 import shutil
 
@@ -92,3 +93,60 @@ def test_audit_horizon_reading_from_the_contract():
     assert horizon_sessions("two weeks") == 10
     assert horizon_sessions("0 days") is None
     assert horizon_sessions("today") is None
+
+
+# ---- CAP-12, no look-ahead (contracts.md rule 13), on the audit's own ledger and calculator --------------------
+
+def _lpp_events(tmp_path, monkeypatch, evs):
+    from audit import positions as P
+    path = tmp_path / "events.jsonl"
+    path.write_text("".join(json.dumps(e) + "\n" for e in evs))
+    monkeypatch.setattr(P, "lpp_events_path", lambda version: path)
+    monkeypatch.setattr(P, "lpp_release", lambda: {})
+    monkeypatch.setattr(P, "lpp_session_key", lambda: {})
+    return P
+
+
+def _ev(src, i, wall, action, qty=None, **kw):
+    return {"event_id": f"lpp:{src}:{i:03d}", "source_id": f"yt:{src}", "type": "trade", "t_s": 0.0,
+            "wall_utc": wall, "session_date": wall[:10], "ticker": "NVDA", "side": "short", "action": action,
+            "instrument": "stock", "qty": qty, "status": "ok", "fail": [], **kw}
+
+
+def test_audit_ledger_ignores_what_he_says_later(tmp_path, monkeypatch):
+    """Rule 13: Thursday's short is decided at 15:55 Thursday; Friday's add and close leave it unchanged, and
+    rule 11 (as_taught), which reads Friday's words, would have carried it."""
+    thu = [_ev("A", 0, "2024-08-15T13:40:00Z", "open", 100)]
+    fri = [_ev("B", 0, "2024-08-16T13:40:00Z", "add", 50), _ev("B", 1, "2024-08-16T14:00:00Z", "close")]
+    P = _lpp_events(tmp_path, monkeypatch, thu)
+    (alone,) = P.lpp("v1")["positions"]
+    P = _lpp_events(tmp_path, monkeypatch, thu + fri)
+    first, second = P.lpp("v1")["positions"]
+    assert (first.pid, first.portfolio, first.default_exit, [lg.event_id for lg in first.legs]) == \
+        (alone.pid, "day", "day_close", ["lpp:A:000"])
+    assert [lg.action for lg in second.legs] == ["add", "close"]
+    (taught,) = P.lpp("v1", ledger="as_taught")["positions"]
+    assert taught.portfolio == "swing" and len(taught.legs) == 3
+
+
+def test_audit_ledger_horizon_said_in_time(tmp_path, monkeypatch):
+    P = _lpp_events(tmp_path, monkeypatch, [_ev("A", 0, "2024-08-15T13:40:00Z", "open", 100, horizon="2 days"),
+                                            _ev("B", 0, "2024-08-16T13:40:00Z", "trim", 50),
+                                            _ev("C", 0, "2024-08-20T13:40:00Z", "close")])
+    built = P.lpp("v1")
+    (p,) = built["positions"]
+    assert p.portfolio == "swing" and p.default_exit == f"at:{P.leaves_at(dt.date(2024, 8, 19), 0)}"
+    assert [lg.action for lg in p.legs] == ["open", "trim"] and built["stats"]["exit_without_open"] == 1
+
+
+def test_audit_first_buy_is_the_same_whatever_he_adds_later(monkeypatch):
+    from audit.positions import Leg
+    from audit.tests import synthetic as S
+    S.patch_bars(S.book(S.DAY), monkeypatch.setattr)
+    legs = [Leg("o", S.at(9, 30), "open", qty=100), Leg("c", S.at(10, 0), "close")]
+    alone = calc.simulate(S.pos(legs, course="lpp"), 1)
+    later = calc.simulate(S.pos([legs[0], Leg("a", S.at(9, 40), "add", qty=900), legs[1]], course="lpp"), 1)
+    assert later.fills[0] == alone.fills[0] and alone.fills[0].qty * alone.fills[0].px == pytest.approx(1000)
+    taught = calc.simulate(S.pos([legs[0], Leg("a", S.at(9, 40), "add", qty=900), legs[1]], course="lpp"), 1,
+                           "trade")
+    assert taught.fills[0].qty * taught.fills[0].px == pytest.approx(100)    # rule 6 as taught reads the add

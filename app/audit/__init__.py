@@ -8,9 +8,10 @@ them from cached bars, and neither imports backtest.*. Only the comparison impor
 (backtest.<course>.build), to diff their positions with the audit's.
 
 Two readings to know:
-- LPP sizing "trade" (all of a trade's buys together are $1,000 in his ratios, an entry with no count takes the
-  upper median of his stated counts) was inferred from the engine's ledger output, then written into
-  contracts.md rule 6. It is superseded by the bankroll model (spec-audit CAP-9).
+- LPP follows contracts.md rule 13 (no look-ahead): positions stay overnight only on a horizon said before 15:55 ET,
+  and sizing "known" sizes each add from the counts he had stated by then. Rule 11's next-word carry with sizing
+  "trade" (all of a trade's buys together are $1,000, reading later adds) is checked only on `as_taught`. Both are
+  superseded by the bankroll model (spec-audit CAP-9).
 - Just holding ends at the official daily close (what a holder gets); the last 1-minute close is reported as an
   alternative (--hold-close minute).
 """
