@@ -127,8 +127,10 @@ def load_positions(mod, a) -> tuple[dict, set | None, list]:
     return built, only, positions
 
 
-def price_positions(positions) -> tuple[dict[str, dict[int, engine.Result]], Counter]:
-    """Step 2, price: copy every position at every delay on 1-minute bars."""
+def price_positions(mod, positions) -> tuple[dict[str, dict[int, engine.Result]], Counter, dict, list[str], list[float]]:
+    """Step 2, price: fetch the bars, then copy every position at every delay; plus just holding SPY or BTC."""
+    prefetch(positions)
+    hold, dates, hold_series = hold_numbers(mod.MARKET, getattr(mod, "HOLD_BARS", mod.HOLD["symbol"]), mod.WINDOW)
     by_pos: dict[str, dict[int, engine.Result]] = {}
     for i, p in enumerate(positions):
         by_pos[p.pid] = {d: engine.simulate(p, d) for d in DELAYS_MIN}
@@ -138,7 +140,7 @@ def price_positions(positions) -> tuple[dict[str, dict[int, engine.Result]], Cou
     print("  results by status (all delays):", dict(status))
     for why, n in Counter(r.why for rs in by_pos.values() for r in rs.values() if r.why).most_common(5):
         print(f"  skipped {n}x: {why}")
-    return by_pos, status
+    return by_pos, status, hold, dates, hold_series
 
 
 def build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series) -> list[dict]:
@@ -160,6 +162,7 @@ def build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series) ->
 
 def same_sessions_baseline(mod, a, only, dates, hold) -> dict | None:
     """Step 4, baseline: lpp v2+ only, v1's trades from exactly the same sessions, priced the same way."""
+    # the fix vs the failure in money: v1 priced on this version's sessions
     if not (a.course == "lpp" and a.version != "v1" and not a.limit):
         return None
     d5 = DEFAULT_DELAY_MIN
@@ -179,7 +182,7 @@ def same_sessions_baseline(mod, a, only, dates, hold) -> dict | None:
 
 
 def sample_trades(by_pos) -> list[dict]:
-    """The biggest wins and losses at the default delay, for the trade list."""
+    """Step 5, sample trades: the biggest wins and losses at the default delay, for the trade list."""
     d5 = DEFAULT_DELAY_MIN
     priced = [rs for rs in by_pos.values() if rs[d5].status == "priced"]
     priced.sort(key=lambda rs: -abs(rs[d5].pnl))
@@ -187,7 +190,7 @@ def sample_trades(by_pos) -> list[dict]:
 
 
 def unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only) -> list[str]:
-    """Step 5, unknowns: what the numbers can't tell you, in plain words."""
+    """Step 6, unknowns: what the numbers can't tell you, in plain words."""
     d5 = DEFAULT_DELAY_MIN
     st = built["stats"]
     assumed = Counter(p.portfolio for rs in by_pos.values() for d, r in rs.items()
@@ -207,7 +210,7 @@ def unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only) -
 
 
 def assemble(mod, a, built, positions, status, portfolios, same, trades, unknown) -> dict:
-    """Step 6a, assemble: the results/1 file (contracts.md)."""
+    """Step 7, assemble: the results/1 file (contracts.md)."""
     return {
         "schema": "results/1", "course": a.course, "course_name": mod.NAME, "version": a.version,
         "source_agent_id": f"extract-{a.course}-{a.version}", "sample": False,
@@ -226,7 +229,9 @@ def assemble(mod, a, built, positions, status, portfolios, same, trades, unknown
 
 
 def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios) -> None:
-    """Step 6b, v2 keys: strategies, ranges, combos, best stop, and the improver's suggestion if one exists."""
+    """Step 7, v2 keys: strategies, ranges, combos, best stop, and the improver's suggestion if one exists.
+
+    Side effect: rewrites data/improver/<course>-<version>.json with the code's keep decision."""
     results_all = {d: [by_pos[p.pid][d] for p in positions] for d in DELAYS_MIN}
     strat = extras.strategies(mod, a.version, positions, by_pos, dates, hold, mod.WINDOW)
     rng = extras.ranges(results_all, dates, hold_series, mod.WINDOW)
@@ -248,7 +253,7 @@ def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfo
 
 
 def write_results(out, a, portfolios) -> None:
-    """Step 6c, write: results/<course>/<version>.json (or --out), then the headline per delay."""
+    """Step 8, write: results/<course>/<version>.json (or --out), then the headline per delay."""
     path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(public_json(out))
@@ -264,9 +269,7 @@ def main():
     a = parse_args()
     mod = course_module(a.course)
     built, only, positions = load_positions(mod, a)
-    prefetch(positions)
-    hold, dates, hold_series = hold_numbers(mod.MARKET, getattr(mod, "HOLD_BARS", mod.HOLD["symbol"]), mod.WINDOW)
-    by_pos, status = price_positions(positions)
+    by_pos, status, hold, dates, hold_series = price_positions(mod, positions)
     portfolios = build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series)
     same = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)

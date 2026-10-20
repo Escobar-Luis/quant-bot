@@ -2,7 +2,7 @@
 title: 'Backtest entry point reads as named steps'
 type: 'refactor'
 created: '2026-10-20'
-status: 'review'
+status: 'done'
 route: 'oneshot'
 review_loop_iteration: 0
 context: []
@@ -27,3 +27,12 @@ context: []
 
 - `cd app && uv run pytest -q`: 116 passed.
 - lpp v1, lpp v2, cryptowizard v1, ziptrader v1 re-run with `--out`: all four JSON files equal the 937e399 baseline once `generated_at` and `git_sha` are dropped; printed logs identical.
+
+### Review Findings (bmad-code-review, 2026-10-20)
+- [x] [Review][Patch] prefetch and hold_numbers sat inline in main() [app/backtest/run.py] — moved into price_positions.
+- [x] [Review][Patch] sample_trades unnumbered; steps renumbered 1–8.
+- [x] [Review][Patch] add_v2_keys hides the data/improver write — named in its docstring.
+- [x] [Review][Patch] dropped "why" comment on the baseline — restored.
+- Re-verified after patches: four files and logs identical, 116 passed.
+
+Rejected: no proof of unchanged output (false, byte-compare done); no unit tests per step, long parameter lists, repeated d5, loose return types (low, beyond a behavior-preserving split); duplicated lpp-v2 condition and `--limit 0` / negative / empty proof set (pre-existing, not changed here).
