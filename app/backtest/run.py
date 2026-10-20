@@ -323,7 +323,8 @@ def assemble(mod, a, built, positions, status, portfolios, same, trades, unknown
 
 
 def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios) -> None:
-    """Step 7, v2 keys: strategies, ranges, combos, best stop, and the improver's suggestion if one exists.
+    """Step 7, v2 keys: strategies, ranges, combos, best stop, LPP's strategy_profile (from the cached reply of
+    `python -m backtest.strategy`) and the improver's suggestion if one exists.
 
     Side effect: rewrites data/improver/<course>-<version>.json with the code's keep decision."""
     results_all = {d: [by_pos[p.pid][d] for p in positions] for d in DELAYS_MIN}
@@ -340,6 +341,13 @@ def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfo
     for y, r in out["by_year"]["portfolios"]["all"]["by_delay"][str(DEFAULT_DELAY_MIN)].items():
         print(f"  by year @5m {y}: {r['start']:,.0f} -> {r['end']:,.0f} ({r['ret_pct']}%) vs hold "
               f"{r['hold_ret_pct']}% (price {r['hold_price_ret_pct']}%), {r['trades']} trades, {r['word']}")
+    if a.course == "lpp":   # spec-audit CAP-14: rule wording from the cached model reply; every number recomputed
+        from . import strategy
+        kept5, *_ = engine.fit_to_cash([r for r in results_all[DEFAULT_DELAY_MIN] if r.status == "priced"])
+        prof = strategy.profile(mod, a.version, kept5, strategy.stored(a.version))
+        if prof:
+            out["strategy_profile"] = prof
+            print(f"  strategy_profile: {len(prof['rules'])} rules kept, {len(prof['dropped'])} dropped")
     sp = DATA / "improver" / f"{a.course}-{a.version}.json"   # written by backtest.improver (traced to PRISM)
     if sp.exists():
         out["suggestion"] = json.loads(sp.read_text())
