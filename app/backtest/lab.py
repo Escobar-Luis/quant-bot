@@ -12,10 +12,10 @@ import json
 import os
 import sys
 
-import httpx
 import numpy as np
 
 from . import bars as B
+from . import costs as CO
 from .common import BARS, DATA, RESULTS, git_sha, has_alpaca, public_json
 
 SPEC = "notes/research/strategy-as-code.md"
@@ -23,7 +23,6 @@ PREREGISTERED_SHA = "eb6c3e8"   # the commit that fixed the spec, before any tes
 FROM, TO, SLICE_FROM = dt.date(2025, 9, 15), dt.date(2026, 10, 16), dt.date(2026, 7, 1)
 DAILY_FROM = dt.date(2025, 7, 15)   # 20+ sessions before FROM: the previous close and the 20-session volume
 MONEY, PER_TRADE = 10_000.0, 1_000.0
-ADV_THIN = 50e6
 SEED, DRAWS = 21, 2000
 
 UNIVERSES = [
@@ -77,11 +76,6 @@ BORROW_HIGH = 0.004
 
 # ---- data --------------------------------------------------------------------------------------------------------
 
-def _hdr() -> dict:
-    return {"APCA-API-KEY-ID": os.getenv("APCA_API_KEY_ID") or os.getenv("ALPACA_API_KEY") or "",
-            "APCA-API-SECRET-KEY": os.getenv("APCA_API_SECRET_KEY") or os.getenv("ALPACA_SECRET_KEY") or ""}
-
-
 def daily_path(sym: str, adj: str) -> "os.PathLike":
     return BARS / "lab_daily" / f"{sym}_{adj}_{DAILY_FROM}_{TO}.json"
 
@@ -109,20 +103,9 @@ def daily(sym: str, adj: str) -> dict[str, list]:
 
 
 def borrow_flags(tickers: list[str]) -> dict[str, bool | None]:
-    """{ticker: easy_to_borrow} from Alpaca's asset list (today's flag), cached in data/lab/assets.json. A lookup
-    that fails is cached as null ("unknown", never counted as hard to borrow) and retried on the next run."""
-    p = DATA / "lab" / "assets.json"
-    have = json.loads(p.read_text()) if p.exists() else {}
-    for t in tickers:
-        if have.get(t) is None:
-            try:
-                r = httpx.get(f"https://paper-api.alpaca.markets/v2/assets/{t}", headers=_hdr(), timeout=30)
-                have[t] = bool(r.json()["easy_to_borrow"]) if r.status_code == 200 else None
-            except (httpx.HTTPError, KeyError, ValueError):
-                have[t] = None
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(have, indent=1, sort_keys=True))
-    return {t: have[t] for t in tickers}
+    """{ticker: easy_to_borrow}: the shared cost module's lookup (today's flag, cached in data/lab/assets.json; a
+    failed lookup is null, "unknown", and retried on the next run)."""
+    return CO.borrow_flags(tickers)
 
 
 def minute_path(sym: str, day: str):
@@ -178,12 +161,17 @@ def short_trade(bars: dict, day: dt.date, entry_et: str, stop_pct, exit_et: str)
 
 
 def bps(model: str, px: float, adv: float) -> float:
-    base = 20 if px < 10 else 5
+    """Per-side cost from the shared cost module (contracts rule 5): base = simple; x2 = simple doubled (the
+    pre-registered stress); small_cap = realistic; x2_realistic = realistic doubled (story 29's x2 case)."""
     if model == "base":
-        return base
+        return CO.side_bps("simple", "us_equities", px)
     if model == "x2":
-        return 2 * base
-    return (50 if px < 5 else 30 if px < 10 else 5) + (10 if adv < ADV_THIN else 0)
+        return 2 * CO.side_bps("simple", "us_equities", px)
+    if model == "small_cap":
+        return CO.side_bps("realistic", "us_equities", px, adv)
+    if model == "x2_realistic":
+        return CO.side_bps("x2", "us_equities", px, adv)
+    raise ValueError(f"unknown cost model {model}")
 
 
 def pnl(t: dict, notional: float, model: str) -> float:
@@ -204,8 +192,13 @@ def word(trades: int, ret: float, bench: float) -> tuple[str, str]:
     return ("Yes" if gap >= 2 else "Barely" if gap > -2 else "No"), outcome
 
 
-def book(trades: list[dict], cal: list[str], model: str = "base", borrow: bool = False) -> dict:
-    """Run the account over the window: per-session sizing, then P&L under a cost model. Mutates nothing."""
+def book(trades: list[dict], cal: list[str], model: str = "base", borrow: bool = False,
+         case: str | None = None) -> dict:
+    """Run the account over the window: per-session sizing, then P&L under a cost model. Mutates nothing.
+    `case` (rule 5's simple / realistic / x2, story 29) overrides `model` and charges one day of borrow fee by the
+    ticker's flag (every lab trade is an intraday short)."""
+    if case:
+        model = {"simple": "base", "realistic": "small_cap", "x2": "x2_realistic"}[case]
     by_day: dict[str, list[dict]] = {}
     for t in trades:
         by_day.setdefault(t["day"], []).append(t)
@@ -220,7 +213,9 @@ def book(trades: list[dict], cal: list[str], model: str = "base", borrow: bool =
             day_pnl = 0.0
             for t in ts:
                 p = pnl(t, each, model) - (each * BORROW_HIGH if borrow and t["htb"] else 0.0)
-                out.append({**t, "notional": each, "pnl": p})
+                fee = CO.borrow_usd(case, t["flag"], each, 1) if case else 0.0
+                p -= fee
+                out.append({**t, "notional": each, "pnl": p, "borrow": fee})
                 day_pnl += p
             realized += day_pnl
         e = MONEY + realized
@@ -228,6 +223,18 @@ def book(trades: list[dict], cal: list[str], model: str = "base", borrow: bool =
         mdd = min(mdd, e / peak - 1)
         eq.append(e)
     return {"trades": out, "pnl": realized, "mdd_pct": 100 * mdd, "sized_down": sized_down}
+
+
+def cases_of(trades: list[dict], cal: list[str], n: int, spy_full: float) -> dict:
+    """Rule 5's three cost cases for one run (contracts.md section strategy-lab, `cost_cases`)."""
+    out = {}
+    for c in CO.CASES:
+        b = book(trades, cal, case=c)
+        ret = 100 * b["pnl"] / MONEY
+        w, oc = word(len(b["trades"]), ret, spy_full)
+        out[c] = {"pnl_usd": r2(b["pnl"]), "ret_pct": r2(ret), "word": w, "outcome": oc,
+                  "borrow_usd": r2(sum(t["borrow"] for t in b["trades"]))}
+    return out
 
 
 def streak(trades: list[dict]) -> int:
@@ -321,6 +328,7 @@ def build(fetch_cap: int) -> dict | None:
     cal = sessions(spy_all)
     flags = borrow_flags(tickers)
     htb = {t: ok is False for t, ok in flags.items()}
+    flag = {t: CO.flag_word("us_equities", ok) for t, ok in flags.items()}
     need = needed_minutes(split)
     fetched, still = fetch_minutes(need, fetch_cap)
     print(f"minute ticker-days needed {len(need)}, fetched this run {fetched}, still missing {still}",
@@ -351,7 +359,7 @@ def build(fetch_cap: int) -> dict | None:
                         f = raw[t][d][0] / o   # raw fills for the cost tier; ratios from split-adjusted bars
                         trades.append({"ticker": t, "day": d, "entry_ts": B.et_at(dt.date.fromisoformat(d), 9, 30),
                                        "entry": o * f, "exit": c * f, "kind": "close",
-                                       "adv": adv_before(raw[t], d), "htb": htb[t]})
+                                       "adv": adv_before(raw[t], d), "htb": htb[t], "flag": flag[t]})
                 else:
                     for t in uni["tickers"]:
                         for d in gap_sessions(split[t], v["gap_pct"]):
@@ -361,7 +369,8 @@ def build(fetch_cap: int) -> dict | None:
                             if tr is None:
                                 no_bars += 1
                                 continue
-                            trades.append({"ticker": t, "day": d, **tr, "adv": adv_before(raw[t], d), "htb": htb[t]})
+                            trades.append({"ticker": t, "day": d, **tr, "adv": adv_before(raw[t], d), "htb": htb[t],
+                                           "flag": flag[t]})
                 base = book(trades, cal)
                 n = len(base["trades"])
                 ret = 100 * base["pnl"] / MONEY
@@ -389,6 +398,7 @@ def build(fetch_cap: int) -> dict | None:
                                "unknown_trades": sum(1 for t in base["trades"] if flags[t["ticker"]] is None),
                                "borrow_high_ret_pct": r2(100 * bh["pnl"] / MONEY)},
                     "vs_random": vs_random(twin, pool, split, raw) if rule["id"] != "C" else None,
+                    "cost_cases": cases_of(trades, cal, n, spy_full),
                     "slice": {"trades": len(sl), "ret_pct": r2(sl_ret), "spy_ret_pct": r2(spy_slice),
                               "word": word(len(sl), sl_ret, spy_slice)[0]},
                 })
@@ -413,6 +423,9 @@ def build(fetch_cap: int) -> dict | None:
         "git_sha": git_sha(), "preregistered_sha": PREREGISTERED_SHA, "spec": SPEC,
         "window": {"from": cal[0], "to": cal[-1], "slice_from": slice_cal[0]},
         "money_start": MONEY, "per_trade_usd": PER_TRADE, "costs": COSTS,
+        "cost_cases": {"cases": list(CO.CASES), "default": CO.DEFAULT_CASE, "models": CO.MODELS,
+                       "rates_pct_per_year": CO.BORROW_PCT_YR,
+                       "flags": {t: flag[t] for t in tickers}},
         "variants_tried": len(runs) + PICKER_VERSIONS,
         "deviations": [u["deviation"] for u in UNIVERSES if u.get("deviation")],
         "fetch": {"minute_ticker_days": len(need), "runs": len(runs_log), "cap_per_run": fetch_cap,

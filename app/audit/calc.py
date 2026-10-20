@@ -5,10 +5,12 @@ and portfolio number is worked out here from cached bars. Where the contract is 
 next to the code as ASSUMPTION, so a mismatch with the engine can be traced to a rule, not a guess.
 """
 import datetime as dt
+import json
 import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from . import bars as B
+from .paths import BARS, DATA
 
 MONEY_START = 10_000.0
 PER_TRADE = 1_000.0                                         # rule 6
@@ -42,6 +44,8 @@ class Trade:
     why: str | None = None
     market: str = "us_equities"
     side: str = "long"
+    ticker: str = ""
+    borrow: float = 0.0             # borrow fees inside `cost` (rule 5's realistic and x2 cases only)
 
     @property
     def entry(self) -> Fill | None:
@@ -59,6 +63,87 @@ def cost_of(market: str, px: float, qty: float) -> float:
     else:
         bps = COST_BPS["stocks_under_10"] if px < 10 else COST_BPS["stocks"]   # ASSUMPTION: judged per fill price
     return abs(px * qty) * bps / 10_000
+
+
+# ---- rule 5's cost cases (contracts.md, spec-audit CAP-17), written from the contract alone ----------------------
+
+CASES = ("simple", "realistic", "x2")
+BORROW_YR = {"easy": 0.005, "hard": 0.30, "unknown": 0.30, "crypto": 0.10}   # rule 5: annual rates
+_DV: dict[str, dict] = {}
+
+
+def _daily_dv(ticker: str) -> dict:
+    """data/bars/daily_dv/<T>.json, {date: [raw close, volume]} ({} = the engine's fetch failed). Never fetches."""
+    if ticker not in _DV:
+        p = BARS / "daily_dv" / f"{ticker}.json"
+        if not p.exists():
+            raise B.MissingBar(f"{ticker}: no cached daily dollar volume (data/bars/daily_dv)")
+        _DV[ticker] = json.loads(p.read_text())
+    return _DV[ticker]
+
+
+def dollar_volume_20(ticker: str, day: dt.date) -> float:
+    """Average raw close x volume over the 20 sessions before `day`; 0 with none (counts as thin)."""
+    dv = _daily_dv(ticker)
+    before = sorted(k for k in dv if k < day.isoformat())[-20:]
+    return sum(dv[k][0] * dv[k][1] for k in before) / len(before) if before else 0.0
+
+
+def side_rate(case: str, market: str, ticker: str, px: float, ts: int) -> float:
+    """Per-side cost as a fraction of the fill's value under one case."""
+    if case == "simple":
+        return (COST_BPS["crypto"] if market == "crypto"
+                else COST_BPS["stocks_under_10"] if px < 10 else COST_BPS["stocks"]) / 10_000
+    if market == "crypto":
+        b = 25
+    else:
+        b = 50 if px < 5 else 30 if px < 10 else 5
+        if dollar_volume_20(ticker, B.et_day(ts)) < 50e6:
+            b += 10
+    return (2 * b if case == "x2" else b) / 10_000
+
+
+def fee(case: str, market: str, ticker: str, px: float, qty: float, ts: int) -> float:
+    if case == "simple":
+        return cost_of(market, px, qty)
+    return abs(px * qty) * side_rate(case, market, ticker, px, ts)
+
+
+def read_flags() -> dict[str, str]:
+    """Rule 5's borrow flags from the cached asset lookups: true easy, false hard, null unknown."""
+    p = DATA / "lab" / "assets.json"
+    raw = json.loads(p.read_text()) if p.exists() else {}
+    return {t: "unknown" if v is None else "easy" if v else "hard" for t, v in raw.items()}
+
+
+def borrow_fee(case: str, market: str, flag: str, value: float, ts0: int, ts1: int) -> float:
+    """A cover's fee: entry value x annual rate / 360 x calendar days from the first entry (at least 1)."""
+    if case == "simple":
+        return 0.0
+    rate = BORROW_YR["crypto" if market == "crypto" else flag] * (2 if case == "x2" else 1)
+    d0, d1 = B.day_of(market, ts0), B.day_of(market, ts1)
+    return value * rate * max(1, (d1 - d0).days) / 360
+
+
+def under_case(t: Trade, case: str, flags: dict[str, str]) -> Trade:
+    """The same trade, its fees (and a short's borrow) worked out under one case; simple: the trade itself."""
+    if case == "simple" or t.status != "priced":
+        return t
+    sign = 1 if t.side == "long" else -1
+    flag = flags.get(t.ticker, "unknown")
+    gross, cost, borrow, avg, q = 0.0, 0.0, 0.0, 0.0, 0.0
+    first = t.fills[0].ts
+    for f in t.fills:
+        cost += fee(case, t.market, t.ticker, f.px, f.qty, f.ts)
+        if f.kind == "entry":
+            avg = (avg * q + f.px * f.qty) / (q + f.qty)
+            q += f.qty
+        else:
+            gross += sign * (f.px - avg) * f.qty
+            if t.side == "short":
+                borrow += borrow_fee(case, t.market, flag, avg * f.qty, first, f.ts)
+            q -= f.qty
+    return replace(t, pnl=gross - cost - borrow, cost=cost + borrow, borrow=borrow)
 
 
 def horizon_ts(p, entry_ts: int) -> int:
@@ -91,7 +176,7 @@ DEFAULT_SIZING = "known"   # contracts.md rule 13(e) (the headline); "trade" che
 
 def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
     """Copy one position at one delay (rules 1-6). A missing bar marks the trade no_bars, naming the bar."""
-    t = Trade(p.pid, p.portfolio, delay, "priced", market=p.market, side=p.side)
+    t = Trade(p.pid, p.portfolio, delay, "priced", market=p.market, side=p.side, ticker=p.ticker)
     try:
         return _simulate(p, delay, t, sizing)
     except B.MissingBar as e:
@@ -418,15 +503,18 @@ def verdict(trades: int, ret: float, bench_ret: float | None, name: str | None) 
             "outcome": outcome(trades, ret), "vs": vs(trades, ret, bench_ret, name)}
 
 
-def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, int, float]:
+def copied_trades(trades: list[Trade], case: str = "simple", flags: dict | None = None,
+                  totals: dict | None = None) -> tuple[list[tuple[Trade, float]], int, int, float]:
     """Rule 6's cash cap, per buy (contracts.md, 2026-10-20): walk every fill of every trade by time, sells before
     buys at one moment, then by trade id (a trade's own fills keep their order). A buy spends its own money as it fills (nothing reserved for buys still
     to come); with less cash than it needs it is sized down to the cash, and with $1 or less it is skipped (a
     first buy skipped = couldn't copy, and that trade's later buys are skipped with it). A sell sells the same
     share of the copied position as the trade's own sell does of its position; it returns the money in what it
     sold plus its gain. ASSUMPTION: a trade's costs (rule 5, on the copied fills) leave cash at its last sell.
-    Returns [(trade, copied P&L)], buys sized down or skipped, trades not copied, peak money in positions."""
-    trades = [t for t in trades if t.status == "priced" and t.entry and t.exit]
+    Returns [(trade, copied P&L)], buys sized down or skipped, trades not copied, peak money in positions.
+    `case`: rule 5's cost case (each its own account); `totals` gets the copied costs_usd and borrow_usd."""
+    flags = flags or {}
+    trades = [under_case(t, case, flags) for t in trades if t.status == "priced" and t.entry and t.exit]
     def rank(t, k, f):
         # buys after sells at one moment; a sell in the same bar as its own trade's earlier buy (a target hit in
         # the entry bar) waits for that buy: within one trade the fills keep their own order
@@ -443,6 +531,7 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
     paid = [0.0] * len(trades)                   # money in the copied shares (average-cost basis)
     gain = [0.0] * len(trades)
     fees = [0.0] * len(trades)
+    lent = [0.0] * len(trades)                   # borrow fees (inside fees)
     took: list[list[float]] = [[] for _ in trades]   # per buy: copied shares / the trade's own shares
     cash, shrunk, dropped, peak = MONEY_START, 0, 0, 0.0
     for ts, kind, _, k, n in steps:
@@ -469,7 +558,7 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
             cash -= want * f.px
             q[n] += want
             paid[n] += want * f.px
-            fees[n] += cost_of(t.market, f.px, want)
+            fees[n] += fee(case, t.market, t.ticker, f.px, want, f.ts)
             peak = max(peak, sum(paid))
             continue
         frac = f.qty / own_q[n] if own_q[n] > 1e-12 else 1.0
@@ -480,7 +569,11 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
                 avg = paid[n] / q[n]
                 g = (f.px - avg) * sold * (1 if t.side == "long" else -1)
                 gain[n] += g
-                fees[n] += cost_of(t.market, f.px, sold)
+                fees[n] += fee(case, t.market, t.ticker, f.px, sold, f.ts)
+                if t.side == "short":
+                    b = borrow_fee(case, t.market, flags.get(t.ticker, "unknown"), avg * sold, t.fills[0].ts, f.ts)
+                    fees[n] += b
+                    lent[n] += b
                 cash += avg * sold + g
                 q[n] -= sold
                 paid[n] -= avg * sold
@@ -494,11 +587,17 @@ def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, 
         return gain[n] - fees[n]
 
     kept = [(t, pnl_of(n, t)) for n, t in enumerate(trades) if copied.get(n)]
+    if totals is not None:
+        def part(n, t, mine, theirs):
+            return theirs * took[n][0] if took[n] and max(took[n]) - min(took[n]) <= 1e-12 else mine
+        totals["costs_usd"] = sum(part(n, t, fees[n], t.cost) for n, t in enumerate(trades) if copied.get(n))
+        totals["borrow_usd"] = sum(part(n, t, lent[n], t.borrow) for n, t in enumerate(trades) if copied.get(n))
     return kept, shrunk, dropped, peak
 
 
 def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None,
-              bench: tuple | None | str = "hold", name: str = "just holding") -> dict:
+              bench: tuple | None | str = "hold", name: str = "just holding", case: str = "simple",
+              flags: dict | None = None, totals: dict | None = None) -> dict:
     """End value, return, trade count, word and the rest of a by_delay row, for one portfolio at one delay.
 
     Rule 6's cash cap, per buy: see copied_trades. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md
@@ -508,7 +607,7 @@ def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = Non
     money from its high, booked on each exit's day (the contract's `unknown` says the drop counts closed trades
     only). sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000.
     bench: rule 9's benchmark, (return, sealed return); "hold" = just holding (hold_row); None = not compared."""
-    kept, sized_down, couldnt, _ = copied_trades(trades)
+    kept, sized_down, couldnt, _ = copied_trades(trades, case, flags, totals)
     copied = len(kept)
     end = round(MONEY_START + sum(v for _, v in kept), 2)
     ret = round((end / MONEY_START - 1) * 100, 2)

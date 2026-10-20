@@ -15,7 +15,7 @@ import uuid
 from collections import Counter
 from pathlib import Path
 
-from . import bars, engine, extras
+from . import bars, costs, engine, extras
 from .common import (COSTS_BPS, DATA, DEFAULT_DELAY_MIN, DELAYS_MIN, MONEY_START, RESULTS, git_sha, public_json)
 
 LABELS = {"all": "Everything he traded", "day": "Day trades", "swing": "Swing trades", "crypto": "Crypto setups",
@@ -212,26 +212,27 @@ def compare_with_same_sessions(portfolios, same) -> None:
         engine.judge(row, None, None, None)
 
 
-def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list]:
+def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list, dict]:
     """Step 4, baseline: lpp v2+ only, v1's trades from exactly the same sessions, priced the same way."""
     # the fix vs the failure in money: v1 priced on this version's sessions
     if not (a.course == "lpp" and a.version != "v1" and not a.limit):
-        return None, []
+        return None, [], {}
     d5 = DEFAULT_DELAY_MIN
     srcs = only or {e["source_id"] for e in mod.load(a.version)}
     base = mod.build("v1", srcs)["positions"]   # v1's events from exactly these sessions, same ledger rules
     for p in base:
         p.scale = a.scale
     prefetch(base)
-    rows, ledger = {}, []
+    rows, ledger, by_d = {}, [], {}
     for d in DELAYS_MIN:
         rs = [engine.simulate(p, d) for p in base]
         ledger += rs
+        by_d[d] = rs
         rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
     same = {"version": "v1", "sessions": len(srcs), "proof_set": bool(only), "portfolio": "all", "by_delay": rows,
             "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
     print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
-    return same, ledger
+    return same, ledger, by_d
 
 
 ALT_KEY = "as_taught_stitched"   # contracts.md rule 11, beside rule 13's headline (spec-audit story 18)
@@ -273,6 +274,76 @@ def stitched_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]:
     return block, [r for rs in by_pos.values() for r in rs.values()]
 
 
+CASE_ROW = ("end", "ret_pct", "hold_ret_pct", "trades", "won_pct", "sized_down", "couldnt_copy", "costs_usd",
+            "borrow_usd", "word", "outcome", "vs", "sealed")
+
+
+def cost_cases(mod, positions, by_pos, dates, hold, portfolios, same, same_by_d) -> dict:
+    """Step 6b, cost cases (contracts.md rule 5, section cost_cases; spec-audit CAP-17): every testable portfolio
+    at every delay under simple, realistic and 2x realistic costs, each its own account (rule 6's cash cap).
+    Borrow flags for every shorted ticker; daily dollar volumes for every stock traded (both cached)."""
+    priced = [r for rs in by_pos.values() for r in rs.values() if r.status == "priced"] + \
+        [r for rs in same_by_d.values() for r in rs if r.status == "priced"]
+    shorted = sorted({r.position.ticker for r in priced if r.position.side == "short"})
+    if mod.MARKET == "us_equities":
+        easy = costs.borrow_flags(shorted)
+        flags = {t: costs.flag_word(mod.MARKET, easy[t]) for t in shorted}
+        for t in sorted({r.position.ticker for r in priced}):
+            costs.daily_dv(t)
+    else:
+        flags = {t: "crypto" for t in shorted}
+    checked = sorted(costs.checked_dates([t for t in shorted if flags[t] != "crypto"]).values())
+    models = {c: costs.Model(c, flags) for c in costs.CASES}
+
+    def rows_for(rs, bench_rows=None, judged=True):
+        out = {}
+        for c, m in models.items():
+            tot = {}
+            row = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"], bench(mod), m, tot)[0]
+            row["costs_usd"], row["borrow_usd"] = round(tot["costs_usd"], 2), round(tot["borrow_usd"], 2)
+            if bench_rows is not None:
+                b = bench_rows[c]
+                engine.judge(row, b["ret_pct"], b["sealed"]["ret_pct"], same["version"])
+            elif not judged:
+                engine.judge(row, None, None, None)
+            out[c] = {k: row[k] for k in CASE_ROW}
+        return out
+
+    block_same = None
+    if same:
+        block_same = {"by_delay": {str(d): rows_for(same_by_d[d], judged=False) for d in DELAYS_MIN}}
+    pfs = []
+    for pf in portfolios:
+        if not pf.get("testable"):
+            continue
+        by_d = {}
+        for d in DELAYS_MIN:
+            rs = [by_pos[p.pid][d] for p in positions if pf["id"] == "all" or p.portfolio == pf["id"]]
+            if same:
+                head = pf["id"] == same.get("portfolio", "all")
+                by_d[str(d)] = rows_for(rs, block_same["by_delay"][str(d)] if head else None, judged=head)
+            else:
+                by_d[str(d)] = rows_for(rs)
+        pfs.append({"id": pf["id"], "by_delay": by_d})
+    d5 = str(DEFAULT_DELAY_MIN)
+    for c in costs.CASES:
+        r = pfs[0]["by_delay"][d5][c]
+        print(f"  cost case {c:<9} @5m: end {r['end']:>10,.2f}  ret {r['ret_pct']:>7.2f}%  costs {r['costs_usd']:>8,.2f}"
+              f"  borrow {r['borrow_usd']:>7,.2f}  trades {r['trades']}  {r['word']}")
+    out = {"cases": list(costs.CASES), "default": costs.DEFAULT_CASE, "models": costs.MODELS,
+           "bps_per_side": costs.BPS_PER_SIDE,
+           "borrow": {"source": "Alpaca easy_to_borrow, as of the lookup (today's flag, not the trade date's)"
+                      if mod.MARKET == "us_equities" else "crypto shorts: no flag source; margin or funding rate",
+                      "checked": {"from": checked[0], "to": checked[-1]} if checked else None,
+                      "rates_pct_per_year": costs.BORROW_PCT_YR, "flags": flags, "shorted_tickers": len(shorted),
+                      "hard": sum(v == "hard" for v in flags.values()),
+                      "unknown": sum(v == "unknown" for v in flags.values())},
+           "portfolios": pfs}
+    if block_same:
+        out["same_sessions"] = block_same
+    return out
+
+
 def sample_trades(by_pos) -> list[dict]:
     """Step 5, sample trades: the biggest wins and losses at the default delay, for the trade list."""
     d5 = DEFAULT_DELAY_MIN
@@ -290,6 +361,9 @@ def unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only) -
     unknown = mod.unknown(st, assumed, len(positions), len(built["positions"]), status) \
         if hasattr(mod, "unknown") else []
     unknown.append("Worst drop counts closed trades only, not open ones.")
+    unknown.append("Costs are estimates. The numbers above use simple costs; cost_cases prices the headline with "
+                   "realistic costs (spread, slippage, borrow fees on shorts) and with those doubled. Borrow flags "
+                   "are today's, not each trade date's.")
     head = portfolios[0]["by_delay"][str(d5)]
     if head["sized_down"] or head["couldnt_copy"]:
         unknown.insert(0, f"At {d5} min, {head['sized_down']} trades were sized down and {head['couldnt_copy']} "
@@ -382,7 +456,7 @@ def write_results(out, a, portfolios) -> Path:
     return path
 
 
-COMPARED = ("portfolios", "same_sessions", ALT_KEY, "trades")
+COMPARED = ("portfolios", "same_sessions", ALT_KEY, "trades", "cost_cases")
 
 
 def ledger_only(a, out, ledgers) -> None:
@@ -405,7 +479,7 @@ def main():
     built, only, positions = load_positions(mod, a)
     by_pos, status, hold, dates, hold_series = price_positions(mod, positions)
     portfolios = build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series)
-    same, same_ledger = same_sessions_baseline(mod, a, only, dates, hold)
+    same, same_ledger, same_by_d = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
     unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
     alt, alt_ledger = stitched_alternative(mod, a, only, dates, hold)
@@ -415,6 +489,8 @@ def main():
             for row in p["by_delay"].values():
                 engine.judge(row, None, None, None)
     out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
+    if not a.limit:
+        out["cost_cases"] = cost_cases(mod, positions, by_pos, dates, hold, portfolios, same, same_by_d)
     if alt:
         out[ALT_KEY] = alt
     ledgers = [("", [r for rs in by_pos.values() for r in rs.values()])] + \
