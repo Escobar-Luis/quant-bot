@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from backtest.common import BARS
+from .paths import BARS
 
 ET = ZoneInfo("America/New_York")
 UTC = dt.UTC
