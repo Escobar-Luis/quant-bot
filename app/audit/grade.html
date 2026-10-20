@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grade Extraction</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--mute:#8b949e;--ok:#3fb950;--bad:#f85149;--skip:#d29922;--hi:#1f6feb33;--acc:#58a6ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{display:flex;gap:16px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2;flex-wrap:wrap}
+header b{font-size:15px}
+.tabs button,.btn{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
+.tabs button.on{border-color:var(--acc);color:var(--acc)}
+.stat{color:var(--mute);margin-left:auto}
+main{padding:16px;max-width:1300px;margin:0 auto}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+table.f{border-collapse:collapse;width:100%}
+table.f td{padding:3px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.f td:first-child{color:var(--mute);width:110px;white-space:nowrap}
+.ctx{max-height:62vh;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.ln{padding:1px 4px}.ln.hit{background:var(--hi);border-left:3px solid var(--acc)}
+.ts{color:var(--mute);margin-right:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.btn.ok{border-color:var(--ok)}.btn.bad{border-color:var(--bad)}.btn.sk{border-color:var(--skip)}
+.btn.sel.ok{background:#23863633}.btn.sel.bad{background:#da363333}.btn.sel.sk{background:#9e6a0333}
+.reasons{display:none;gap:6px;flex-wrap:wrap}.reasons.on{display:flex}
+.reasons .btn.sel{background:#da363333}
+kbd{border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px;color:var(--mute)}
+.nav{display:flex;gap:8px;align-items:center;color:var(--mute)}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;border:1px solid var(--line);font-size:12px;color:var(--mute)}
+img.shot{max-width:100%;border:1px solid var(--line);border-radius:6px;margin-bottom:8px}
+.chunk{border-top:1px solid var(--line);padding:10px 0}
+.chunk .ev{background:#1f6feb22;border-left:3px solid var(--acc);padding:4px 8px;margin:4px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chunk .ev.wrong{border-color:var(--bad);background:#da363322;text-decoration:line-through}
+.miss{background:#da363322;border-left:3px solid var(--bad);padding:4px 8px;margin:4px 0;display:flex;gap:8px;align-items:center}
+.miss input{flex:1;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+.saved{color:var(--ok);font-size:12px;opacity:0;transition:opacity .3s}.saved.on{opacity:1}
+.help{color:var(--mute);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <b>Grade extraction</b>
+  <span class="tabs"><button id="t-grade" class="on">Precision</button> <button id="t-recall">Recall (LPP)</button></span>
+  <span class="saved" id="saved">saved</span>
+  <span class="stat" id="stat"></span>
+</header>
+<main id="main"></main>
+<script>
+const REASON_LABEL={ticker:"Ticker",side:"Side",price:"Price",size:"Size",not_a_trade:"Not a trade",other:"Other"};
+let items=[],reasons=[],answers={events:{},recall:{}},sessions=null,idx=0,tab="grade",reasonOpen=false,sIdx=0;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mmss=t=>{t=Math.max(0,Math.floor(t||0));return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`};
+const fmt=v=>Array.isArray(v)?v.join(", "):typeof v==="object"?JSON.stringify(v):v;
+
+async function post(msg){
+  const r=await fetch("/api/answer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(msg)});
+  if(!r.ok){alert("Not saved: "+(await r.text()));return false}
+  const s=$("#saved");s.classList.add("on");setTimeout(()=>s.classList.remove("on"),700);return true;
+}
+function stat(){
+  const n=items.length,g=items.filter(i=>answers.events[i.event_id]).length;
+  const by={};for(const i of items){const a=answers.events[i.event_id];by[i.course]=by[i.course]||{c:0,w:0};if(a?.verdict==="correct")by[i.course].c++;if(a?.verdict==="wrong")by[i.course].w++}
+  const p=Object.entries(by).map(([k,v])=>`${k} ${v.c+v.w?Math.round(100*v.c/(v.c+v.w))+"%":"-"}`).join(" · ");
+  $("#stat").textContent=`${g}/${n} answered · ${p}`;
+}
+function fields(f){return `<table class="f">${Object.entries(f).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(fmt(v))}</td></tr>`).join("")}</table>`}
+function context(c){
+  if(!c)return "";
+  if(c.kind==="captions"){
+    return `<h3>Captions ±30 s · session ${esc(c.session)} · quote at ${mmss(c.at)}${c.quote_found?"":" (quote not found verbatim; centred on t_s)"}</h3>
+      <div class="ctx">${c.lines.map(l=>`<div class="ln${l.hit?" hit":""}"><span class="ts">${mmss(l.t)}</span>${esc(l.text)}</div>`).join("")||"(no captions)"}</div>`;
+  }
+  const head=`<h3>${c.kind==="post"?"Post":"Transcribed screenshot"} · #${esc(c.channel)} · ${esc(c.posted_at)}</h3>`;
+  const imgs=(c.images||[]).map(s=>`<details><summary class="help">screenshot</summary><img class="shot" src="${esc(s)}" loading="lazy"></details>`).join("");
+  return head+imgs+`<div class="ctx">${esc(c.text)}</div>`;
+}
+function renderGrade(){
+  stat();
+  if(!items.length){$("#main").innerHTML="<p>No sample. Run <code>uv run python -m audit.grade sample</code>.</p>";return}
+  const it=items[idx],a=answers.events[it.event_id]||{};
+  const v=a.verdict;
+  $("#main").innerHTML=`
+  <div class="nav"><button class="btn" id="prev">← prev</button> <span>${idx+1} / ${items.length}</span> <button class="btn" id="next">next →</button>
+    <button class="btn" id="nextun">next unanswered <kbd>N</kbd></button> <span class="pill">${esc(it.course)}</span> <span class="pill">${esc(it.event_id)}</span></div>
+  <div class="actions">
+    <button class="btn ok ${v==="correct"?"sel":""}" data-v="correct">Correct <kbd>C</kbd></button>
+    <button class="btn bad ${v==="wrong"?"sel":""}" data-v="wrong">Wrong <kbd>W</kbd></button>
+    <button class="btn sk ${v==="skip"?"sel":""}" data-v="skip">Skip <kbd>S</kbd></button>
+    <span class="reasons ${reasonOpen||v==="wrong"?"on":""}">${reasons.map((r,k)=>`<button class="btn ${a.reason===r?"sel":""}" data-r="${r}">${REASON_LABEL[r]||r} <kbd>${k+1}</kbd></button>`).join("")}</span>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>What the extraction says</h3>${it.missing?"<p>Event no longer in events.jsonl.</p>":fields(it.fields)}</div>
+    <div class="card">${context(it.context)}</div>
+  </div>
+  <p class="help">Keys: <kbd>C</kbd> correct · <kbd>W</kbd> wrong then <kbd>1</kbd>–<kbd>6</kbd> reason · <kbd>S</kbd> skip · <kbd>←</kbd>/<kbd>→</kbd> move · <kbd>N</kbd> next unanswered · <kbd>U</kbd> clear. Saved on every click.</p>`;
+  $("#prev").onclick=()=>go(idx-1);$("#next").onclick=()=>go(idx+1);$("#nextun").onclick=nextUn;
+  document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>verdict(b.dataset.v));
+  document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>reason(b.dataset.r));
+  const hit=document.querySelector(".ln.hit"),box=hit&&hit.closest(".ctx");
+  if(box)box.scrollTop=hit.offsetTop-box.offsetTop-box.clientHeight/2;
+}
+function go(k){idx=Math.max(0,Math.min(items.length-1,k));reasonOpen=false;try{localStorage.setItem("grade.idx",idx)}catch(e){}render()}
+function nextUn(){for(let k=1;k<=items.length;k++){const j=(idx+k)%items.length;if(!answers.events[items[j].event_id])return go(j)}go(idx)}
+async function setEv(msg){const it=items[idx];if(!it)return false;if(await post({event_id:it.event_id,...msg})){if(msg.verdict)answers.events[it.event_id]={verdict:msg.verdict,reason:msg.reason||null};else delete answers.events[it.event_id];return true}}
+async function verdict(v){
+  if(v==="wrong"){reasonOpen=true;render();return}
+  if(await setEv({verdict:v}))nextUn();
+}
+async function reason(r){if(await setEv({verdict:"wrong",reason:r}))nextUn()}
+
+/* ---------- recall ---------- */
+function rs(){return answers.recall[sessions[sIdx].session]||{missed:[],wrong:[],done:false}}
+async function saveRecall(patch){
+  const s=sessions[sIdx].session,cur={...rs(),...patch};
+  if(await post({session:s,...patch}))answers.recall[s]=cur;   // UI follows the server, never ahead of it
+}
+function renderRecall(){
+  if(!sessions){$("#main").innerHTML="<p>Loading…</p>";return}
+  if(!sessions.length){$("#main").innerHTML="<p>No recall sessions in the sample.</p>";return}
+  const S=sessions[sIdx],a=rs(),wrong=new Set(a.wrong||[]);
+  const found=S.n_extracted-wrong.size,miss=(a.missed||[]).length;
+  $("#stat").textContent=`session ${sIdx+1}/${sessions.length} · found ${found} · missed ${miss} · ${a.done?"done":"not done"}`;
+  $("#main").innerHTML=`
+  <div class="nav">${sessions.map((s,k)=>`<button class="btn ${k===sIdx?"sel ok":""}" data-s="${k}">${esc(s.session)} · ${esc(s.date||"")}${(answers.recall[s.session]||{}).done?" ✓":""}</button>`).join(" ")}</div>
+  <p class="help">Read the whole session. Blue rows are the trades the extraction found: mark one wrong if it isn't a real trade. Where he makes a trade with no blue row, press <b>+ missed trade</b> on that chunk (a note is optional). Mark the session done when you've read it all; only done sessions count.</p>
+  <div class="actions"><button class="btn ok ${a.done?"sel":""}" id="done">${a.done?"Done ✓ (click to reopen)":"Mark session done"}</button></div>
+  <div class="card">${S.chunks.map((c,ci)=>`
+    <div class="chunk"><div class="nav"><span class="ts">${mmss(c.t)}–${c.end==null?"end":mmss(c.end)}</span><button class="btn bad" data-add="${c.t}">+ missed trade</button></div>
+      ${c.events.map(e=>`<div class="ev ${wrong.has(e.event_id)?"wrong":""}"><span class="ts">${mmss(e.t)}</span>
+        <span>${esc([e.fields.action,e.fields.side,e.fields.qty,e.fields.ticker,e.fields.price&&("@ "+e.fields.price)].filter(Boolean).join(" "))}</span>
+        <button class="btn" data-wrong="${esc(e.event_id)}">${wrong.has(e.event_id)?"undo wrong":"wrong"}</button></div>`).join("")}
+      ${(a.missed||[]).map((m,mi)=>m.t>=c.t&&(c.end==null||m.t<c.end)?`<div class="miss"><span class="ts">missed</span><input data-note="${mi}" value="${esc(m.note)}" placeholder="optional note (stays in data/)"><button class="btn" data-del="${mi}">remove</button></div>`:"").join("")}
+      <div class="ctx">${c.lines.map(l=>`<div class="ln"><span class="ts">${mmss(l.t)}</span>${esc(l.text)}</div>`).join("")}</div>
+    </div>`).join("")}</div>`;
+  document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{sIdx=+b.dataset.s;render();scrollTo(0,0)});
+  $("#done").onclick=async()=>{await saveRecall({done:!a.done});render()};
+  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=async()=>{const y=scrollY;await saveRecall({missed:[...(a.missed||[]),{t:+b.dataset.add,note:""}]});render();scrollTo(0,y)});
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{const y=scrollY;const m=[...a.missed];m.splice(+b.dataset.del,1);await saveRecall({missed:m});render();scrollTo(0,y)});
+  document.querySelectorAll("[data-note]").forEach(inp=>inp.onchange=async()=>{const m=a.missed.map(x=>({...x}));m[+inp.dataset.note].note=inp.value;await saveRecall({missed:m})});
+  document.querySelectorAll("[data-wrong]").forEach(b=>b.onclick=async()=>{const y=scrollY;const w=new Set(a.wrong||[]);const id=b.dataset.wrong;w.has(id)?w.delete(id):w.add(id);await saveRecall({wrong:[...w]});render();scrollTo(0,y)});
+}
+function render(){$("#t-grade").classList.toggle("on",tab==="grade");$("#t-recall").classList.toggle("on",tab==="recall");tab==="grade"?renderGrade():renderRecall()}
+$("#t-grade").onclick=()=>{tab="grade";render()};
+$("#t-recall").onclick=async()=>{tab="recall";render();if(!sessions){const d=await (await fetch("/api/recall")).json();if(d.error){$("#main").innerHTML=`<p>${esc(d.error)}</p>`;return}sessions=d.sessions;render()}};
+document.addEventListener("keydown",e=>{
+  if(tab!=="grade"||!items.length||e.target.tagName==="INPUT"||e.metaKey||e.ctrlKey||e.altKey)return;
+  const k=e.key.toLowerCase();
+  if(k==="c")verdict("correct");else if(k==="w")verdict("wrong");else if(k==="s")verdict("skip");
+  else if(k==="arrowright"||k==="j")go(idx+1);else if(k==="arrowleft"||k==="k")go(idx-1);
+  else if(k==="n")nextUn();else if(k==="u")setEv({verdict:null}).then(render);
+  else if(/^[1-9]$/.test(k)&&(reasonOpen||answers.events[items[idx].event_id]?.verdict==="wrong")){const r=reasons[+k-1];if(r)reason(r)}
+});
+(async()=>{
+  const [d,a]=await Promise.all([fetch("/api/items").then(r=>r.json()),fetch("/api/answers").then(r=>r.json())]);
+  if(d.error){$("#main").innerHTML=`<p>${esc(d.error)}</p>`;return}
+  items=d.items;reasons=d.reasons;answers=a;
+  let saved=null;try{saved=+localStorage.getItem("grade.idx")}catch(e){}
+  idx=Number.isFinite(saved)&&saved<items.length?saved:0;
+  if(answers.events[items[idx]?.event_id])nextUn();else render();
+})();
+</script>
+</body>
+</html>
