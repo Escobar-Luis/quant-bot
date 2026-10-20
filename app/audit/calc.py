@@ -1,0 +1,318 @@
+"""The second calculator: contracts.md's copy-trade rules, written again from the contract alone.
+
+It reuses only the course loaders' positions (the same list of trades to copy); every price, size, cost, exit and
+portfolio number is worked out here from cached bars. Where the contract is silent, the choice made is written
+next to the code as ASSUMPTION, so a mismatch with the engine can be traced to a rule, not a guess.
+"""
+import datetime as dt
+import statistics
+from dataclasses import dataclass, field
+
+from . import bars as B
+
+MONEY_START = 10_000.0
+PER_TRADE = 1_000.0                                         # rule 6
+COST_BPS = {"stocks": 5, "stocks_under_10": 20, "crypto": 25}   # rule 5
+DELAYS = [1, 3, 5, 10, 15, 30, 60]                          # rule 2
+DAY_EXIT = (15, 55)                                         # rule 4: 15:55 ET
+SWING_SESSIONS = 5                                          # rule 4
+MIN_TRADES = 30                                             # rule 9
+
+
+@dataclass
+class Fill:
+    ts: int
+    px: float
+    qty: float
+    kind: str        # entry | exit | stop | target | default
+
+
+@dataclass
+class Trade:
+    pid: str
+    portfolio: str
+    delay: int
+    status: str      # priced | not_triggered | no_bars | too_late
+    fills: list[Fill] = field(default_factory=list)
+    pnl: float = 0.0
+    cost: float = 0.0
+    entry_notional: float = 0.0
+    assumed_exit: bool = False
+    why: str | None = None
+
+    @property
+    def entry(self) -> Fill | None:
+        return next((f for f in self.fills if f.kind == "entry"), None)
+
+    @property
+    def exit(self) -> Fill | None:
+        return next((f for f in reversed(self.fills) if f.kind != "entry"), None)
+
+
+def cost_of(market: str, px: float, qty: float) -> float:
+    if market == "crypto":
+        bps = COST_BPS["crypto"]
+    else:
+        bps = COST_BPS["stocks_under_10"] if px < 10 else COST_BPS["stocks"]   # ASSUMPTION: judged per fill price
+    return abs(px * qty) * bps / 10_000
+
+
+def horizon_ts(p, entry_ts: int) -> int:
+    """Rule 4's default exit: 15:55 ET that session (day), after 5 sessions (swing), N hours (crypto)."""
+    kind, _, arg = p.default_exit.partition(":")
+    if kind == "day_close":
+        return B.et_time(B.et_day(entry_ts), *DAY_EXIT)
+    if kind == "sessions":
+        # ASSUMPTION: counted from the entry session; the exit is 15:55 ET on the n-th session after it.
+        return B.et_time(B.nth_session_after(p.ticker, B.et_day(entry_ts), int(arg or SWING_SESSIONS)), *DAY_EXIT)
+    if kind == "hours":
+        return entry_ts + int(arg) * 3600          # ASSUMPTION: counted from the entry fill
+    if kind == "at":
+        return int(arg)
+    raise ValueError(f"unknown default exit {p.default_exit}")
+
+
+SIZINGS = ("first", "trade")
+# Rule 6 says LPP "scales the host's share counts so each trade starts at $1,000, keeping his add/trim ratios".
+#   first: read literally: the first entry is $1,000; later adds and trims are his counts times the same factor.
+#   trade: the engine's reading (inferred from its ledger output, not its code): all his entries together are
+#          $1,000 at the first fill price, in his ratios (an entry with no count takes the upper median of his stated counts);
+#          a trim sells the share of his own stated holding that he trimmed (no size: half).
+DEFAULT_SIZING = "first"
+
+
+def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
+    """Copy one position at one delay (rules 1-6). A missing bar marks the trade no_bars, naming the bar."""
+    t = Trade(p.pid, p.portfolio, delay, "priced")
+    try:
+        return _simulate(p, delay, t, sizing)
+    except B.MissingBar as e:
+        return Trade(p.pid, p.portfolio, delay, "no_bars", why=str(e))
+
+
+def _first_entry_bar(p, t0: int, until: int | None):
+    """Rule 3: the open of the first bar at or after t0, or, with a trigger, the first bar that trades it."""
+    if p.trigger is None:
+        k, b = B.first_bar_at_or_after(p.market, p.ticker, t0)
+        return k, b[0]
+    for k, b in B.bars_between(p.market, p.ticker, t0, until):
+        o, h, lo, _ = b
+        if lo <= p.trigger <= h:
+            return k, p.trigger          # ASSUMPTION: filled at the trigger level
+    return None
+
+
+def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
+    d = delay * 60
+    legs = sorted(p.legs, key=lambda lg: lg.posted_ts)
+    first_i = next(i for i, lg in enumerate(legs) if lg.action in ("open", "add"))
+    first = legs[first_i]
+    t0 = first.posted_ts + d
+    if p.trigger is not None:
+        # ASSUMPTION: a trigger may fill until the default exit measured from the post time + delay.
+        got = _first_entry_bar(p, t0, horizon_ts(p, t0))
+        if got is None:
+            t.status = "not_triggered"
+            return t
+        e_ts, e_px = got
+    else:
+        e_ts, e_px = _first_entry_bar(p, t0, None)
+    hz = horizon_ts(p, e_ts)
+    if e_ts >= hz:
+        t.status = "too_late"            # rule 6: couldn't copy (entry after the default exit)
+        return t
+    hz_bar, hz_b = B.first_bar_at_or_after(p.market, p.ticker, hz)
+
+    held, avg, scale = 0.0, 0.0, None
+    start_qty = 0.0
+    fills: list[Fill] = []
+
+    def buy(ts, px, q):
+        nonlocal held, avg
+        avg = (avg * held + px * q) / (held + q)
+        held += q
+        fills.append(Fill(ts, px, q, "entry"))
+
+    def sell(ts, px, q, kind):
+        nonlocal held
+        q = min(q, held)
+        if q <= 1e-9:
+            return
+        held -= q
+        fills.append(Fill(ts, px, q, kind))
+
+    q0 = PER_TRADE / e_px
+    entry_legs = [lg for lg in legs if lg.action in ("open", "add")]
+    whole = p.course == "lpp" and sizing == "trade"
+    his = 0.0                            # trade sizing: his own stated holding, in his share counts
+    if whole:
+        stated = [lg.qty for lg in entry_legs if lg.qty]
+        known = statistics.median_high(stated) if stated else 1.0
+        scale = PER_TRADE / (e_px * sum(lg.qty or known for lg in entry_legs))
+        q0 = (first.qty or known) * scale
+        his = first.qty or 0.0
+    elif first.qty and p.course == "lpp":
+        scale = q0 / first.qty           # rule 6: his share counts scaled so the trade starts at $1,000
+    buy(e_ts, e_px, q0)
+    start_qty = q0
+
+    # the course's own later posts (adds, trims, closes), each at post time + delay (rule 2)
+    events = []
+    for lg in legs[first_i + 1:]:
+        k, b = B.first_bar_at_or_after(p.market, p.ticker, lg.posted_ts + d)
+        if k < hz_bar:                   # rule 4 order: anything at or after the default exit comes too late
+            events.append((k, b[0], lg))
+
+    stop = p.stop
+    targets = list(p.targets or [])
+    fracs = list(p.target_fracs or [])
+    hit = 0
+    long = p.side == "long"
+
+    def do_leg(k, px, lg):
+        nonlocal his
+        if lg.action in ("open", "add"):
+
+            if whole:
+                q = (lg.qty or known) * scale
+                his += lg.qty or 0.0
+            else:
+                q = lg.qty * scale if (lg.qty and scale) else PER_TRADE / px   # ASSUMPTION: $1,000 when no scale
+            buy(k, px, q)
+        elif lg.action == "close":
+            sell(k, px, held, "exit")
+        elif lg.action == "trim":
+            if whole:
+                f = min(1.0, lg.qty / his) if (lg.qty and his > 0) else 0.5
+                his = his * (1 - f)
+                q = f * held
+            elif lg.frac:
+                q = lg.frac * held
+            elif lg.qty and scale:
+                q = lg.qty * scale
+            else:
+                q = held / 2             # ASSUMPTION: half the position when no size is given
+            sell(k, px, q, "exit")
+
+    if stop is None and not targets:
+        for k, px, lg in events:
+            do_leg(k, px, lg)
+    else:
+        ev = {}
+        for k, px, lg in events:
+            ev.setdefault(k, []).append((px, lg))
+        for k, b in B.bars_between(p.market, p.ticker, e_ts, hz_bar):
+            for px, lg in ev.get(k, []):
+                do_leg(k, px, lg)
+            if held <= 1e-12:
+                break
+            o, h, lo, _ = b
+            stop_hit = stop is not None and (lo <= stop if long else h >= stop)
+            tg_hit = [i for i in range(hit, len(targets)) if (h >= targets[i] if long else lo <= targets[i])]
+            if stop_hit:                 # rule 4: stop and target in one bar = stop
+                px = min(o, stop) if long else max(o, stop)   # ASSUMPTION: at the level, or the open if past it
+                sell(k, px, held, "stop")
+                break
+            for i in tg_hit:
+                lvl = targets[i]
+                px = max(o, lvl) if long else min(o, lvl)
+                last = i == len(targets) - 1
+                q = held if (last or not fracs) else fracs[i] * start_qty
+                sell(k, px, q, "target")
+                hit = i + 1
+                if p.be_after_target and hit >= p.be_after_target:
+                    stop = avg            # their break-even move: stop to the average entry
+                if held <= 1e-12:
+                    break
+            if held > 1e-12 and tg_hit and stop is not None and (lo <= stop if long else h >= stop):
+                # ASSUMPTION: a stop moved by this bar's targets can still fill in this bar (rule 4's
+                # "both in one bar = stop", applied to the moved stop)
+                sell(k, min(o, stop) if long else max(o, stop), held, "stop")
+            if held <= 1e-12:
+                break
+
+    if held > 1e-12:
+        sell(hz_bar, hz_b[0], held, "default")   # rule 4: the default exit, at that bar's open
+        t.assumed_exit = True
+
+    sign = 1 if long else -1
+    gross, cost, basis_avg, basis_q = 0.0, 0.0, 0.0, 0.0
+    for f in fills:
+        cost += cost_of(p.market, f.px, f.qty)
+        if f.kind == "entry":
+            basis_avg = (basis_avg * basis_q + f.px * f.qty) / (basis_q + f.qty)
+            basis_q += f.qty
+        else:
+            gross += sign * (f.px - basis_avg) * f.qty
+            basis_q -= f.qty
+    t.fills = fills
+    t.cost = cost
+    t.pnl = gross - cost
+    t.entry_notional = sum(f.px * f.qty for f in fills if f.kind == "entry")
+    return t
+
+
+# ---- just holding (rule 7) and the portfolio headline (rules 6, 9) -------------------------------------------
+
+HOLD_CLOSES = ("official", "minute")
+# Rule 7 says "held to its end" without naming the price. official: the session's closing price from the cached
+# daily file (data/bars/daily, the exchange close); minute: the close of the last 1-minute bar. Both are reported.
+DEFAULT_HOLD_CLOSE = "official"
+
+
+def hold(market: str, symbol: str, window: dict, close: str = DEFAULT_HOLD_CLOSE) -> dict:
+    """$10,000 bought at the open of the window's first trading minute, sold at the window's last close."""
+    start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
+    day = start
+    while not B.day_bars(market, symbol, day):
+        day += dt.timedelta(days=1)
+    first = B.day_bars(market, symbol, day)
+    px0 = first[min(first)][0]
+    official = B.daily_close(symbol, start, end)
+    try:
+        day = end
+        while not B.day_bars(market, symbol, day):
+            day -= dt.timedelta(days=1)
+        last = B.day_bars(market, symbol, day)
+        minute = last[max(last)][3]
+    except B.MissingBar:
+        minute = None                   # no minute bars for the window's last day (crypto after 2026-09-30)
+    px1 = minute if (close == "minute" and minute is not None) else official
+    return {"px0": px0, "px1": px1, "official_close": official, "minute_close": minute, "used": close,
+            "end": round(MONEY_START * px1 / px0, 2), "ret_pct": round((px1 / px0 - 1) * 100, 2)}
+
+
+def word(trades: int, ret: float, hold_ret: float) -> str:
+    if trades < MIN_TRADES:
+        return "Not enough trades"
+    diff = round(ret - hold_ret, 6)
+    return "Yes" if diff >= 2 else "No" if diff <= -2 else "Barely"
+
+
+def portfolio(trades: list[Trade], hold_row: dict) -> dict:
+    """End value, return, trade count and word for one portfolio at one delay."""
+    priced = sorted((t for t in trades if t.status == "priced"), key=lambda t: t.entry.ts)
+    cash_book, open_, end_pnl = 0.0, [], 0.0     # open_: (exit ts, notional, pnl)
+    copied = sized_down = couldnt = 0
+    for t in priced:
+        now = t.entry.ts
+        for x in [o for o in open_ if o[0] <= now]:
+            cash_book += x[2]
+            open_.remove(x)
+        room = MONEY_START + cash_book - sum(o[1] for o in open_)
+        f = 1.0
+        if t.entry_notional > room + 1e-9:          # rule 6: open exposure capped at cash
+            if room <= 0:
+                couldnt += 1
+                continue
+            f = room / t.entry_notional
+            sized_down += 1
+        copied += 1
+        open_.append((t.exit.ts, t.entry_notional * f, t.pnl * f))
+        end_pnl += t.pnl * f
+    end = round(MONEY_START + end_pnl, 2)
+    ret = round((end / MONEY_START - 1) * 100, 2)
+    return {"end": end, "ret_pct": ret, "hold_end": hold_row["end"], "hold_ret_pct": hold_row["ret_pct"],
+            "trades": copied, "not_triggered": sum(t.status == "not_triggered" for t in trades),
+            "couldnt_copy": couldnt + sum(t.status == "too_late" for t in trades), "sized_down": sized_down,
+            "word": word(copied, ret, hold_row["ret_pct"])}
