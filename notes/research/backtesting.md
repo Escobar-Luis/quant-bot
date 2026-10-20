@@ -92,3 +92,18 @@ Pre-registered in `notes/research/strategy-as-code.md` (commit sha in `results/s
 2. Rule runs: S4 and S5 × variants `P`, `no-stop`, `exit-11`, `gap-10` × (a) his stocks and (b) other stocks, plus control C on all four universes: 20 runs, all published in `results/strategy-lab.json`.
 3. After the first run: one bug fix (gap compared in floating point missed an exactly-5% gap; spec section 8 item 4), no rule change.
 4. Results: spec section 9. Neither S4 nor S5 held up against SPY (+17.68%); S4 beat 2,000 random draws on both universes but earned +6% / +11%; S5 had no edge.
+
+## 8. Trials per claim, and the luck tests (spec-audit story 28, CAP-16, 2026-10-20; absorbs story 27)
+Code: `app/backtest/howsure.py` (`cd app && uv run python -m backtest.howsure`), output `results/how-sure.json` (shape: `contracts.md`, section `how-sure`); the luck tests and shuffle percentiles are recomputed by `app/audit/howsure.py` inside `audit.run`. No model call.
+
+**Trials per family** (N in the deflated Sharpe or the Harvey–Liu haircut; every variant priced for that claim's whole window, whatever happened to it):
+
+| Family | N | What was priced |
+|---|---|---|
+| LPP headline | 4 | rule 11 as taught (whole-trade sizing); rule 11 stitched (`as_taught_stitched`); rule 13 provisional (`no_look_ahead`, no hold intent); rule 13 with hold intent (the headline since story 17). Delays and cost cases are shown side by side, never picked. |
+| Crypto Wizard headline | 1 | one copy rule, never changed |
+| ZipTrader headline | 1 | one copy rule, never changed (1 priced trade) |
+| Improvements (story 20) | 10 | section 6: the model's 6 + the engineer's 4 distinct smoke tests |
+| Strategy lab (story 21) | 29 | section 7: 25 runs (S4/S5 × 4 variants × lists, control × 5) + 4 picker versions |
+
+**Run by this story (not selection, so not added to N):** walk-forward over the improvements (11 candidates: as-is + the 10, 3-month train / 1-month test), threshold sensitivity (improvements `stop_pct` 2.5 and `max_hold` 60 / 45 at ×0.5, ×0.8, ×1.2, ×1.5; lab S4/S5 `gap_pct` 5 and `stop_pct` 5 at the same steps, which needed Alpaca 1-minute bars for gap days of 2.5% to 5%), the shuffle tests (seed 28, 1,000 draws) and the up/down month split. Nothing was re-tuned or re-picked from them; a claim that fails any is labelled "not proven".
