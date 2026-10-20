@@ -68,3 +68,9 @@
     CAP-8. Add a beat to the Oct 21 episode naming the second calculator's result, then render the video and the 4:5 cut.
   invoke_dev_with: >-
     Repo ~/dev/showcase-videos/day-trader-ai-2026-10-21. Render only after story 2's gate opens (exit 0 plus Luis's sign-off). Runs in its own session in that repo. Never post.
+- id: "12"
+  title: Ledgers per worktree, so parallel reruns don't clobber each other
+  description: >-
+    CAP-3 hygiene. backtest.run writes data/audit/<course>-<version>-ledger.jsonl into the one shared data/ folder (every worktree reads it via DATA_DIR or the main checkout), so two branches regenerating results at once overwrite each other's ledgers and audit.run then fails as stale on whichever branch ran first.
+  invoke_dev_with: >-
+    Found by story 4 (audit-4-honest-words) while stories 9 and 3 regenerate results on other branches. Key the ledger file by results sha256 (or branch) and let audit.run pick the ledger whose stamp matches the results file; keep inputs (events, bars) shared. Contract 6 lists data/audit/; amend it first if the path changes.
