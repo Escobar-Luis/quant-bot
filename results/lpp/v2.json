@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v2",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T18:48:15Z",
- "git_sha": "69120ff567af3c3ca35c6af56d9fbe29f6b38416",
+ "generated_at": "2026-10-20T19:19:31Z",
+ "git_sha": "f2cdf67e3ebc67f6942d787a59cfd79d4df530c9",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -26885,6 +26885,780 @@
     "date": "2025-07-31",
     "end": 10060.22,
     "hold_end": 11502.82
+   }
+  }
+ },
+ "by_year": {
+  "hold": {
+   "symbol": "SPY",
+   "basis": "total_return",
+   "source": "Yahoo Finance dividends (chart API, events=div), reinvested at the ex-date close",
+   "dividends": 4
+  },
+  "periods": [
+   {
+    "id": "2024",
+    "from": "2024-08-15",
+    "to": "2024-12-31"
+   },
+   {
+    "id": "2025",
+    "from": "2025-01-02",
+    "to": "2025-09-12"
+   },
+   {
+    "id": "all",
+    "from": "2024-08-15",
+    "to": "2025-09-12"
+   }
+  ],
+  "portfolios": {
+   "all": {
+    "by_delay": {
+     "1": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10072.88,
+       "ret_pct": 0.73,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10072.88,
+       "end": 10336.96,
+       "ret_pct": 2.62,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10336.96,
+       "ret_pct": 3.37,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     },
+     "3": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10042.87,
+       "ret_pct": 0.43,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10042.87,
+       "end": 10277.76,
+       "ret_pct": 2.34,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10277.76,
+       "ret_pct": 2.78,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     },
+     "5": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10068.81,
+       "ret_pct": 0.69,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10068.81,
+       "end": 10300.52,
+       "ret_pct": 2.3,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10300.52,
+       "ret_pct": 3.01,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     },
+     "10": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10077.87,
+       "ret_pct": 0.78,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10077.87,
+       "end": 10281.82,
+       "ret_pct": 2.02,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10281.82,
+       "ret_pct": 2.82,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     },
+     "15": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10034.18,
+       "ret_pct": 0.34,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10034.18,
+       "end": 10312.94,
+       "ret_pct": 2.78,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10312.94,
+       "ret_pct": 3.13,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     },
+     "30": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10017.94,
+       "ret_pct": 0.18,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10017.94,
+       "end": 10221.78,
+       "ret_pct": 2.03,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10221.78,
+       "ret_pct": 2.22,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     },
+     "60": {
+      "2024": {
+       "start": 10000.0,
+       "end": 9994.2,
+       "ret_pct": -0.06,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 9994.2,
+       "end": 10051.12,
+       "ret_pct": 0.57,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 36,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10051.12,
+       "ret_pct": 0.51,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 51,
+       "word": "No"
+      }
+     }
+    }
+   },
+   "day": {
+    "by_delay": {
+     "1": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10072.88,
+       "ret_pct": 0.73,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10072.88,
+       "end": 10311.83,
+       "ret_pct": 2.37,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10311.83,
+       "ret_pct": 3.12,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     },
+     "3": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10042.87,
+       "ret_pct": 0.43,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10042.87,
+       "end": 10241.49,
+       "ret_pct": 1.98,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10241.49,
+       "ret_pct": 2.41,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     },
+     "5": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10068.81,
+       "ret_pct": 0.69,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10068.81,
+       "end": 10265.47,
+       "ret_pct": 1.95,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10265.47,
+       "ret_pct": 2.65,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     },
+     "10": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10077.87,
+       "ret_pct": 0.78,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10077.87,
+       "end": 10247.66,
+       "ret_pct": 1.68,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10247.66,
+       "ret_pct": 2.48,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     },
+     "15": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10034.18,
+       "ret_pct": 0.34,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10034.18,
+       "end": 10283.73,
+       "ret_pct": 2.49,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10283.73,
+       "ret_pct": 2.84,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     },
+     "30": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10017.94,
+       "ret_pct": 0.18,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10017.94,
+       "end": 10202.15,
+       "ret_pct": 1.84,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10202.15,
+       "ret_pct": 2.02,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     },
+     "60": {
+      "2024": {
+       "start": 10000.0,
+       "end": 9994.2,
+       "ret_pct": -0.06,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 15,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 9994.2,
+       "end": 10034.81,
+       "ret_pct": 0.41,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 35,
+       "word": "No"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10034.81,
+       "ret_pct": 0.35,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 50,
+       "word": "No"
+      }
+     }
+    }
+   },
+   "swing": {
+    "by_delay": {
+     "1": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10025.13,
+       "ret_pct": 0.25,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10025.13,
+       "ret_pct": 0.25,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     },
+     "3": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10036.27,
+       "ret_pct": 0.36,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10036.27,
+       "ret_pct": 0.36,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     },
+     "5": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10035.05,
+       "ret_pct": 0.35,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10035.05,
+       "ret_pct": 0.35,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     },
+     "10": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10034.16,
+       "ret_pct": 0.34,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10034.16,
+       "ret_pct": 0.34,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     },
+     "15": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10029.21,
+       "ret_pct": 0.29,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10029.21,
+       "ret_pct": 0.29,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     },
+     "30": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10019.63,
+       "ret_pct": 0.2,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10019.63,
+       "ret_pct": 0.2,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     },
+     "60": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 0,
+       "word": "Not enough trades"
+      },
+      "2025": {
+       "start": 10000.0,
+       "end": 10016.3,
+       "ret_pct": 0.16,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 1,
+       "word": "Not enough trades"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10016.3,
+       "ret_pct": 0.16,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 1,
+       "word": "Not enough trades"
+      }
+     }
+    }
    }
   }
  }
