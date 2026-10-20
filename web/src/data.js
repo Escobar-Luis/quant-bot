@@ -52,4 +52,10 @@ export const LAB = Object.values(LABS).find(j => j?.schema === 'strategy-lab/1')
 const PAPERS = import.meta.glob(['../../results/paper/summary.json', '../results/paper/summary.json'], { eager: true, import: 'default' });
 export const PAPER_TEST = Object.values(PAPERS).find(j => j?.schema === 'paper/1') || null;
 
+// results/how-sure.json (spec-audit story 28): trials, luck test, shuffle, walk-forward, sensitivity and up/down months
+// for every strategy claim. Missing: the "How sure?" rows are hidden.
+const HOWS = import.meta.glob(['../../results/how-sure.json', '../results/how-sure.json'], { eager: true, import: 'default' });
+export const HOW_SURE = Object.values(HOWS).find(j => j?.schema === 'how-sure/1') || null;
+export const howSure = id => HOW_SURE?.claims?.find(c => c.id === id) || null;
+
 export const PROOF = Object.values(PROOFS)[0] || null;
