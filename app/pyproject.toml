@@ -6,13 +6,16 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.143.3",
+    "httpx>=0.28.1,<1",
     "numpy>=2.5.4",
     "openai>=3.33.0",
+    "pandas>=3.0.6",
     "pillow>=13.0.0",
     "prismtrace-sdk>=0.5.3",
     "python-dotenv>=1.2.4",
     "surrealdb>=2.0.0",
     "uvicorn>=0.54.0",
+    "yfinance>=1.7.0",
 ]
 
 [dependency-groups]
