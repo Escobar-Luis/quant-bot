@@ -28,7 +28,7 @@ def test_as_taught_next_day_add_carries_into_a_swing(tmp_path, monkeypatch):
     write(tmp_path, monkeypatch, [ev(0, "A", "2024-08-15T13:40:00Z", "open", 100),
                                   ev(0, "B", "2024-08-16T13:40:00Z", "add", 50),
                                   ev(1, "B", "2024-08-16T14:00:00Z", "close")])
-    (p,) = lpp.build("v1")["positions"]                                             # as taught: the default
+    (p,) = lpp.build("v1", ledger="as_taught")["positions"]               # rule 11, the as_taught_stitched key
     assert p.portfolio == "swing" and [lg.action for lg in p.legs] == ["open", "add", "close"] and p.as_taught
 
 

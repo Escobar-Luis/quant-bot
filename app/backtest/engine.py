@@ -13,7 +13,7 @@ The rules are contracts.md "Copy-trade rules" (code decides, never the model):
   nothing to copy (`too_late`), and when the bars end before the exit it leaves at the last bar's close;
 - costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto;
 - scaled sizing (rule 13e): the first buy is $1,000; each add is sized only from the counts he had stated by then
-  (rule 6's whole-trade scaling, which reads later adds, survives only as `as_taught`).
+  (rule 6's whole-trade scaling, which reads later adds, survives only in LPP's `as_taught_stitched` key).
 """
 import bisect
 import datetime as dt
@@ -51,7 +51,7 @@ class Position:
     scale: bool = False             # True: his share counts scaled to $1,000 (keeps his ratios), see `as_taught`
     as_taught: bool = False         # scaled sizing: False = rule 13(e), the first buy is $1,000 and each add uses only
                                     # the counts he had stated by then; True = rule 6 as taught, all buys together
-                                    # are $1,000 (reads his later adds: the `as_taught` alternative only)
+                                    # are $1,000 (reads his later adds: the `as_taught_stitched` key only)
     quote: str | None = None
     cite: dict | None = None
     why: str | None = None          # the course's stated reason (paraphrase), used to name the strategy

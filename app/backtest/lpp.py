@@ -5,12 +5,12 @@ events are copied. Events that failed a code check are left out, except the ledg
 (`open_never_closed`, `close_without_open`, `qty_exceeds_position`), which this ledger resolves itself.
 
 Two ledgers (contracts.md):
-- `as_taught` (rule 11, the headline): a position he still holds at the end of a session carries to a later
-  session when his NEXT word on it (within 7 days) is an add, trim or close. That reads the future.
-- `no_look_ahead` (rule 13, provisional, the `no_look_ahead` key): a position leaves at 15:55 ET of its first
+- `no_look_ahead` (rule 13, the headline since spec-audit story 18): a position leaves at 15:55 ET of its first
   session unless one of its legs, posted before that moment, states a horizon past the session; a later word
-  starts afresh. v1's horizons come from the hold-intent pass (spec-audit story 17, `horizon_source:
-  hold_intent_v1`); not the headline until sizing and cash are look-ahead-free (the bankroll model, story 8).
+  starts afresh. The host states he closes every day (his Discord chat, notes/sources/lpp-discord-exits.md).
+  v1's horizons come from the hold-intent pass (spec-audit story 17, `horizon_source: hold_intent_v1`).
+- `as_taught` (rule 11, the `as_taught_stitched` key): a position he still holds at the end of a session carries
+  to a later session when his NEXT word on it (within 7 days) is an add, trim or close. That reads the future.
 """
 import datetime as dt
 import json
@@ -26,8 +26,9 @@ COURSE, NAME, MARKET = "lpp", "Learn Plan Profit", "us_equities"
 WINDOW = {"start": "2024-08-15", "end": "2025-09-12", "sealed_from": "2025-06-12"}
 HOLD = {"symbol": "SPY", "label": "Just holding", "what": "Buy and keep the S&P 500 (SPY)"}
 LEDGER_FAILS = {"open_never_closed", "close_without_open", "qty_exceeds_position"}
-CARRY_DAYS = 7                     # rule 11 (as taught, the headline)
-LEDGERS = ("no_look_ahead", "as_taught")
+CARRY_DAYS = 7                     # rule 11 (the `as_taught_stitched` key)
+LEDGERS = ("no_look_ahead", "as_taught")   # rule 13 (the headline) | rule 11 (`as_taught_stitched`)
+HEADLINE_LEDGER = "no_look_ahead"
 OPTION_WORDS = ("option", "call", "put")
 
 
@@ -108,7 +109,7 @@ def horizon_sessions(e: dict) -> int:
     return int(ex.split(":")[1]) if ex.startswith("sessions:") else 0
 
 
-def build(version: str, only: set[str] | None = None, ledger: str = "as_taught") -> dict:
+def build(version: str, only: set[str] | None = None, ledger: str = HEADLINE_LEDGER) -> dict:
     """Positions to copy, plus what the results file needs to say about the events."""
     if ledger not in LEDGERS:
         raise ValueError(f"unknown ledger {ledger}")
@@ -222,7 +223,8 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     if assumed.get("day"):
         out.append(f"Exit assumed at 15:55 for {assumed['day']} day trades he didn't say he closed.")
     if assumed.get("swing"):
-        out.append(f"Exit assumed after 5 sessions for {assumed['swing']} swing trades he didn't say he closed.")
+        out.append(f"Exit assumed at the end of his stated hold for {assumed['swing']} swing trades he didn't "
+                   "say he closed.")
     if stats.get("trim_size_unknown"):
         out.append(f"Half the position assumed sold on {stats['trim_size_unknown']} trims with no size.")
     if stats.get("entry_size_unknown"):
@@ -236,8 +238,8 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
         out.append(f"{stats['close_without_open']} exits had no matching entry and were skipped.")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} trade-delays had no price bars and were skipped.")
-    out.append("As taught, a position stays overnight when his next word on it is an add, trim or close, and "
-               "each trade's buys together are $1,000: both read what he said later (see no_look_ahead).")
+    out.append("He says he closes every day: a position stays overnight only if he said he'd hold it before "
+               "15:55 ET. Stitching sessions by his later words is in as_taught_stitched.")
     if stats.get("entry_side_unknown"):
         out.append(f"{stats['entry_side_unknown']} buys didn't say long or short and were skipped.")
     out.append("Prices are 1-minute market bars, not his own fills.")

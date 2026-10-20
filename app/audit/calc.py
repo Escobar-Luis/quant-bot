@@ -78,15 +78,15 @@ def horizon_ts(p, entry_ts: int) -> int:
 
 SIZINGS = ("known", "trade", "first")
 # Rule 6 says LPP "scales the host's share counts so each trade starts at $1,000, keeping his add/trim ratios".
-#   known: contracts.md rule 13(e), no look-ahead (provisional `no_look_ahead` key): the first buy is $1,000 at its fill; each add buys
+#   known: contracts.md rule 13(e), no look-ahead (LPP's headline since spec-audit story 18): the first buy is $1,000 at its fill; each add buys
 #          the first buy's shares x (his count for the add / his count for the first buy), a count he didn't
 #          state being the upper median of the counts he had stated on this position's buys posted up to that
 #          add (both equal when he has stated none), never past $10,000 held at the add's price; a trim sells
 #          the share of his stated holding he trimmed.
-#   trade: rule 6 as taught (the headline): all his entries together are $1,000 at the first fill
+#   trade: rule 6 as taught (LPP's `as_taught_stitched` key): all his entries together are $1,000 at the first fill
 #          price, in his ratios, which reads adds he only announces later; trims as in `known`.
 #   first: rule 6 read literally: the first entry is $1,000; later adds and trims are his counts times the same factor.
-DEFAULT_SIZING = "trade"   # contracts.md rule 6 as taught (the headline); "known" checks `no_look_ahead`
+DEFAULT_SIZING = "known"   # contracts.md rule 13(e) (the headline); "trade" checks `as_taught_stitched`
 
 
 def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
