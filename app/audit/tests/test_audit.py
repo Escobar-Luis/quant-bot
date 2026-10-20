@@ -34,6 +34,29 @@ def test_word_follows_rule_9():
     assert calc.word(30, -2.0, 0.0) == "No"
 
 
+def test_lost_money_never_reads_as_success():
+    """CAP-7: Crypto Wizard lost about 7% while Bitcoin lost about 25%."""
+    assert calc.word(122, -7.1, -24.57) == "No"
+    assert calc.word(122, -0.01, 0.0) == "No"
+    assert calc.verdict(122, -7.1, -24.57, "Bitcoin") == {"word": "No", "outcome": "Lost money",
+                                                          "vs": "less than Bitcoin"}
+    assert calc.verdict(35, -0.08, 26.04, "Bitcoin")["vs"] == "Bitcoin did better"
+    assert calc.verdict(315, 4.0, 1.0, "the S&P")["vs"] == "beat the S&P"
+    assert calc.verdict(0, 0.0, 1.0, "the S&P") == {"word": "Not enough trades", "outcome": "No trades", "vs": None}
+    assert calc.verdict(51, 3.0, None, None) == {"word": None, "outcome": "Made money", "vs": None}
+
+
+def test_sealed_word_and_outcome_are_compared():
+    base = {"trades": 122, "word": "No", "outcome": "Lost money", "vs": "less than Bitcoin",
+            "sealed": {"ret_pct": -0.08, "hold_ret_pct": 26.04, "trades": 35, "word": "No",
+                       "outcome": "Lost money", "vs": "Bitcoin did better"}}
+    out = []
+    run.compare_head("all", "5", base, base, out)
+    assert out == []
+    run.compare_head("all", "5", {**base, "word": "Yes", "sealed": {**base["sealed"], "word": "Yes"}}, base, out)
+    assert {m["field"] for m in out} == {"word", "sealed.word"}
+
+
 NEED = [DATA / "audit" / "ziptrader-v1-ledger.jsonl", DATA / "ziptrader" / "events.jsonl"]
 
 

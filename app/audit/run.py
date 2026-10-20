@@ -35,11 +35,12 @@ TRADE_TOL = 0.01      # 1 cent
 HEAD_TOL = 1.0        # $1
 RET_TOL = 0.01        # $1 on $10,000, in points
 DROP_TOL = 0.1        # worst_drop_pct is stored to 0.1 pt
-EXACT = ("trades", "word", "not_triggered", "couldnt_copy", "sized_down", "won_pct")
+EXACT = ("trades", "word", "outcome", "vs", "not_triggered", "couldnt_copy", "sized_down", "won_pct")
 MONEY = ("end", "hold_end")
 POINTS = ("ret_pct", "hold_ret_pct")
 HEAD_FIELDS = ("end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy",
-               "sized_down", "won_pct", "worst_drop_pct", "word", "sealed")
+               "sized_down", "won_pct", "worst_drop_pct", "word", "outcome", "vs", "sealed")
+SEALED_EXACT = ("trades", "word", "outcome", "vs")
 MARKET = {"lpp": "us_equities", "ziptrader": "us_equities", "cryptowizard": "crypto"}
 HOLD_BARS = {"SPY": "SPY", "BTC": "BTCUSDT"}
 
@@ -162,12 +163,9 @@ def compare_head(portfolio: str, delay: str, theirs: dict, ours: dict, out: list
             continue
         a, b = theirs[f], ours[f]
         if f == "sealed":
-            for g in ("ret_pct", "hold_ret_pct", "trades"):
-                x, y = (a or {}).get(g), (b or {}).get(g)
-                if x is None or y is None:
-                    if x != y:
-                        miss(f"sealed.{g}", x if x is not None else "missing", y if y is not None else "missing")
-                elif g == "trades":
+            for g in ("ret_pct", "hold_ret_pct") + SEALED_EXACT:
+                x, y = (a or {}).get(g, "missing"), (b or {}).get(g, "missing")
+                if g in SEALED_EXACT or None in (x, y) or "missing" in (x, y):
                     if x != y:
                         miss(f"sealed.{g}", x, y)
                 elif abs(x - y) > RET_TOL + 1e-9:
@@ -213,6 +211,29 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
             mismatches.append({**x, "against": f"loader:{label}"})
         return P.build(course, ver, only)
 
+    # rule 9's benchmark (CAP-7): just holding, named from the hold symbol; a proof-set file (same_sessions) is
+    # compared only with v1 on the same sessions, from this audit's own recompute of that baseline
+    same = d.get("same_sessions")
+    name = same["version"] if same else calc.BENCH.get(d["hold"]["symbol"], d["hold"]["symbol"])
+    want_cw = {"kind": "same_sessions" if same else "hold", "name": name}
+    if d.get("compare_with") != want_cw:
+        mismatches.append({"kind": "headline", "portfolio": "file", "field": "compare_with",
+                           "theirs": d.get("compare_with", "missing"), "ours": want_cw})
+    if same:
+        for k in ("strategies", "ranges", "combos", "best_stop"):
+            if k in d:
+                mismatches.append({"kind": "headline", "portfolio": "file", "field": k,
+                                   "theirs": "present", "ours": "absent in a proof-set file (rule 9)"})
+    base_rows: dict[str, dict] = {}     # the audit's own same-sessions rows, by delay
+
+    def bench_for(pf_id, dl, ledger_name):
+        if not same:
+            return "hold"
+        if ledger_name or pf_id != same.get("portfolio", "all"):
+            return None                 # the baseline itself, and a proof-set file's other portfolios
+        b = base_rows[dl]
+        return b["ret_pct"], b["sealed"]["ret_pct"]
+
     def run_set(positions, ledger_name, portfolios, mm=mismatches, cmp=compared, unv=unverifiable, main=True):
         nonlocal worst, checked
         mine = {(p.pid, dl): calc.simulate(p, dl, sizing) for p in positions for dl in d["delays_min"]}
@@ -249,8 +270,10 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
         for pf_id, rows in portfolios:
             for dl, theirs in rows.items():
                 ts = [t for (pid, x), t in mine.items() if x == int(dl) and (pf_id == "all" or t.portfolio == pf_id)]
-                w = compare_head(pf_id if ledger_name == "" else f"same_sessions:{pf_id}", dl,
-                                 theirs, calc.portfolio(ts, hold_row, sealed_from), mm)
+                ours = calc.portfolio(ts, hold_row, sealed_from, bench_for(pf_id, dl, ledger_name), name)
+                if ledger_name and main:
+                    base_rows[dl] = ours
+                w = compare_head(pf_id if ledger_name == "" else f"same_sessions:{pf_id}", dl, theirs, ours, mm)
                 if main:
                     worst = max(worst, w)
         return mine
@@ -263,6 +286,13 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
             "trades_compared": len(cmp), "mismatches": len(mm),
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
                                      for m in mm)), "details": mm}
+
+    if same:   # first: its rows are the proof-set headline's benchmark
+        srcs = P.lpp_proof_set() if same.get("proof_set") else lpp_sources(version)
+        base = own_positions(same["version"], srcs, f"{same['version']}-same_sessions")
+        ss = [(same.get("portfolio", "all"), same["by_delay"])]
+        run_set(base, "-same_sessions", ss)
+        math_only(same["version"], srcs, "-same_sessions", ss)
 
     only = P.lpp_proof_set() if course == "lpp" and d["checks"].get("proof_set") else None
     positions = own_positions(version, only, version)
@@ -284,14 +314,6 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
             compared.append({"against": "results", "pid": row["trade_id"], "delay": int(dl),
                              "ok": len(mismatches) == n, "theirs": theirs, "ours": ours})
             checked += 1
-
-    if d.get("same_sessions"):
-        same = d["same_sessions"]
-        srcs = P.lpp_proof_set() if same.get("proof_set") else lpp_sources(version)
-        base = own_positions(same["version"], srcs, f"{same['version']}-same_sessions")
-        ss = [(same.get("portfolio", "all"), same["by_delay"])]
-        run_set(base, "-same_sessions", ss)
-        math_only(same["version"], srcs, "-same_sessions", ss)
 
     hold_note = {"symbol": symbol, "first_open": hold_row["px0"], "official_close": hold_row["official_close"],
                  "minute_close": hold_row["minute_close"], "used": hold_row["used"],
