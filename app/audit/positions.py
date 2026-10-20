@@ -233,7 +233,39 @@ def cryptowizard(version: str = "v1") -> dict:
 
 # ---- ZipTrader -------------------------------------------------------------------------------------------------
 
-HORIZON_DAYS = re.compile(r"(\d+)\s*(day|session|week)", re.I)
+# The audit's own reading of a horizon, written from contracts.md (never from backtest.ziptrader): rule 4 exits
+# at "the horizon as written", else a swing trade leaves after 5 sessions; rule 8 makes a horizon in days a swing
+# trade; rule 12(a) puts a horizon said only in the quote into the `horizon` field. Read word by word:
+#   a count before a unit (day, session, week = 5 sessions) is the sessions held; a count of 0 is no horizon;
+#   "more than", "at least", "a few", "several", ... before the unit is no count: rule 4's 5 sessions;
+#   the "next" day or session, or "overnight", is 1 session.
+NUMBER_WORDS = ("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen "
+                "sixteen seventeen eighteen nineteen twenty").split()
+NUMBER_WORDS = {w: i for i, w in enumerate(NUMBER_WORDS)} | {"thirty": 30}
+VAGUE = {"more", "least", "few", "several", "multiple", "couple", "many"}
+UNITS = {"day": 1, "days": 1, "session": 1, "sessions": 1, "week": 5, "weeks": 5}
+RULE4_SWING_SESSIONS = 5
+
+
+def horizon_sessions(h: str | None) -> int | None:
+    """Sessions held for a written horizon, or None when it is no horizon past the session (a day trade)."""
+    words = re.findall(r"[a-z0-9]+(?:-[a-z]+)?", (h or "").lower())
+    if "overnight" in words:
+        return 1
+    if any(w.startswith("multi-day") for w in words):
+        return RULE4_SWING_SESSIONS
+    for i, w in enumerate(words):
+        if w not in UNITS:
+            continue
+        before = [x for x in words[max(0, i - 4):i] if x != "trading"]
+        if any(x in VAGUE for x in before):
+            return RULE4_SWING_SESSIONS
+        if before and (before[-1].isdigit() or before[-1] in NUMBER_WORDS):
+            n = int(before[-1]) if before[-1].isdigit() else NUMBER_WORDS[before[-1]]
+            return n * UNITS[w] if n else None
+        if before and before[-1] == "next" and UNITS[w] == 1:
+            return 1
+    return None
 
 
 def ziptrader(version: str = "v1") -> dict:
@@ -241,8 +273,9 @@ def ziptrader(version: str = "v1") -> dict:
 
     - ok call/setup/trade events with a ticker and a side; post time = the Discord timestamp (rule 1);
     - rule 3: a stated `entry` is the trigger level; rule 4: its stop and targets;
-    - rule 8: `swing` only when the extracted `horizon` is in days or sessions (rule 4's "horizon as written"),
-      else `day`. ASSUMPTION: the quote's own words are not read (the structured field is the contract input).
+    - rule 8: `swing` only when the extracted `horizon` is past the session (`horizon_sessions`), else `day`.
+      Rule 12(a): a horizon said only in the quote is moved into `horizon` by the extraction; the quote is not
+      read here.
     """
     evs = rows(DATA / "ziptrader" / "events.jsonl")
     stats, positions = Counter(), []
@@ -252,9 +285,8 @@ def ziptrader(version: str = "v1") -> dict:
         if e.get("side") not in ("long", "short"):
             stats["watch_only"] += 1
             continue
-        hz = HORIZON_DAYS.search(e.get("horizon") or "")
-        swing = bool(hz)
-        n = (int(hz.group(1)) * (5 if hz.group(2).lower() == "week" else 1)) if hz else 5
+        n = horizon_sessions(e.get("horizon"))
+        swing = n is not None
         positions.append(Position(
             pid=f"zt-{e['event_id'].split(':', 1)[-1].replace(':', '-')}", course="ziptrader",
             market="us_equities", ticker=e["ticker"], side=e["side"], portfolio="swing" if swing else "day",

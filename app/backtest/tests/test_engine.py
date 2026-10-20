@@ -154,3 +154,154 @@ def test_portfolio_stats_reports_money_in_use_not_account_value():
     row, series = engine.portfolio_stats(rs, ["1970-01-01"], {"end": 1, "ret_pct": 0, "sealed_ret_pct": 0},
                                          "1970-01-01")
     assert row["peak_invested_usd"] == 1000 and row["end"] == 10100 and row["trades"] == 2
+
+
+# ---- story audit-2b-engine-fixes: the engine follows contracts.md where the audit found it didn't --------------
+
+def test_post_time_keeps_its_fraction_of_a_second(fake):
+    posted = T0 + 10 * 60 + 0.4           # 09:40:00.4 + 1 min = 09:41:00.4 -> the 09:42 bar, never 09:41
+    r = engine.simulate(pos([Leg("a", posted, "open", 1)]), 1)
+    assert r.entry.ts == T0 + 12 * 60
+
+
+def test_post_ts_is_not_truncated():
+    assert bars.post_ts("2025-10-17T16:17:56.687Z") % 1 == pytest.approx(0.687)
+
+
+def test_several_targets_without_shares_exit_at_the_first(fake):
+    book = fake[DAY]
+    for i in range(390):
+        book[T0 + 60 * i] = [100.0, 100.4, 99.6, 100.0, 1]
+    book[T0 + 300] = [100.0, 101.2, 99.9, 101.0, 1]
+    r = engine.simulate(pos([Leg("a", T0, "open", 10)], stop=95.0, targets=[101.0, 102.0]), 1)
+    assert [(f.kind, f.qty, f.px) for f in r.fills] == [("entry", 10, 100.0), ("target", 10, 101.0)]
+
+
+def test_at_horizon_before_the_entry_is_too_late(fake):
+    p = pos([Leg("a", T0 + 600, "open", 1)])
+    p.portfolio, p.default_exit = "swing", f"at:{T0 + 300}"
+    assert engine.simulate(p, 1).status == "too_late"
+
+
+def test_cash_rule_has_no_minimum():
+    a = _r(0, 100, 9950, 10)
+    b = _r(10, 50, 1000, 20)          # $50 left: sized down to it, not skipped
+    kept, sized_down, skipped, _ = engine.fit_to_cash([a, b])
+    assert [round(f, 4) for _, f in kept] == [1.0, 0.05] and sized_down == 1 and skipped == 0
+
+
+def next_day(fake):
+    nxt = DAY + dt.timedelta(days=1)
+    fake[nxt] = {T0 + 86400 + 60 * i: [100.0, 100.4, 99.6, 100.0, 1] for i in range(390)}
+
+
+def crypto(legs, **kw):
+    return Position(pid="c", course="cryptowizard", market="us_equities", ticker="X", side="long",
+                    portfolio="crypto", legs=legs, default_exit="hours:24", **kw)
+
+
+def test_crypto_default_exit_is_24_hours_and_later_posts_are_too_late(fake):
+    nxt = DAY + dt.timedelta(days=1)
+    t1 = T0 + 86400
+    fake[nxt] = {t1 + 60 * i: [100.0, 101.0, 99.0, 100.5, 1] for i in range(390)}
+    r = engine.simulate(crypto([Leg("a", T0, "open"), Leg("b", T0 + 30 * 3600, "close")]), 1)
+    assert r.assumed_exit and r.last_exit.kind == "default" and r.last_exit.ts == T0 + 60 + 86400
+
+
+def test_take_profit_post_sells_that_targets_share(fake):
+    book = fake[DAY]
+    for i in range(390):
+        book[T0 + 60 * i] = [100.0, 100.4, 99.6, 100.0, 1]
+    next_day(fake)
+    p = crypto([Leg("a", T0, "open"), Leg("tp1", T0 + 600, "trim", tp_index=1)], stop=90.0,
+               targets=[105.0, 110.0], target_fracs=[0.4, 0.6])
+    r = engine.simulate(p, 1)
+    assert [(f.kind, round(f.qty, 6)) for f in r.fills][:2] == [("entry", 10.0), ("exit", 4.0)]
+
+
+def test_take_profit_post_after_own_order_filled_sells_nothing(fake):
+    book = fake[DAY]
+    for i in range(390):
+        book[T0 + 60 * i] = [100.0, 100.4, 99.6, 100.0, 1]
+    book[T0 + 300] = [100.0, 105.2, 99.9, 105.0, 1]          # the copier's own TP1 order fills here
+    next_day(fake)
+    p = crypto([Leg("a", T0, "open"), Leg("tp1", T0 + 600, "trim", tp_index=1)], stop=90.0,
+               targets=[105.0, 110.0], target_fracs=[0.4, 0.6])
+    r = engine.simulate(p, 1)
+    assert [f.kind for f in r.fills] == ["entry", "target", "default"]
+
+
+def test_a_bar_is_never_watched_twice(fake):
+    """A break-even stop set by a later bar must not fill in an earlier bar (a post after the 24 h exit used to
+    send the engine back over bars it had already watched)."""
+    book = fake[DAY]
+    for i in range(390):
+        book[T0 + 60 * i] = [100.0, 100.4, 99.6, 100.0, 1]       # dips under the entry, stop at 90 never trades
+    book[T0 + 600] = [100.2, 102.2, 100.1, 102.0, 1]          # TP1 and TP2: break-even stop moves to 100
+    next_day(fake)
+    p = crypto([Leg("a", T0, "open"), Leg("c", T0 + 30 * 3600, "close")], stop=90.0,
+               targets=[101.0, 102.0, 110.0], target_fracs=[0.25, 0.3, 0.45], be_after_target=2)
+    r = engine.simulate(p, 1)
+    assert [f.kind for f in r.fills] == ["entry", "target", "target", "stop"]
+    assert r.fills[-1].ts > T0 + 600
+
+
+def test_lpp_post_time_is_release_plus_t_s(monkeypatch):
+    from backtest import lpp
+    monkeypatch.setattr(lpp, "_release", lambda: {"yt:x": 1_000_000.0})
+    assert lpp.post_ts({"source_id": "yt:x", "t_s": 641.6, "wall_utc": "1970-01-12T13:57:21Z"}) == 1_000_641.6
+    assert lpp.post_ts({"source_id": "yt:other", "t_s": 5, "wall_utc": "2025-10-17T16:17:56.687Z"}) % 1 == \
+        pytest.approx(0.687)
+
+
+@pytest.mark.parametrize("horizon,want", [("more than one session", "sessions:5"), ("3 days", "sessions:3"),
+                                          ("two weeks", "sessions:10"), ("into the next session", "sessions:1"),
+                                          ("hold it overnight", "sessions:1"), ("0 days", "day_close"),
+                                          ("today", "day_close"), (None, "day_close")])
+def test_ziptrader_default_exit(horizon, want):
+    from backtest.ziptrader import default_exit
+    assert default_exit(horizon) == want
+
+
+def _tp_book(fake):
+    book = fake[DAY]
+    for i in range(390):
+        book[T0 + 60 * i] = [100.0, 100.4, 99.6, 100.0, 1]
+    next_day(fake)
+
+
+def test_take_profit_post_sells_every_unfilled_tp_up_to_n(fake):
+    _tp_book(fake)
+    p = crypto([Leg("a", T0, "open"), Leg("tp2", T0 + 600, "trim", tp_index=2)], stop=90.0,
+               targets=[105.0, 110.0, 120.0], target_fracs=[0.25, 0.3, 0.45])
+    r = engine.simulate(p, 1)
+    assert [(f.kind, round(f.qty, 6)) for f in r.fills][:2] == [("entry", 10.0), ("exit", 5.5)]
+
+
+def test_take_profit_index_above_target_count_sells_everything(fake):
+    _tp_book(fake)
+    p = crypto([Leg("a", T0, "open"), Leg("tp5", T0 + 600, "trim", tp_index=5)], stop=90.0,
+               targets=[105.0, 110.0], target_fracs=[0.4, 0.6])
+    r = engine.simulate(p, 1)
+    assert [(f.kind, round(f.qty, 6)) for f in r.fills] == [("entry", 10.0), ("exit", 10.0)]
+
+
+def test_trigger_with_an_at_horizon_before_the_post_is_too_late(fake):
+    p = pos([Leg("a", T0 + 600, "open", 1)], trigger=105.0)
+    p.portfolio, p.default_exit = "swing", f"at:{T0 + 300}"
+    assert engine.simulate(p, 1).status == "too_late"
+
+
+def test_bars_ending_before_the_default_exit_leave_at_the_last_bar(fake):
+    _tp_book(fake)                         # bars for two days only; 24 h after a late entry has none
+    late = T0 + 86400 + 300 * 60
+    r = engine.simulate(crypto([Leg("a", late, "open"), Leg("c", late + 30 * 3600, "close")]), 1)
+    last = max(fake[DAY + dt.timedelta(days=1)])
+    assert r.status == "priced" and r.assumed_exit and r.last_exit.ts == last and r.last_exit.kind == "default"
+
+
+def test_near_zero_cash_is_couldnt_copy():
+    a = _r(0, 100, 9999.5, 10)
+    b = _r(10, 50, 1000, 20)          # $0.50 left: couldn't copy, not a sub-dollar trade
+    kept, sized_down, skipped, _ = engine.fit_to_cash([a, b])
+    assert len(kept) == 1 and sized_down == 0 and skipped == 1

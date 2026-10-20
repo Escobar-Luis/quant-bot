@@ -34,6 +34,12 @@ def to_ts(iso: str) -> int:
     return int(dt.datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp())
 
 
+def post_ts(iso: str) -> float:
+    """Rule 1's post time, to the fraction of a second (never truncated: a post at 09:45:00.4 + 5 min fills on the
+    09:51 bar, not 09:50)."""
+    return dt.datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp()
+
+
 def to_iso(ts: int) -> str:
     return dt.datetime.fromtimestamp(ts, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
