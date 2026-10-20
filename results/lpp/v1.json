@@ -52346,8 +52346,8 @@
   "agent_id": "daytrader-improver-v2",
   "prompt_version": "improver-v2",
   "model": "anthropic/claude-sonnet-5-5",
-  "trajectory_id": "4edf2a7f-1531-4bad-9872-fc8a13e3dca5",
-  "prism_url": "https://prism.blockconvey.com/trajectories/4edf2a7f-1531-4bad-9872-fc8a13e3dca5",
+  "trajectory_id": "6efa6a02-ea2a-47a2-8d25-5e3d72a7826c",
+  "prism_url": "https://prism.blockconvey.com/trajectories/6efa6a02-ea2a-47a2-8d25-5e3d72a7826c",
   "version": "v1",
   "portfolio": "all",
   "delay_min": 5,
@@ -52360,6 +52360,53 @@
   "picked_on": "dev",
   "keep_rule": "kept only if it beats the as-is copy on dev, does not lose on sealed, and keeps 30+ trades in each",
   "min_trades": 30,
+  "kept_label": "held up (not proven)",
+  "variants_tried": {
+   "distinct_priced": 10,
+   "model_priced": 6,
+   "model_rejected": 0,
+   "smoke_tests_run": 6,
+   "smoke_tests_priced": 5,
+   "smoke_tests": [
+    {
+     "rule": "Skip TSLA shorts",
+     "priced": true
+    },
+    {
+     "rule": "No adds against the first buy, big tech",
+     "priced": true,
+     "same_as": "no_add_against big tech"
+    },
+    {
+     "rule": "Leave shorts 60 min after the first buy",
+     "priced": true
+    },
+    {
+     "rule": "2% stop on every trade",
+     "priced": true
+    },
+    {
+     "rule": "Only crypto-linked or hot small and mid caps",
+     "priced": true
+    },
+    {
+     "rule": "Skip trades added to a loser",
+     "priced": false,
+     "why": "look_ahead_or_unknown_feature:adds"
+    }
+   ],
+   "log": "notes/research/backtesting.md, section 6"
+  },
+  "disclosure": [
+   "The engineer ran 6 smoke tests before the model's call and saw their held-out numbers; they count as tried.",
+   "The model saw dev-month tables only, but his rules' wording and the setup definitions came from the strategy profile, built from every month, held-out ones included.",
+   "Kept means it held up on the held-out months, not that it is proven: small gains on about 100 trades can be luck after this many tries (story 27 tests that)."
+  ],
+  "luck_test": {
+   "story": "27",
+   "status": "not run"
+  },
+  "kept_all_trail_spy": true,
   "as_is": {
    "dev": {
     "trades": 239,
@@ -52422,19 +52469,19 @@
     "why": "Average loss -$85 is far above the average win of $31; -$786 total.",
     "dev": {
      "trades": 239,
-     "ret_pct": -2.27,
+     "ret_pct": -2.68,
      "as_is_ret_pct": -4.73,
-     "vs_as_is_pts": 2.46,
+     "vs_as_is_pts": 2.05,
      "spy_ret_pct": 10.47,
-     "vs_spy_pts": -12.74
+     "vs_spy_pts": -13.15
     },
     "sealed": {
      "trades": 103,
-     "ret_pct": 2.29,
+     "ret_pct": 2.17,
      "as_is_ret_pct": 2.08,
-     "vs_as_is_pts": 0.21,
+     "vs_as_is_pts": 0.09,
      "spy_ret_pct": 9.64,
-     "vs_spy_pts": -7.35
+     "vs_spy_pts": -7.47
     },
     "kept": true,
     "kept_reason": "gained on dev and did not lose on the held-out (sealed) months"
