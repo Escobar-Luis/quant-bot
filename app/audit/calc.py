@@ -73,7 +73,8 @@ _DV: dict[str, dict] = {}
 
 
 def _daily_dv(ticker: str) -> dict:
-    """data/bars/daily_dv/<T>.json, {date: [raw close, volume]} ({} = the engine's fetch failed). Never fetches."""
+    """data/bars/daily_dv/<T>.json, {date: [raw close, volume]} ({"_unknown": why} = the engine's fetch failed:
+    volume unknown, counts as thin). Never fetches."""
     if ticker not in _DV:
         p = BARS / "daily_dv" / f"{ticker}.json"
         if not p.exists():
@@ -85,7 +86,7 @@ def _daily_dv(ticker: str) -> dict:
 def dollar_volume_20(ticker: str, day: dt.date) -> float:
     """Average raw close x volume over the 20 sessions before `day`; 0 with none (counts as thin)."""
     dv = _daily_dv(ticker)
-    before = sorted(k for k in dv if k < day.isoformat())[-20:]
+    before = sorted(k for k in dv if not k.startswith("_") and k < day.isoformat())[-20:]
     return sum(dv[k][0] * dv[k][1] for k in before) / len(before) if before else 0.0
 
 

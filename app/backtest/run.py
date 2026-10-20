@@ -361,9 +361,9 @@ def unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only) -
     unknown = mod.unknown(st, assumed, len(positions), len(built["positions"]), status) \
         if hasattr(mod, "unknown") else []
     unknown.append("Worst drop counts closed trades only, not open ones.")
-    unknown.append("Costs are estimates. The numbers above use simple costs; cost_cases prices the headline with "
-                   "realistic costs (spread, slippage, borrow fees on shorts) and with those doubled. Borrow flags "
-                   "are today's, not each trade date's.")
+    unknown.append("Costs are estimates. The headline is shown with realistic costs (spread, slippage, borrow fees "
+                   "on shorts), with simple flat costs and with realistic doubled; the chart, years and the cards "
+                   "below use simple costs. Hard-to-borrow status is as of today, not each trade date.")
     head = portfolios[0]["by_delay"][str(d5)]
     if head["sized_down"] or head["couldnt_copy"]:
         unknown.insert(0, f"At {d5} min, {head['sized_down']} trades were sized down and {head['couldnt_copy']} "

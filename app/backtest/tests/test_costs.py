@@ -102,3 +102,22 @@ def test_stop_inside_the_bar_fills_at_its_level(fake):
     fake[DAY] = {T0 + 60: [100.0, 100.5, 99.5, 100.0, 1], T0 + 120: [101.0, 106.0, 100.0, 104.0, 1],
                  bars.et_at(DAY, 15, 55): [90.0, 90.0, 90.0, 90.0, 1]}
     assert engine.simulate(p, 1).last_exit.px == 105.0
+
+
+def test_failed_volume_fetch_is_unknown_thin_and_retried(monkeypatch, tmp_path):
+    monkeypatch.setattr(costs, "BARS", tmp_path)
+    calls = []
+
+    def boom(path, params):
+        calls.append(path)
+        raise bars.NoBars("http 500")
+
+    monkeypatch.setattr(bars, "_alpaca_get", boom)
+    costs._ADV.clear()
+    costs._DV_RUN.clear()
+    assert costs.daily_dv("ZZZ") == {"_unknown": "http 500"}
+    assert costs.adv_before("ZZZ", DAY) == 0.0          # unknown volume counts as thin
+    assert len(calls) == 1                               # one try per run
+    costs._DV_RUN.clear()                                # the next run
+    costs.daily_dv("ZZZ")
+    assert len(calls) == 2                               # cached as unknown, retried

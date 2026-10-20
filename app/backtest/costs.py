@@ -104,8 +104,7 @@ def borrow_flags(tickers) -> dict[str, bool | None]:
                 have[t] = bool(r.json()["easy_to_borrow"]) if r.status_code == 200 else None
             except (httpx.HTTPError, KeyError, ValueError):
                 have[t] = None
-            when[t] = today
-        when.setdefault(t, today)
+            when[t] = today               # only a lookup made now is dated; older ones keep their own date
     ASSETS.parent.mkdir(parents=True, exist_ok=True)
     ASSETS.write_text(json.dumps(have, indent=1, sort_keys=True))
     CHECKED.write_text(json.dumps(when, indent=1, sort_keys=True))
@@ -119,15 +118,24 @@ def checked_dates(tickers) -> dict[str, str]:
 
 # ---- daily dollar volume ---------------------------------------------------------------------------------------
 
+_DV_RUN: dict[str, dict] = {}
+
+
 def dv_path(ticker: str):
     return BARS / "daily_dv" / f"{ticker}.json"
 
 
 def daily_dv(ticker: str) -> dict[str, list]:
-    """{ET date: [raw close, volume]} from DV_FROM to DV_TO (Alpaca 1Day raw), cached; {} when the fetch fails."""
+    """{ET date: [raw close, volume]} from DV_FROM to DV_TO (Alpaca 1Day raw), cached. A failed fetch is cached as
+    {"_unknown": why} (volume unknown: counts as thin) and retried on the next run."""
+    if ticker in _DV_RUN:
+        return _DV_RUN[ticker]   # one try per run
     p = dv_path(ticker)
     if p.exists():
-        return json.loads(p.read_text())
+        got = json.loads(p.read_text())
+        if "_unknown" not in got:
+            _DV_RUN[ticker] = got
+            return got
     out, token = {}, None
     try:
         while True:
@@ -141,10 +149,11 @@ def daily_dv(ticker: str) -> dict[str, list]:
             token = js.get("next_page_token")
             if not token:
                 break
-    except B.NoBars:
-        out = {}
+    except B.NoBars as e:
+        out = {"_unknown": str(e)}
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out))
+    _DV_RUN[ticker] = out
     return out
 
 
@@ -156,7 +165,7 @@ def adv_before(ticker: str, day: dt.date) -> float:
     key = (ticker, day.isoformat())
     if key not in _ADV:
         dv = daily_dv(ticker)
-        prev = sorted(d for d in dv if d < key[1])[-20:]
+        prev = sorted(d for d in dv if not d.startswith("_") and d < key[1])[-20:]
         _ADV[key] = sum(dv[d][0] * dv[d][1] for d in prev) / len(prev) if prev else 0.0
     return _ADV[key]
 
