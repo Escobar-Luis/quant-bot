@@ -1,7 +1,7 @@
 {
  "schema": "strategy-lab/1",
- "generated_at": "2026-10-20T21:26:29Z",
- "git_sha": "6d95818775e6446ad11c4b4a573b5807b4060e5b",
+ "generated_at": "2026-10-20T21:32:57Z",
+ "git_sha": "5928682fbdcd4844ae52228c95e0f67e6c326238",
  "preregistered_sha": "eb6c3e8",
  "spec": "notes/research/strategy-as-code.md",
  "window": {
@@ -17,11 +17,15 @@
   "small_cap": "per side 50 bps under $5, 30 bps under $10, else 5 bps; +10 bps when the 20-session average dollar volume before the session is under $50M",
   "borrow_high": "hard-to-borrow names (Alpaca's flag today) pay one day of a 100%-a-year fee: 0.4% of notional; easy-to-borrow intraday shorts pay none"
  },
- "variants_tried": 23,
+ "variants_tried": 29,
+ "deviations": [
+  "Not pre-registered (PR #71 review): the pre-registered picker applied its $5 floor to split-adjusted closes, so IPDN ($2.93 raw) and OPAD ($4.34 raw) got in through later reverse splits. Re-picked on raw closes: they leave, SKYD and QS come in. new-hot stays as pre-registered."
+ ],
  "fetch": {
-  "minute_ticker_days": 604,
-  "runs": 5,
-  "cap_per_run": 200
+  "minute_ticker_days": 618,
+  "runs": 6,
+  "cap_per_run": 200,
+  "note": "the first 3 runs (200 each) were logged by hand after a logging bug (the log was written only once nothing was missing); later runs are logged by the code"
  },
  "benchmark": {
   "symbol": "SPY",
@@ -97,6 +101,35 @@
    "rule": "top 20 by average daily range, $100M+ a day traded, $5+, not his, as of 2025-09-12"
   },
   {
+   "id": "new-hot-raw",
+   "which": "b",
+   "label": "Other hot stocks (corrected list)",
+   "tickers": [
+    "SOGP",
+    "ORBS",
+    "NEGG",
+    "CWD",
+    "WLDS",
+    "ONDS",
+    "BMNR",
+    "AAOI",
+    "RUN",
+    "SEDG",
+    "BLSH",
+    "UUUU",
+    "SBET",
+    "APLD",
+    "CRCL",
+    "SMR",
+    "PL",
+    "PGY",
+    "SKYD",
+    "QS"
+   ],
+   "rule": "as new-hot, with the $5 floor on the raw close of 2025-09-12",
+   "deviation": "Not pre-registered (PR #71 review): the pre-registered picker applied its $5 floor to split-adjusted closes, so IPDN ($2.93 raw) and OPAD ($4.34 raw) got in through later reverse splits. Re-picked on raw closes: they leave, SKYD and QS come in. new-hot stays as pre-registered."
+  },
+  {
    "id": "new-crypto",
    "which": "b",
    "label": "Other crypto stocks",
@@ -122,7 +155,8 @@
    "entry_et": "09:45",
    "universes": [
     "his-hot",
-    "new-hot"
+    "new-hot",
+    "new-hot-raw"
    ],
    "text": "Short a hot stock at 09:45 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET."
   },
@@ -144,7 +178,8 @@
     "his-hot",
     "his-crypto",
     "new-hot",
-    "new-crypto"
+    "new-crypto",
+    "new-hot-raw"
    ],
    "text": "Short every stock at every open, cover at the close (daily bars). No signal, no stop."
   }
@@ -212,6 +247,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 6.34
    },
    "vs_random": {
@@ -264,6 +300,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 8.0
    },
    "vs_random": {
@@ -316,6 +353,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 5.66
    },
    "vs_random": {
@@ -368,6 +406,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -1.68
    },
    "vs_random": {
@@ -420,6 +459,7 @@
    },
    "borrow": {
     "htb_trades": 135,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 5.67
    },
    "vs_random": {
@@ -472,6 +512,7 @@
    },
    "borrow": {
     "htb_trades": 135,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 11.25
    },
    "vs_random": {
@@ -524,6 +565,7 @@
    },
    "borrow": {
     "htb_trades": 135,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 1.98
    },
    "vs_random": {
@@ -576,6 +618,7 @@
    },
    "borrow": {
     "htb_trades": 40,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 1.45
    },
    "vs_random": {
@@ -588,6 +631,218 @@
    "slice": {
     "trades": 14,
     "ret_pct": -1.3,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "P",
+   "universe": "new-hot-raw",
+   "primary": true,
+   "trades": 273,
+   "won_pct": 51,
+   "pnl_usd": 1368.12,
+   "end": 11368.12,
+   "ret_pct": 13.68,
+   "max_drawdown_pct": -5.59,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -394.75
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -4.0,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 25,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 8.13,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 7.62,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 111,
+    "unknown_trades": 0,
+    "borrow_high_ret_pct": 9.3
+   },
+   "vs_random": {
+    "twin_pnl_usd": 2796.75,
+    "p2_5": -1214.64,
+    "p97_5": 2136.24,
+    "pct_rank": 99.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 52,
+    "ret_pct": -2.04,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "no-stop",
+   "universe": "new-hot-raw",
+   "primary": false,
+   "trades": 273,
+   "won_pct": 58,
+   "pnl_usd": 1346.11,
+   "end": 11346.11,
+   "ret_pct": 13.46,
+   "max_drawdown_pct": -11.29,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -622.76
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -4.22,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 25,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 7.93,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 7.43,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 111,
+    "unknown_trades": 0,
+    "borrow_high_ret_pct": 9.08
+   },
+   "vs_random": {
+    "twin_pnl_usd": 2796.75,
+    "p2_5": -1214.64,
+    "p97_5": 2136.24,
+    "pct_rank": 99.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 52,
+    "ret_pct": -6.47,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "exit-11",
+   "universe": "new-hot-raw",
+   "primary": false,
+   "trades": 273,
+   "won_pct": 55,
+   "pnl_usd": 803.81,
+   "end": 10803.81,
+   "ret_pct": 8.04,
+   "max_drawdown_pct": -4.5,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -241.22
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -9.65,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 25,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 2.5,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 2.0,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 111,
+    "unknown_trades": 0,
+    "borrow_high_ret_pct": 3.65
+   },
+   "vs_random": {
+    "twin_pnl_usd": 2796.75,
+    "p2_5": -1214.64,
+    "p97_5": 2136.24,
+    "pct_rank": 99.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 52,
+    "ret_pct": 1.42,
+    "spy_ret_pct": 2.46,
+    "word": "Barely"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "gap-10",
+   "universe": "new-hot-raw",
+   "primary": false,
+   "trades": 59,
+   "won_pct": 46,
+   "pnl_usd": 472.62,
+   "end": 10472.62,
+   "ret_pct": 4.73,
+   "max_drawdown_pct": -3.64,
+   "longest_losing_streak": 7,
+   "worst_day": {
+    "day": "2026-06-15",
+    "pnl_usd": -108.2
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -12.96,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 3.35,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 2.92,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 34,
+    "unknown_trades": 0,
+    "borrow_high_ret_pct": 3.37
+   },
+   "vs_random": {
+    "twin_pnl_usd": 1554.24,
+    "p2_5": -808.94,
+    "p97_5": 942.59,
+    "pct_rank": 99.9,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 11,
+    "ret_pct": 0.32,
     "spy_ret_pct": 2.46,
     "word": "Not enough trades"
    }
@@ -628,6 +883,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -1.77
    },
    "vs_random": {
@@ -680,6 +936,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -5.29
    },
    "vs_random": {
@@ -732,6 +989,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -2.81
    },
    "vs_random": {
@@ -784,6 +1042,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 1.12
    },
    "vs_random": {
@@ -836,6 +1095,7 @@
    },
    "borrow": {
     "htb_trades": 34,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -1.52
    },
    "vs_random": {
@@ -888,6 +1148,7 @@
    },
    "borrow": {
     "htb_trades": 34,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -3.15
    },
    "vs_random": {
@@ -940,6 +1201,7 @@
    },
    "borrow": {
     "htb_trades": 34,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -6.81
    },
    "vs_random": {
@@ -992,6 +1254,7 @@
    },
    "borrow": {
     "htb_trades": 3,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 2.01
    },
    "vs_random": {
@@ -1044,6 +1307,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -6.36
    },
    "vs_random": null,
@@ -1090,6 +1354,7 @@
    },
    "borrow": {
     "htb_trades": 0,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 5.24
    },
    "vs_random": null,
@@ -1136,6 +1401,7 @@
    },
    "borrow": {
     "htb_trades": 2475,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": 3.83
    },
    "vs_random": null,
@@ -1182,6 +1448,7 @@
    },
    "borrow": {
     "htb_trades": 550,
+    "unknown_trades": 0,
     "borrow_high_ret_pct": -52.52
    },
    "vs_random": null,
@@ -1191,12 +1458,63 @@
     "spy_ret_pct": 2.46,
     "word": "Yes"
    }
+  },
+  {
+   "rule": "C",
+   "variant": "control",
+   "universe": "new-hot-raw",
+   "primary": true,
+   "trades": 5500,
+   "won_pct": 53,
+   "pnl_usd": 4728.7,
+   "end": 14728.7,
+   "ret_pct": 47.29,
+   "max_drawdown_pct": -18.26,
+   "longest_losing_streak": 19,
+   "worst_day": {
+    "day": "2026-08-03",
+    "pnl_usd": -765.89
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": 29.6,
+   "word": "Yes",
+   "outcome": "Made money",
+   "sized_down": 5500,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -6.17,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -0.65,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 1925,
+    "unknown_trades": 0,
+    "borrow_high_ret_pct": 7.64
+   },
+   "vs_random": null,
+   "slice": {
+    "trades": 1520,
+    "ret_pct": 4.51,
+    "spy_ret_pct": 2.46,
+    "word": "Yes"
+   }
   }
  ],
  "verdict": {
   "S4": {
    "held_up": false,
-   "why": "his-hot: No (+6.34% vs SPY +17.68%, 62 trades); new-hot: No (+11.01% vs SPY +17.68%, 283 trades)"
+   "why": "his-hot: No (+6.34% vs SPY +17.68%, 62 trades); new-hot: No (+11.01% vs SPY +17.68%, 283 trades)",
+   "corrected_list": {
+    "held_up": false,
+    "why": "his-hot: No (+6.34%, 62 trades); new-hot-raw: No (+13.68%, 273 trades)"
+   }
   },
   "S5": {
    "held_up": false,

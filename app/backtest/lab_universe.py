@@ -64,13 +64,13 @@ def assets() -> list[dict]:
                                                                                 "BATS")]
 
 
-def daily(symbols: list[str], start: dt.date, end: dt.date) -> dict[str, list[dict]]:
+def daily(symbols: list[str], start: dt.date, end: dt.date, adj: str = "split") -> dict[str, list[dict]]:
     out: dict[str, list[dict]] = {}
     for i in range(0, len(symbols), 200):
         token = None
         while True:
             params = {"symbols": ",".join(symbols[i:i + 200]), "timeframe": "1Day", "start": start.isoformat(),
-                      "end": end.isoformat(), "limit": 10000, "adjustment": "split", "feed": "sip"}
+                      "end": end.isoformat(), "limit": 10000, "adjustment": adj, "feed": "sip"}
             if token:
                 params["page_token"] = token
             r = httpx.get(STOCK_BARS, params=params, headers=_hdr(), timeout=60)
@@ -99,7 +99,10 @@ def beta(xs: list[float], ys: list[float]) -> float:
     return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / vy if vy else 0.0
 
 
-def pick() -> dict:
+def pick(raw_floor: bool = False) -> dict:
+    """raw_floor=False is the pre-registered picker (eb6c3e8): its $5 / $1 floors read split-adjusted closes, so a
+    stock reverse-split after 2025-09-12 looked dearer than it traded (PR #71 review: IPDN $2.93 and OPAD $4.34
+    raw got in). raw_floor=True is the disclosed correction: the floors read the raw close of 2025-09-12."""
     excl = his_tickers()
     universe = [a for a in assets() if not NOT_COMMON.search(a.get("name") or "") and a["symbol"] not in excl]
     names = {a["symbol"]: a["name"] for a in universe}
@@ -113,6 +116,11 @@ def pick() -> dict:
         adv = sum(b["c"] * b["v"] for b in bs) / len(bs)
         rng = sum((b["h"] - b["l"]) / b["o"] for b in bs if b["o"]) / len(bs)
         stats[s] = {"adv_usd": adv, "range_pct": 100 * rng, "close": bs[-1]["c"]}
+    if raw_floor:
+        raw = daily(sorted(stats), ASOF, ASOF, "raw")
+        for s in stats:
+            rb = [b for b in raw.get(s, []) if b["t"][:10] == ASOF.isoformat()]
+            stats[s]["close"] = rb[-1]["c"] if rb else 0.0
     pool = sorted(s for s, v in stats.items() if v["adv_usd"] >= CRYPTO_MIN_ADV and v["close"] >= CRYPTO_MIN_PX)
     long_bars = daily(pool + [ANCHOR], CORR_FROM, ASOF)
     anchor = {b["t"][:10]: b["c"] for b in long_bars.pop(ANCHOR) if b["t"][:10] <= ASOF.isoformat()}
@@ -141,8 +149,9 @@ def main() -> int:
     if not has_alpaca():
         print("no Alpaca keys in .env", file=sys.stderr)
         return 2
-    out = pick()
-    p = DATA / "lab" / "universe.json"
+    raw_floor = "--raw-floor" in sys.argv[1:]
+    out = pick(raw_floor)
+    p = DATA / "lab" / ("universe-raw.json" if raw_floor else "universe.json")
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, indent=1))
     for k in ("hot", "crypto"):

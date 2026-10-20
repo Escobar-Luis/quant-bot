@@ -17,6 +17,29 @@ from .paths import BARS, DATA, RESULTS
 
 LAB = RESULTS / "strategy-lab.json"
 
+# Transcribed from the spec (notes/research/strategy-as-code.md: pre-registered at eb6c3e8, sections 2-6; the
+# corrected list `new-hot-raw` from section 8, the PR #71 deviation). The audit computes from these, never from
+# what the results file says, and fails when the file declares anything different.
+SPEC = {
+    "window": {"from": "2025-09-15", "to": "2026-10-16", "slice_from": "2026-07-01"}, "daily_from": "2025-07-15",
+    "universes": {
+        "his-hot": ["AFRM", "AI", "CVNA", "DJT", "GME", "HIMS", "OPEN", "PLTR", "RDDT", "SMCI", "SOFI", "SOUN", "TEM"],
+        "his-crypto": ["COIN", "HOOD", "MARA", "MSTR"],
+        "new-hot": ["SOGP", "IPDN", "ORBS", "OPAD", "NEGG", "CWD", "WLDS", "ONDS", "BMNR", "AAOI", "RUN", "SEDG",
+                    "BLSH", "UUUU", "SBET", "APLD", "CRCL", "SMR", "PL", "PGY"],
+        "new-crypto": ["HUT", "KEEL", "HIVE", "BTBT", "BTDR", "IREN", "CIFR", "GLXY", "WULF", "LUNR"],
+        "new-hot-raw": ["SOGP", "ORBS", "NEGG", "CWD", "WLDS", "ONDS", "BMNR", "AAOI", "RUN", "SEDG", "BLSH", "UUUU",
+                        "SBET", "APLD", "CRCL", "SMR", "PL", "PGY", "SKYD", "QS"]},
+    "rules": {"S4": {"entry_et": "09:45", "universes": ["his-hot", "new-hot", "new-hot-raw"]},
+              "S5": {"entry_et": "09:35", "universes": ["his-crypto", "new-crypto"]},
+              "C": {"entry_et": "09:30", "universes": ["his-hot", "his-crypto", "new-hot", "new-crypto", "new-hot-raw"]}},
+    "variants": {"P": {"gap_pct": 5, "stop_pct": 5, "exit_et": "15:55"},
+                 "no-stop": {"gap_pct": 5, "stop_pct": None, "exit_et": "15:55"},
+                 "exit-11": {"gap_pct": 5, "stop_pct": 5, "exit_et": "11:00"},
+                 "gap-10": {"gap_pct": 10, "stop_pct": 5, "exit_et": "15:55"}},
+    "preregistered_sha": "eb6c3e8",
+}
+
 
 def _daily(sym: str, adj: str, d0: str, d1: str) -> dict:
     p = BARS / "lab_daily" / f"{sym}_{adj}_{d0}_{d1}.json"
@@ -65,7 +88,8 @@ def _adv20(raw: dict, day: str) -> float:
 
 def _gap_days(split: dict, pct: float, d0: str, d1: str) -> list[str]:
     keys = sorted(split)
-    return [b for a, b in zip(keys, keys[1:]) if d0 <= b <= d1 and split[b][0] / split[a][3] - 1 >= pct / 100 - 1e-12]
+    # the lab's tolerance (spec section 8 item 4): the gap rounded to 9 decimals
+    return [b for a, b in zip(keys, keys[1:]) if d0 <= b <= d1 and round(split[b][0] / split[a][3] - 1, 9) >= pct / 100]
 
 
 def _fill_short(rows: list, day: str, entry_hm: str, stop_pct, exit_hm: str):
@@ -86,9 +110,8 @@ def _fill_short(rows: list, day: str, entry_hm: str, stop_pct, exit_hm: str):
 
 def recompute(d: dict) -> dict:
     """{(rule, variant, universe): numbers} and SPY's, from the cached bars and the spec's parameters."""
-    w = d["window"]
-    d0 = "2025-07-15"   # the spec's daily-bar start (20+ sessions before the window)
-    d1 = w["to"]
+    w = SPEC["window"]
+    d0, d1 = SPEC["daily_from"], w["to"]
     spy = _daily("SPY", "all", d0, d1)
     cal = [k for k in sorted(spy) if w["from"] <= k <= w["to"]]
 
@@ -97,9 +120,9 @@ def recompute(d: dict) -> dict:
         return 100 * (spy[cal[-1]][3] / spy[before][3] - 1)
 
     spy_ret, spy_slice = spy_from(w["from"]), spy_from(w["slice_from"])
-    flags = json.loads((DATA / "lab" / "assets.json").read_text())
-    unis = {u["id"]: u["tickers"] for u in d["universes"]}
-    entry_at = {r["id"]: r["entry_et"] for r in d["rules"]}
+    flags = json.loads((DATA / "lab" / "assets.json").read_text())   # true / false / null (unknown: not hard)
+    unis = SPEC["universes"]
+    entry_at = {k: r["entry_et"] for k, r in SPEC["rules"].items()}
     out = {}
     for run in d["runs"]:
         rid, vid, uid = run["rule"], run["variant"], run["universe"]
@@ -112,13 +135,13 @@ def recompute(d: dict) -> dict:
                     if w["from"] <= b <= w["to"]:
                         k = raw[b][0] / split[b][0]
                         fills.append((b, _et(b, "09:30"), t, split[b][0] * k, split[b][3] * k, _adv20(raw, b),
-                                      not flags[t]))
+                                      flags.get(t) is False))
                 continue
-            v = next(x for x in d["variants"] if x["id"] == vid)
+            v = SPEC["variants"][vid]
             for day in _gap_days(split, v["gap_pct"], w["from"], w["to"]):
                 f = _fill_short(_minutes(t, day), day, entry_at[rid], v["stop_pct"], v["exit_et"])
                 if f:
-                    fills.append((day, f[0], t, f[1], f[2], _adv20(raw, day), not flags[t]))
+                    fills.append((day, f[0], t, f[1], f[2], _adv20(raw, day), flags.get(t) is False))
         res = {}
         for model in ("base", "x2", "small_cap", "borrow"):
             cash_pnl, eq_peak, worst_dd, rows = 0.0, 10_000.0, 0.0, []
@@ -175,6 +198,16 @@ def check(path: Path = LAB) -> dict:
             bad.append({"kind": "strategy_lab", "where": where, "field": field, "theirs": theirs,
                         "ours": ours if not isinstance(ours, float) else round(ours, 4)})
 
+    cmp("declared", "window", {k: d["window"][k] for k in ("from", "to", "slice_from")}, SPEC["window"], None)
+    cmp("declared", "preregistered_sha", d["preregistered_sha"], SPEC["preregistered_sha"], None)
+    cmp("declared", "universes", {u["id"]: u["tickers"] for u in d["universes"]}, SPEC["universes"], None)
+    cmp("declared", "rules", {r["id"]: {"entry_et": r["entry_et"], "universes": r["universes"]} for r in d["rules"]},
+        SPEC["rules"], None)
+    cmp("declared", "variants", {v["id"]: {k: v[k] for k in ("gap_pct", "stop_pct", "exit_et")} for v in d["variants"]},
+        SPEC["variants"], None)
+    expected = sorted((r, v, u) for r, x in SPEC["rules"].items() for u in x["universes"]
+                      for v in (["control"] if r == "C" else list(SPEC["variants"])))
+    cmp("declared", "runs", sorted((r["rule"], r["variant"], r["universe"]) for r in d["runs"]), expected, None)
     cmp("benchmark", "ret_pct", d["benchmark"]["ret_pct"], mine["spy"], 0.01)
     cmp("benchmark", "slice.ret_pct", d["benchmark"]["slice"]["ret_pct"], mine["spy_slice"], 0.01)
     for r in d["runs"]:
@@ -198,8 +231,11 @@ def check(path: Path = LAB) -> dict:
         cmp(where, "slice.ret_pct", r["slice"]["ret_pct"], m["slice_ret"], 0.01)
         cmp(where, "slice.word", r["slice"]["word"], m["slice_word"], None)
     for rule, v in d["verdict"].items():
-        prim = [mine["runs"][k] for k in mine["runs"] if k[0] == rule and k[1] == "P"]
+        prim = [mine["runs"][k] for k in mine["runs"] if k[0] == rule and k[1] == "P" and k[2] != "new-hot-raw"]
         cmp(f"verdict|{rule}", "held_up", v["held_up"], bool(prim) and all(p["word"] == "Yes" for p in prim), None)
+    fix = [mine["runs"][k] for k in mine["runs"] if k[0] == "S4" and k[1] == "P" and k[2] in ("his-hot", "new-hot-raw")]
+    cmp("verdict|S4", "corrected_list.held_up", d["verdict"]["S4"].get("corrected_list", {}).get("held_up"),
+        bool(fix) and all(p["word"] == "Yes" for p in fix), None)
     return {"file": "strategy-lab", "pass": not bad, "runs_checked": len(d["runs"]), "mismatches": len(bad),
             "unverifiable": ["vs_random (seeded simulation, not recomputed)"], "details": bad}
 

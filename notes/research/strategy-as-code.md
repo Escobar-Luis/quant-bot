@@ -153,21 +153,38 @@ adjustment for the window. No other network. `gap-10` sessions are a subset of `
    (a missing-bar error on that session). Fixed by comparing the rounded gap (9 decimals): one trade added
    (S5 `new-crypto`: 214 → 215 trades, +0.35% → −0.16%). No threshold, list or window changed.
 
+5. 2026-10-20, PR #71 review: **deviation, disclosed.** The picker applied its $5 and $1 floors to
+   split-adjusted closes, so stocks reverse-split after 2025-09-12 looked dearer than they traded: IPDN ($2.93 raw)
+   and OPAD ($4.34 raw) entered `new-hot`. The pre-registered list and its runs stay as they are. A corrected list,
+   `new-hot-raw` (floors on the raw close of 2025-09-12; `lab_universe.py --raw-floor`), drops IPDN and OPAD and adds
+   SKYD and QS; S4 (all variants) and C are also run on it, marked `deviation` in the results. `new-crypto` is
+   unchanged by the fix. The pre-registered verdict uses only the pre-registered lists; the corrected one is reported
+   beside it (`verdict.S4.corrected_list`).
+6. Same review, code hygiene (no number changed): a failed borrow-flag lookup is cached as unknown and retried, never
+   counted as hard to borrow (none failed: a fresh lookup of all 50 gave the same flags); `app/audit/lab.py`
+   now computes from the spec's own parameters (transcribed in the code) and fails when the results file declares
+   different ones, with the lab's gap tolerance; the first 3 fetch runs (200 ticker-days each) were logged by hand
+   after a logging bug (`fetch.note`). The corrected list fetched 14 more ticker-days (618 in all, 6 runs).
+
 ## 9. Results (2026-10-20; `results/strategy-lab.json`, audit 0 mismatches)
 
 SPY total return 2025-09-12 close → 2026-10-16 close: **+17.68%** (worst drop −8.88%). Primary runs (`P`), $10,000,
 $1,000 a trade, base costs:
 
-| Rule | Stocks | Trades | Won | Return | Worst drop | vs SPY | Word | ×2 costs | Small-cap costs | vs random (pct rank) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| S4 short the run-up | (a) his 13 | 62 | 60% | +6.34% | −2.48% | −11.34 | No | +5.40% | +6.03% | 100 (outside the band) |
-| S4 | (b) other 20 | 283 | 51% | +11.01% | −5.09% | −6.68 | No | +4.82% | +3.33% | 99.9 (outside) |
-| S5 short crypto stocks that open up | (a) his 4 | 44 | 41% | −1.77% | −3.08% | −19.45 | No | −2.36% | −1.87% | 1.7 (inside, low) |
-| S5 | (b) other 10 | 215 | 49% | −0.16% | −9.77% | −17.85 | No | −4.47% | −4.17% | 19.8 (inside) |
-| C short every open | his hot | 3,575 | 51% | −6.36% | −39.66% | −24.04 | No | −40.62% | −23.19% | – |
-| C | his crypto | 1,100 | 54% | +5.24% | −25.29% | −12.44 | No | −7.92% | +3.80% | – |
-| C | other hot | 5,500 | 54% | +55.20% | −18.16% | +37.51 | Yes | −3.48% | −13.10% | – |
-| C | other crypto | 2,750 | 51% | −40.43% | −68.03% | −58.11 | No | −65.85% | −65.69% | – |
+| Rule | Stocks | Trades | Won | Return | Worst drop | vs SPY | Word | ×2 costs | Borrow fees | Small-cap costs | Hard to borrow | vs random (pct rank) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| S4 short the run-up | (a) his 13 | 62 | 60% | +6.34% | −2.48% | −11.34 | No | +5.40% | +6.34% | +6.03% | 0 | 100 (outside the band) |
+| S4 | (b) other 20 | 283 | 51% | +11.01% | −5.09% | −6.68 | No | +4.82% | +5.67% | +3.33% | 135 | 99.9 (outside) |
+| S4 | (b) corrected list* | 273 | 51% | +13.68% | −5.59% | −4.00 | No | +8.13% | +9.30% | +7.62% | 111 | 99.7 (outside) |
+| S5 short crypto stocks that open up | (a) his 4 | 44 | 41% | −1.77% | −3.08% | −19.45 | No | −2.36% | −1.77% | −1.87% | 0 | 1.7 (inside, low) |
+| S5 | (b) other 10 | 215 | 49% | −0.16% | −9.77% | −17.85 | No | −4.47% | −1.52% | −4.17% | 34 | 19.8 (inside) |
+| C short every open | his hot | 3,575 | 51% | −6.36% | −39.66% | −24.04 | No | −40.62% | −6.36% | −23.19% | 0 | – |
+| C | his crypto | 1,100 | 54% | +5.24% | −25.29% | −12.44 | No | −7.92% | +5.24% | +3.80% | 0 | – |
+| C | other hot | 5,500 | 54% | +55.20% | −18.16% | +37.51 | Yes | −3.48% | +3.83% | −13.10% | 2,475 | – |
+| C | other hot, corrected* | 5,500 | 53% | +47.29% | −18.26% | +29.60 | Yes | −6.17% | +7.64% | −0.65% | 1,925 | – |
+| C | other crypto | 2,750 | 51% | −40.43% | −68.03% | −58.11 | No | −65.85% | −52.52% | −65.69% | 550 | – |
+
+\* Not pre-registered: the disclosed correction of section 8 item 5.
 
 1. **Neither rule held up** by the pre-registered bar (primary `Yes` on both (a) and (b)).
 2. **S4 has a real edge, but a small one.** Gap-ups of 5%+ in hot stocks fell from the open to the close far more
@@ -184,3 +201,14 @@ $1,000 a trade, base costs:
 5. Caveats: SPY is fully invested, a rule holds $1,000 for hours; borrow flags are today's, not the trade date's;
    the "other" lists come from today's asset list (survivorship); 16 rule runs were tried (23 counting the picker
    versions), so one lucky "Yes" would have been likely.
+
+## 10. Why story 20's "improved" rules are not run here
+
+Story 21 asked for "his strategy and the improved one". Story 20 (`improvements` in `results/lpp/v1.json`) kept
+four rule changes: V1 skip adds priced worse than the first buy in big tech; V2 a 2.5% stop on shorts into
+resistance; V3 leave big tech trades after 60 minutes; V6 skip big-tech overbought shorts in the 09:30 half hour.
+Each filters **his posted trades** by something only his posts carry (his adds, his stated reason "resistance" or
+"overbought") or by big tech. S4 and S5 run with no post from him, on hot and crypto stocks with no big tech and no
+adds, so none of the four has anything to act on. The nearest mechanical cousins are already variants here:
+`exit-11` (an early time exit, like V3) and the 5% stop (like V2). Running story 20's changes on new prices needs
+his posts for those months, which we don't have.

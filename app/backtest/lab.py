@@ -36,12 +36,19 @@ UNIVERSES = [
      "tickers": ["SOGP", "IPDN", "ORBS", "OPAD", "NEGG", "CWD", "WLDS", "ONDS", "BMNR", "AAOI", "RUN", "SEDG", "BLSH",
                  "UUUU", "SBET", "APLD", "CRCL", "SMR", "PL", "PGY"],
      "rule": "top 20 by average daily range, $100M+ a day traded, $5+, not his, as of 2025-09-12"},
+    {"id": "new-hot-raw", "which": "b", "label": "Other hot stocks (corrected list)",
+     "tickers": ["SOGP", "ORBS", "NEGG", "CWD", "WLDS", "ONDS", "BMNR", "AAOI", "RUN", "SEDG", "BLSH", "UUUU", "SBET",
+                 "APLD", "CRCL", "SMR", "PL", "PGY", "SKYD", "QS"],
+     "rule": "as new-hot, with the $5 floor on the raw close of 2025-09-12",
+     "deviation": "Not pre-registered (PR #71 review): the pre-registered picker applied its $5 floor to split-adjusted "
+                  "closes, so IPDN ($2.93 raw) and OPAD ($4.34 raw) got in through later reverse splits. Re-picked "
+                  "on raw closes: they leave, SKYD and QS come in. new-hot stays as pre-registered."},
     {"id": "new-crypto", "which": "b", "label": "Other crypto stocks",
      "tickers": ["HUT", "KEEL", "HIVE", "BTBT", "BTDR", "IREN", "CIFR", "GLXY", "WULF", "LUNR"],
      "rule": "top 10 by one-year correlation with IBIT (0.4+, beta 1+), $20M+ a day traded, not his, as of 2025-09-12"},
 ]
 RULES = [
-    {"id": "S4", "label": "Short the run-up", "entry_et": "09:45", "universes": ["his-hot", "new-hot"],
+    {"id": "S4", "label": "Short the run-up", "entry_et": "09:45", "universes": ["his-hot", "new-hot", "new-hot-raw"],
      "text": "Short a hot stock at 09:45 ET when it opened 5%+ above yesterday's close; stop 5% above entry; "
              "cover at 15:55 ET."},
     {"id": "S5", "label": "Short crypto stocks that open up", "entry_et": "09:35",
@@ -49,7 +56,7 @@ RULES = [
      "text": "Short a crypto-linked stock at 09:35 ET when it opened 5%+ above yesterday's close; stop 5% above "
              "entry; cover at 15:55 ET."},
     {"id": "C", "label": "Short at the open (control)", "entry_et": "09:30",
-     "universes": ["his-hot", "his-crypto", "new-hot", "new-crypto"],
+     "universes": ["his-hot", "his-crypto", "new-hot", "new-crypto", "new-hot-raw"],
      "text": "Short every stock at every open, cover at the close (daily bars). No signal, no stop."},
 ]
 VARIANTS = [
@@ -58,7 +65,7 @@ VARIANTS = [
     {"id": "exit-11", "gap_pct": 5, "stop_pct": 5, "exit_et": "11:00"},
     {"id": "gap-10", "gap_pct": 10, "stop_pct": 5, "exit_et": "15:55"},
 ]
-PICKER_VERSIONS = 3
+PICKER_VERSIONS = 4   # v1-v3 before the run; v3 with raw floors after the PR #71 review
 COSTS = {"base": "5 bps per side, 20 bps under $10 (contracts rule 5)",
          "x2": "every per-side cost doubled",
          "small_cap": "per side 50 bps under $5, 30 bps under $10, else 5 bps; +10 bps when the 20-session average "
@@ -101,14 +108,18 @@ def daily(sym: str, adj: str) -> dict[str, list]:
     return out
 
 
-def borrow_flags(tickers: list[str]) -> dict[str, bool]:
-    """{ticker: easy_to_borrow} from Alpaca's asset list (today's flag), cached in data/lab/assets.json."""
+def borrow_flags(tickers: list[str]) -> dict[str, bool | None]:
+    """{ticker: easy_to_borrow} from Alpaca's asset list (today's flag), cached in data/lab/assets.json. A lookup
+    that fails is cached as null ("unknown", never counted as hard to borrow) and retried on the next run."""
     p = DATA / "lab" / "assets.json"
     have = json.loads(p.read_text()) if p.exists() else {}
     for t in tickers:
-        if t not in have:
-            r = httpx.get(f"https://paper-api.alpaca.markets/v2/assets/{t}", headers=_hdr(), timeout=30)
-            have[t] = bool(r.json().get("easy_to_borrow")) if r.status_code == 200 else False
+        if have.get(t) is None:
+            try:
+                r = httpx.get(f"https://paper-api.alpaca.markets/v2/assets/{t}", headers=_hdr(), timeout=30)
+                have[t] = bool(r.json()["easy_to_borrow"]) if r.status_code == 200 else None
+            except (httpx.HTTPError, KeyError, ValueError):
+                have[t] = None
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(have, indent=1, sort_keys=True))
     return {t: have[t] for t in tickers}
@@ -308,7 +319,8 @@ def build(fetch_cap: int) -> dict | None:
     raw = {t: daily(t, "raw") for t in tickers}
     spy_all = daily("SPY", "all")
     cal = sessions(spy_all)
-    htb = {t: not ok for t, ok in borrow_flags(tickers).items()}
+    flags = borrow_flags(tickers)
+    htb = {t: ok is False for t, ok in flags.items()}
     need = needed_minutes(split)
     fetched, still = fetch_minutes(need, fetch_cap)
     print(f"minute ticker-days needed {len(need)}, fetched this run {fetched}, still missing {still}",
@@ -374,6 +386,7 @@ def build(fetch_cap: int) -> dict | None:
                                   "word": word(n, 100 * b["pnl"] / MONEY, spy_full)[0]}
                               for k, b in (("x2", x2), ("small_cap", sc))},
                     "borrow": {"htb_trades": sum(1 for t in base["trades"] if t["htb"]),
+                               "unknown_trades": sum(1 for t in base["trades"] if flags[t["ticker"]] is None),
                                "borrow_high_ret_pct": r2(100 * bh["pnl"] / MONEY)},
                     "vs_random": vs_random(twin, pool, split, raw) if rule["id"] != "C" else None,
                     "slice": {"trades": len(sl), "ret_pct": r2(sl_ret), "spy_ret_pct": r2(spy_slice),
@@ -385,11 +398,14 @@ def build(fetch_cap: int) -> dict | None:
                       f"  {w}", file=sys.stderr)
     verdict = {}
     for rule in RULES[:2]:
-        prim = [r for r in runs if r["rule"] == rule["id"] and r["variant"] == "P"]
+        prim = [r for r in runs if r["rule"] == rule["id"] and r["variant"] == "P" and r["universe"] != "new-hot-raw"]
         ok = all(r["word"] == "Yes" for r in prim)
         verdict[rule["id"]] = {"held_up": ok, "why": "; ".join(
             f"{r['universe']}: {r['word']} ({r['ret_pct']:+.2f}% vs SPY {r['spy_ret_pct']:+.2f}%, {r['trades']} trades)"
             for r in prim)}
+    fix = [r for r in runs if r["rule"] == "S4" and r["variant"] == "P" and r["universe"] in ("his-hot", "new-hot-raw")]
+    verdict["S4"]["corrected_list"] = {"held_up": all(r["word"] == "Yes" for r in fix), "why": "; ".join(
+        f"{r['universe']}: {r['word']} ({r['ret_pct']:+.2f}%, {r['trades']} trades)" for r in fix)}
     (DATA / "lab").mkdir(parents=True, exist_ok=True)
     (DATA / "lab" / "ledger.json").write_text(json.dumps(ledger))
     return {
@@ -398,7 +414,10 @@ def build(fetch_cap: int) -> dict | None:
         "window": {"from": cal[0], "to": cal[-1], "slice_from": slice_cal[0]},
         "money_start": MONEY, "per_trade_usd": PER_TRADE, "costs": COSTS,
         "variants_tried": len(runs) + PICKER_VERSIONS,
-        "fetch": {"minute_ticker_days": len(need), "runs": len(runs_log), "cap_per_run": fetch_cap},
+        "deviations": [u["deviation"] for u in UNIVERSES if u.get("deviation")],
+        "fetch": {"minute_ticker_days": len(need), "runs": len(runs_log), "cap_per_run": fetch_cap,
+                  "note": "the first 3 runs (200 each) were logged by hand after a logging bug (the log was written "
+                          "only once nothing was missing); later runs are logged by the code"},
         "benchmark": {"symbol": "SPY", "basis": "total return, dividends reinvested (Alpaca daily, adjustment=all), "
                                                  "close of the session before the window to the last close",
                       "from_close": [d for d in sorted(spy_all) if d < cal[0]][-1], "to_close": cal[-1],
