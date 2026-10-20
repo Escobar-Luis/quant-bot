@@ -390,9 +390,10 @@ function renderHis(v) {
 // What would have helped (spec-audit CAP-15): rule changes from his losses, applied by code to his own trades,
 // picked on past (dev) months and tested once on the held-out months. Kept and not kept, both shown. Missing key: hidden.
 // The file's kept_reason, in plain words (the decision itself is the file's `kept`).
+let LABEL = null;
 function helpWhy(x) {
   const r = x.kept_reason || '';
-  if (x.kept) return 'Kept: helped on past months, held up on held-out ones';
+  if (x.kept) return `${(LABEL || 'held up (not proven)').replace(/^./, ch => ch.toUpperCase())}: helped on past months, didn't lose on held-out ones`;
   if (/fewer than/.test(r)) return 'Not kept: too few trades left';
   if (/\(dev\)/.test(r)) return "Not kept: didn't help on past months";
   if (/held-out/.test(r)) return 'Not kept: helped on past months, hurt on held-out ones';
@@ -402,7 +403,8 @@ function renderHelp(v) {
   const im = v.r?.improvements;
   $('#cHelp').hidden = !im;
   if (!im) { $('#helpKept').innerHTML = ''; $('#helpNot').innerHTML = ''; return; }
-  const w = im.window || {}, sp = im.spy || {};
+  const w = im.window || {}, sp = im.spy || {}, tried = im.variants_tried || {};
+  LABEL = im.kept_label || 'held up (not proven)';
   $('#helpMeta').textContent = `picked on ${month(w.dev_from)}–${month(w.sealed_from)}, tested on ${month(w.sealed_from)}–${month(w.sealed_to)}`;
   $('#helpBase').innerHTML = `As posted: <span class="mono num">${pct2(im.as_is.dev.ret_pct)}</span> past, <span class="mono num">${pct2(im.as_is.sealed.ret_pct)}</span> held-out. Holding SPY: <span class="mono num">${pct2(sp.dev_ret_pct)}</span>, <span class="mono num">${pct2(sp.sealed_ret_pct)}</span>.`;
   const row = x => `<li>
@@ -414,7 +416,11 @@ function renderHelp(v) {
   $('#helpKept').innerHTML = kept.length ? kept.map(row).join('') : '<li><p class="h-text">Nothing held up on the held-out months.</p></li>';
   $('#helpNot').innerHTML = not.map(row).join('');
   $('#helpNotSec').hidden = !not.length;
-  if (kept.length && kept.every(x => x.sealed.vs_spy_pts < 0)) $('#helpBase').innerHTML += ' Even the changes that held up trailed holding SPY.';
+  if (kept.length && im.kept_all_trail_spy) $('#helpBase').innerHTML += ' Every change that held up still trailed the S&P.';
+  $('#helpKeptSec').textContent = `${LABEL.toUpperCase()}${tried.distinct_priced ? ` · ${kept.length} of ${tried.distinct_priced} tried` : ''}`;
+  $('#helpNote').innerHTML = [
+    `Not proven: gains this small on about 100 trades can be luck after ${tried.distinct_priced || vs.length} tries. Luck test: story ${esc(im.luck_test?.story || '27')}${im.luck_test?.status ? ` (${esc(im.luck_test.status)})` : ''}.`,
+    ...(im.disclosure || []).slice(0, 2)].map(t => `<p class="meta">${esc(t)}</p>`).join('');
   $('#helpLink').innerHTML = link(im.prism_url, 'See the run in PRISM');
 }
 let shownWord = null;
