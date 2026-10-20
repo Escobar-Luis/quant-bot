@@ -214,3 +214,15 @@
     CAP-17 follow-up. Story 29's realistic case keeps crypto at a flat 25 bps a side and charges crypto shorts an assumed 10% a year; Crypto Wizard's altcoin scalps can be thin on Binance spot, and its 12 shorts would really pay perpetual funding, which swings by the hour.
   invoke_dev_with: >-
     Found by story 29. Add a crypto volume tier from cached Binance 1-minute volume (no new fetch unless the spec says so) and, for shorts, Binance's historical funding rates (public, keyless) cached in data/; contract first (contracts.md rule 5), audit recomputes. Rerun under the data lock; audit.run must pass. Do not redeploy.
+- id: "37"
+  title: Audit recomputes walk-forward, sensitivity and the up/down months
+  description: >-
+    CAP-16 follow-up. Story 28's audit.howsure recomputes every luck test and shuffle percentile with its own code, but lists walk_forward, sensitivity, regime and risk in results/how-sure.json as not_recomputed, so those numbers rest on the engine alone.
+  invoke_dev_with: >-
+    Found by story 28. In app/audit/howsure.py: the improvements' monthly returns per candidate from audit.improvements' own re-priced positions (3-month train / 1-month test, ties to as-is), the threshold moves (improvements via audit.calc; lab S4/S5 via audit.lab's fills), and the SPY month split from the cached daily closes. Tolerance as for the luck tests. Rerun under the data lock; audit.run must pass. Do not redeploy.
+- id: "38"
+  title: Shuffle the headlines over every session, not only cached ones
+  description: >-
+    CAP-16 follow-up. Story 28's headline shuffle moves each copied trade to a random day among its name's cached 1-minute sessions in the window, which are mostly days he traded that name, so the null is "another day he also traded it", not any day. LPP: 332 of 342 trades moved, 10 fixed; percentile 55.5.
+  invoke_dev_with: >-
+    Found by story 28. Pre-register first: a seeded sample of N sessions per name from the whole window (Alpaca 1-minute bars, fetched once with a cap, cached in data/bars/alpaca_1m), the same clock times and days held; contract first (contracts.md section how-sure rule 4); audit.howsure recomputes from the cache. Rerun under the data lock. Do not redeploy.
