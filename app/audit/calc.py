@@ -399,21 +399,13 @@ def verdict(trades: int, ret: float, bench_ret: float | None, name: str | None) 
             "outcome": outcome(trades, ret), "vs": vs(trades, ret, bench_ret, name)}
 
 
-def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None,
-              bench: tuple | None | str = "hold", name: str = "just holding") -> dict:
-    """End value, return, trade count, word and the rest of a by_delay row, for one portfolio at one delay.
-
-    Rule 6's cash cap: trades are copied in entry order; open trades hold their entry money until they exit,
-    when their P&L lands in cash. A trade bigger than the cash left is sized down to it; with no cash left it is
-    couldn't-copy. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md names no minimum; the $1 floor
-    keeps sub-dollar trades out of rule 9's count; bankroll-rules.md's $100 is CAP-9's).
-    won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade money from its high,
-    booked on each exit's day (the contract's `unknown` says the drop counts closed trades only).
-    sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000.
-    bench: rule 9's benchmark, (return, sealed return); "hold" = just holding (hold_row); None = not compared."""
+def copied_trades(trades: list[Trade]) -> tuple[list[tuple[Trade, float]], int, int]:
+    """Rule 6's cash cap: (the copied trades with their size factor, sized down, couldn't copy). Trades are copied
+    in entry order; open trades hold their entry money until they exit, when their P&L lands in cash. A trade
+    bigger than the cash left is sized down to it; with $1 or less left it is couldn't-copy."""
     priced = sorted((t for t in trades if t.status == "priced" and t.entry and t.exit), key=lambda t: t.entry.ts)
-    cash_book, open_, end_pnl = 0.0, [], 0.0     # open_: (exit ts, notional, pnl)
-    copied = sized_down = couldnt = 0
+    cash_book, open_ = 0.0, []                    # open_: (exit ts, notional, pnl)
+    sized_down = couldnt = 0
     kept: list[tuple[Trade, float]] = []
     for t in priced:
         now = t.entry.ts
@@ -428,11 +420,26 @@ def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = Non
                 continue
             f = room / t.entry_notional
             sized_down += 1
-        copied += 1
         open_.append((t.exit.ts, t.entry_notional * f, t.pnl * f))
-        end_pnl += t.pnl * f
         kept.append((t, f))
-    end = round(MONEY_START + end_pnl, 2)
+    return kept, sized_down, couldnt
+
+
+def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None,
+              bench: tuple | None | str = "hold", name: str = "just holding") -> dict:
+    """End value, return, trade count, word and the rest of a by_delay row, for one portfolio at one delay.
+
+    Rule 6's cash cap: trades are copied in entry order; open trades hold their entry money until they exit,
+    when their P&L lands in cash. A trade bigger than the cash left is sized down to it; with no cash left it is
+    couldn't-copy. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md names no minimum; the $1 floor
+    keeps sub-dollar trades out of rule 9's count; bankroll-rules.md's $100 is CAP-9's).
+    won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade money from its high,
+    booked on each exit's day (the contract's `unknown` says the drop counts closed trades only).
+    sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000.
+    bench: rule 9's benchmark, (return, sealed return); "hold" = just holding (hold_row); None = not compared."""
+    kept, sized_down, couldnt = copied_trades(trades)
+    copied = len(kept)
+    end = round(MONEY_START + sum(t.pnl * f for t, f in kept), 2)
     ret = round((end / MONEY_START - 1) * 100, 2)
     by_day: dict[dt.date, float] = {}
     for t, f in kept:

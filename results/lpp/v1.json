@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:23:21Z",
- "git_sha": "0a0fa7fb4fb428b13dcf3f8ba74559981fdc3536",
+ "generated_at": "2026-10-20T19:27:08Z",
+ "git_sha": "e9070be67dcca19d05c48f7b17bb8183657b1dd3",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -49396,6 +49396,906 @@
     "date": "2025-01-02",
     "end": 10227.29,
     "hold_end": 10639.49
+   }
+  }
+ },
+ "by_year": {
+  "hold": {
+   "symbol": "SPY",
+   "basis": "total_return",
+   "source": "Yahoo Finance dividends (chart API, events=div), reinvested at the ex-date close",
+   "dividends": 4
+  },
+  "periods": [
+   {
+    "id": "2024",
+    "from": "2024-08-15",
+    "to": "2024-12-31"
+   },
+   {
+    "id": "2025",
+    "from": "2025-01-02",
+    "to": "2025-09-12"
+   },
+   {
+    "id": "all",
+    "from": "2024-08-15",
+    "to": "2025-09-12"
+   }
+  ],
+  "portfolios": {
+   "all": {
+    "by_delay": {
+     "1": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10479.47,
+       "ret_pct": 4.79,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10479.47,
+       "end": 9943.36,
+       "ret_pct": -5.12,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9943.36,
+       "ret_pct": -0.57,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "3": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10472.82,
+       "ret_pct": 4.73,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10472.82,
+       "end": 9876.32,
+       "ret_pct": -5.7,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9876.32,
+       "ret_pct": -1.24,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "5": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10385.38,
+       "ret_pct": 3.85,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10385.38,
+       "end": 9763.83,
+       "ret_pct": -5.98,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9763.83,
+       "ret_pct": -2.36,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "10": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10324.47,
+       "ret_pct": 3.24,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10324.47,
+       "end": 9792.76,
+       "ret_pct": -5.15,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9792.76,
+       "ret_pct": -2.07,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "15": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10243.06,
+       "ret_pct": 2.43,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10243.06,
+       "end": 9730.22,
+       "ret_pct": -5.01,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9730.22,
+       "ret_pct": -2.7,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "30": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10314.94,
+       "ret_pct": 3.15,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10314.94,
+       "end": 9796.7,
+       "ret_pct": -5.02,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9796.7,
+       "ret_pct": -2.03,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "60": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10208.45,
+       "ret_pct": 2.08,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 70,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10208.45,
+       "end": 9729.64,
+       "ret_pct": -4.69,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 245,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9729.64,
+       "ret_pct": -2.7,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 315,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     }
+    }
+   },
+   "day": {
+    "by_delay": {
+     "1": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10322.8,
+       "ret_pct": 3.23,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10322.8,
+       "end": 10254.5,
+       "ret_pct": -0.66,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10254.5,
+       "ret_pct": 2.54,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      }
+     },
+     "3": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10289.04,
+       "ret_pct": 2.89,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10289.04,
+       "end": 10162.52,
+       "ret_pct": -1.23,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10162.52,
+       "ret_pct": 1.63,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      }
+     },
+     "5": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10208.22,
+       "ret_pct": 2.08,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10208.22,
+       "end": 10040.72,
+       "ret_pct": -1.64,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10040.72,
+       "ret_pct": 0.41,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      }
+     },
+     "10": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10139.66,
+       "ret_pct": 1.4,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10139.66,
+       "end": 10078.0,
+       "ret_pct": -0.61,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10078.0,
+       "ret_pct": 0.78,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      }
+     },
+     "15": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10107.15,
+       "ret_pct": 1.07,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10107.15,
+       "end": 10127.56,
+       "ret_pct": 0.2,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10127.56,
+       "ret_pct": 1.28,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      }
+     },
+     "30": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10135.15,
+       "ret_pct": 1.35,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10135.15,
+       "end": 10042.11,
+       "ret_pct": -0.92,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 10042.11,
+       "ret_pct": 0.42,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      }
+     },
+     "60": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10019.14,
+       "ret_pct": 0.19,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 56,
+       "word": "No",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10019.14,
+       "end": 9959.42,
+       "ret_pct": -0.6,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 216,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9959.42,
+       "ret_pct": -0.41,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 272,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     }
+    }
+   },
+   "swing": {
+    "by_delay": {
+     "1": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10156.67,
+       "ret_pct": 1.57,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10156.67,
+       "end": 9688.85,
+       "ret_pct": -4.61,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9688.85,
+       "ret_pct": -3.11,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "3": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10183.77,
+       "ret_pct": 1.84,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10183.77,
+       "end": 9713.8,
+       "ret_pct": -4.61,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9713.8,
+       "ret_pct": -2.86,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "5": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10177.16,
+       "ret_pct": 1.77,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10177.16,
+       "end": 9723.11,
+       "ret_pct": -4.46,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9723.11,
+       "ret_pct": -2.77,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "10": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10184.81,
+       "ret_pct": 1.85,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10184.81,
+       "end": 9714.75,
+       "ret_pct": -4.62,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9714.75,
+       "ret_pct": -2.85,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "15": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10135.91,
+       "ret_pct": 1.36,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10135.91,
+       "end": 9602.66,
+       "ret_pct": -5.26,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9602.66,
+       "ret_pct": -3.97,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "30": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10179.78,
+       "ret_pct": 1.8,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10179.78,
+       "end": 9754.59,
+       "ret_pct": -4.18,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9754.59,
+       "ret_pct": -2.45,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     },
+     "60": {
+      "2024": {
+       "start": 10000.0,
+       "end": 10189.31,
+       "ret_pct": 1.89,
+       "hold_start": 10000.0,
+       "hold_end": 10734.05,
+       "hold_ret_pct": 7.34,
+       "hold_price_ret_pct": 6.66,
+       "trades": 14,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "the S&P did better"
+      },
+      "2025": {
+       "start": 10189.31,
+       "end": 9770.21,
+       "ret_pct": -4.11,
+       "hold_start": 10734.05,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 12.84,
+       "hold_price_ret_pct": 12.17,
+       "trades": 29,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9770.21,
+       "ret_pct": -2.3,
+       "hold_start": 10000.0,
+       "hold_end": 12112.45,
+       "hold_ret_pct": 21.12,
+       "hold_price_ret_pct": 19.64,
+       "trades": 43,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "the S&P did better"
+      }
+     }
+    }
    }
   }
  },

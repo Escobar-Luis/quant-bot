@@ -368,3 +368,14 @@ body[data-screen=verdict] .seg,body[data-screen=learn] .seg{display:flex}
 .bot-kept[data-kept=false]{color:var(--barely2)}
 .ev2{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding-top:8px;border-top:1px solid #2f2e2b;font-size:12px;color:var(--ink2)}
 .ev2 b{color:var(--ink);font-weight:600}
+
+/* year by year (CAP-4): year rows, then all time */
+.years{width:100%;border-collapse:collapse;font-size:12px}
+.years th{font-weight:400;color:var(--ink2);text-align:right;padding:0 0 6px 8px;font-size:11px}
+.years th:first-child,.years td:first-child{text-align:left}
+.years{table-layout:auto}
+.years td{text-align:right;padding:6px 0 6px 8px;border-top:1px solid var(--line);vertical-align:top}
+.years td:first-child{padding-left:0;white-space:nowrap}
+.years td small{display:block;font-size:10px;color:var(--ink2)}
+.years tr.all td{font-weight:600}
+.years .w-Yes{color:var(--yes)}.years .w-No{color:var(--no)}.years .w-Barely{color:var(--barely)}.years .w-few{color:var(--few)}

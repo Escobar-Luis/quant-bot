@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T19:23:58Z",
- "results_git_sha": "4579001ae2705a74ba7de030618c9f97cc31e7e6",
+ "generated_at": "2026-10-20T19:27:13Z",
+ "results_git_sha": "bdf4d184b8ccad7ab69febc6eb9b2fc61d911b97",
  "pass": true,
  "sizing": "trade",
  "hold_close": "official",
@@ -45,10 +45,10 @@
   }
  },
  "results_sha256": {
-  "cryptowizard/v1": "908b6d4f5c3411b1ea95f7afc03ed0ea3bbe29e61ed4ced42c13ba7785ad0ecc",
-  "lpp/v1": "ea7be198d404a1ba66023c3c6c4acea9ae9e6bd1c15825a0e54c980563a279c4",
-  "lpp/v2": "2730ffc2b5564cfb47fd90d11097cc4de27fb92f3be4e2a218310bf804402c9e",
-  "ziptrader/v1": "4fc66de6d2742ac868e46346ac6cdcc512d334b3cbf4fd802c699ce90b7fad26"
+  "cryptowizard/v1": "1c390bab15d5e27ff9d5fa68ecccbdc9a6e4c34e5545b21b2542fc6371b0008b",
+  "lpp/v1": "82cc2268a821f77cd8e513c6b031d2897e1d09f8012ad44c033dd3aee5e85da1",
+  "lpp/v2": "bb7e8ec41904da83b3f5babd41cd72d1a6b52ae5e11d417d54e5c876c9eb1835",
+  "ziptrader/v1": "e0e9de79acc4bcb3548e9b79b61afaf2987d40c1a402e65f7dfb6e97f68050d4"
  },
  "tolerance": {
   "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",

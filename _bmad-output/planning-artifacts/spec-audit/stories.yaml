@@ -117,3 +117,9 @@
     CAP-3 hygiene. backtest.run writes data/audit/<course>-<version>-ledger.jsonl into the one shared data/ folder (every worktree reads it via DATA_DIR or the main checkout), so two branches regenerating results at once overwrite each other's ledgers and audit.run then fails as stale on whichever branch ran first.
   invoke_dev_with: >-
     Found by story 4 (audit-4-honest-words) while stories 9 and 3 regenerate results on other branches. Key the ledger file by results sha256 (or branch) and let audit.run pick the ledger whose stamp matches the results file; keep inputs (events, bars) shared. Contract 6 lists data/audit/; amend it first if the path changes.
+- id: "16"
+  title: Time-range chips slice the one all-time run
+  description: >-
+    CAP-4 follow-up. extras.ranges (3m/6m/1y) re-runs the cash cap on the trades closed by each cutoff instead of slicing the all-time run, so a range can count trades the headline sized down or skipped differently, and it can disagree with by_year and the money curve on the same date.
+  invoke_dev_with: >-
+    Use the headline's fit_to_cash once, then cut by exit day (as extras.by_year does); add the ranges to app/audit's reconciliation. Writes results/: contract first, rerun app/audit. Do not redeploy.

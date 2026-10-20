@@ -6,8 +6,8 @@
  "source_agent_id": "extract-cryptowizard-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:23:22Z",
- "git_sha": "0a0fa7fb4fb428b13dcf3f8ba74559981fdc3536",
+ "generated_at": "2026-10-20T19:27:10Z",
+ "git_sha": "e9070be67dcca19d05c48f7b17bb8183657b1dd3",
  "window": {
   "start": "2025-10-17",
   "end": "2026-10-16",
@@ -27041,6 +27041,615 @@
     "date": "2025-10-17",
     "end": 10000.0,
     "hold_end": 9837.09
+   }
+  }
+ },
+ "by_year": {
+  "hold": {
+   "symbol": "BTCUSDT",
+   "basis": "price",
+   "source": "No dividends (crypto)",
+   "dividends": 0
+  },
+  "periods": [
+   {
+    "id": "2025",
+    "from": "2025-10-17",
+    "to": "2025-12-31"
+   },
+   {
+    "id": "2026",
+    "from": "2026-01-01",
+    "to": "2026-10-16"
+   },
+   {
+    "id": "all",
+    "from": "2025-10-17",
+    "to": "2026-10-16"
+   }
+  ],
+  "portfolios": {
+   "all": {
+    "by_delay": {
+     "1": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9787.27,
+       "ret_pct": -2.13,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9787.27,
+       "end": 9238.1,
+       "ret_pct": -5.61,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9238.1,
+       "ret_pct": -7.62,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "3": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9798.41,
+       "ret_pct": -2.02,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9798.41,
+       "end": 9253.5,
+       "ret_pct": -5.56,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9253.5,
+       "ret_pct": -7.46,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "5": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9795.65,
+       "ret_pct": -2.04,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9795.65,
+       "end": 9290.3,
+       "ret_pct": -5.16,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9290.3,
+       "ret_pct": -7.1,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "10": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9813.8,
+       "ret_pct": -1.86,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9813.8,
+       "end": 9296.69,
+       "ret_pct": -5.27,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9296.69,
+       "ret_pct": -7.03,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "15": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9813.01,
+       "ret_pct": -1.87,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9813.01,
+       "end": 9306.96,
+       "ret_pct": -5.16,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9306.96,
+       "ret_pct": -6.93,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "30": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9812.19,
+       "ret_pct": -1.88,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9812.19,
+       "end": 9353.91,
+       "ret_pct": -4.67,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9353.91,
+       "ret_pct": -6.46,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "60": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9812.96,
+       "ret_pct": -1.87,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9812.96,
+       "end": 9292.81,
+       "ret_pct": -5.3,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9292.81,
+       "ret_pct": -7.07,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     }
+    }
+   },
+   "crypto": {
+    "by_delay": {
+     "1": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9787.27,
+       "ret_pct": -2.13,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9787.27,
+       "end": 9238.1,
+       "ret_pct": -5.61,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9238.1,
+       "ret_pct": -7.62,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "3": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9798.41,
+       "ret_pct": -2.02,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9798.41,
+       "end": 9253.5,
+       "ret_pct": -5.56,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9253.5,
+       "ret_pct": -7.46,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "5": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9795.65,
+       "ret_pct": -2.04,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9795.65,
+       "end": 9290.3,
+       "ret_pct": -5.16,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9290.3,
+       "ret_pct": -7.1,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "10": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9813.8,
+       "ret_pct": -1.86,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9813.8,
+       "end": 9296.69,
+       "ret_pct": -5.27,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9296.69,
+       "ret_pct": -7.03,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "15": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9813.01,
+       "ret_pct": -1.87,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9813.01,
+       "end": 9306.96,
+       "ret_pct": -5.16,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9306.96,
+       "ret_pct": -6.93,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "30": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9812.19,
+       "ret_pct": -1.88,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9812.19,
+       "end": 9353.91,
+       "ret_pct": -4.67,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9353.91,
+       "ret_pct": -6.46,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     },
+     "60": {
+      "2025": {
+       "start": 10000.0,
+       "end": 9812.96,
+       "ret_pct": -1.87,
+       "hold_start": 10000.0,
+       "hold_end": 8101.0,
+       "hold_ret_pct": -18.99,
+       "hold_price_ret_pct": -18.99,
+       "trades": 22,
+       "word": "Not enough trades",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      },
+      "2026": {
+       "start": 9812.96,
+       "end": 9292.81,
+       "ret_pct": -5.3,
+       "hold_start": 8101.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -6.88,
+       "hold_price_ret_pct": -6.88,
+       "trades": 100,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "about the same as Bitcoin"
+      },
+      "all": {
+       "start": 10000.0,
+       "end": 9292.81,
+       "ret_pct": -7.07,
+       "hold_start": 10000.0,
+       "hold_end": 7543.43,
+       "hold_ret_pct": -24.57,
+       "hold_price_ret_pct": -24.57,
+       "trades": 122,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin"
+      }
+     }
+    }
    }
   }
  }

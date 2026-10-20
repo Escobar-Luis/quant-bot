@@ -293,6 +293,14 @@ def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfo
     mix = extras.combos(mod, positions, by_pos, dates, hold, hold_series, mod.WINDOW)
     out.update({k: v for k, v in (("strategies", strat), ("ranges", rng), ("combos", mix)) if v})
     out["best_stop"] = extras.best_stop(portfolios[0], hold_series)
+    testable = [p["id"] for p in portfolios if p.get("testable")]
+    port_results = {pid: {d: [by_pos[p.pid][d] for p in positions if pid == "all" or p.portfolio == pid]
+                          for d in DELAYS_MIN} for pid in testable}
+    paths = extras.hold_paths(mod.MARKET, getattr(mod, "HOLD_BARS", mod.HOLD["symbol"]), mod.WINDOW)
+    out["by_year"] = extras.by_year(port_results, paths, bench(mod))
+    for y, r in out["by_year"]["portfolios"]["all"]["by_delay"][str(DEFAULT_DELAY_MIN)].items():
+        print(f"  by year @5m {y}: {r['start']:,.0f} -> {r['end']:,.0f} ({r['ret_pct']}%) vs hold "
+              f"{r['hold_ret_pct']}% (price {r['hold_price_ret_pct']}%), {r['trades']} trades, {r['word']}")
     sp = DATA / "improver" / f"{a.course}-{a.version}.json"   # written by backtest.improver (traced to PRISM)
     if sp.exists():
         out["suggestion"] = json.loads(sp.read_text())

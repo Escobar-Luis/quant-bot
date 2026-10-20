@@ -12,7 +12,10 @@ For each results file:
      (status, entry and exit time and price, P&L, and every fill) is checked against the ledger, and the trades
      the results file shows are checked directly: 1 cent at stored precision, times exact;
   4. headlines, per testable portfolio and delay (plus `same_sessions`): end, return, just-holding end and
-     return, trades, not_triggered, couldnt_copy, sized_down, won_pct, worst_drop_pct, word and the sealed block.
+     return, trades, not_triggered, couldnt_copy, sized_down, won_pct, worst_drop_pct, word and the sealed block;
+  5. by_year (when the file has it): every calendar year and all time, per portfolio and delay, recomputed by
+     audit.years from the audit's own trades and the cached daily closes and dividends; `all` must also equal
+     the headline's end, return and trades.
 Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
 proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
 No network: a bar missing from data/bars/ marks that trade no_bars; trades both sides call no_bars are listed
@@ -27,7 +30,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from . import calc
+from . import calc, years
 from . import positions as P
 from .paths import DATA, PROOFS, REPO, RESULTS
 
@@ -300,6 +303,36 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
     mine = run_set(positions, "", pfs)
     math_only(version, only, "", pfs)
 
+    # by_year (contracts.md section by_year): every file but a proof-set one (rule 9) carries it, for every
+    # testable portfolio and delay the file has; the expected list comes from the portfolios, not from by_year
+    by_year_note = "absent"
+    expected = [p["id"] for p in d["portfolios"] if p.get("testable")]
+    if d.get("same_sessions"):
+        if d.get("by_year"):
+            mismatches.append({"kind": "by_year", "portfolio": "file", "field": "present",
+                               "theirs": "by_year", "ours": "none in a proof-set file (rule 9)"})
+    elif not d.get("by_year"):
+        mismatches.append({"kind": "missing", "field": "by_year", "theirs": "absent", "ours": "expected"})
+    else:
+        try:
+            hv = years.hold_values(market, symbol, d["window"])
+            mismatches.extend(years.compare(d["by_year"], mine, expected, d["delays_min"], hv, name,
+                                            HEAD_TOL, RET_TOL))
+            by_year_note = {"periods": [p["id"] for p in years.periods(hv)], "hold_basis": hv["basis"],
+                            "dividends": hv["dividends"]}
+        except calc.B.MissingBar as e:
+            mismatches.append({"kind": "missing", "field": "by_year", "theirs": "by_year", "ours": str(e)})
+        heads = {p["id"]: p["by_delay"] for p in d["portfolios"] if p.get("testable")}
+        for pid in expected:
+            rows_by_delay = ((d["by_year"].get("portfolios") or {}).get(pid) or {}).get("by_delay") or {}
+            for dl in map(str, d["delays_min"]):
+                h, a = heads[pid].get(dl) or {}, (rows_by_delay.get(dl) or {}).get("all") or {}
+                for f in ("end", "ret_pct", "trades", "outcome"):   # word and vs may differ: total-return holding
+                    if f not in h or a.get(f, "missing") != h[f]:
+                        mismatches.append({"kind": "by_year", "portfolio": f"{pid}@{dl}:all",
+                                           "field": f"{f} vs headline", "theirs": a.get(f, "missing"),
+                                           "ours": h.get(f, "missing")})
+
     # the trades the results file shows (a sample of up to 200): checked directly, not through the ledger
     for row in d.get("trades") or []:
         for dl, r in row["by_delay"].items():
@@ -320,7 +353,7 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
                  "sealed_first_open": hold_row["sealed_px0"]}
     return {"file": f"{course}/{version}", "results_sha256": file_sha, "sizing": sizing, "hold_close": hold_close,
             "pass": not mismatches, "trades_checked": checked, "mismatches": len(mismatches),
-            "max_abs_diff": round(worst, 4), "hold": hold_note, "positions": position_reports,
+            "max_abs_diff": round(worst, 4), "hold": hold_note, "by_year": by_year_note, "positions": position_reports,
             "unverifiable": sorted(unverifiable),
             "math_on_loader_positions": loader_math,
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
