@@ -9,8 +9,8 @@ Two ledgers (contracts.md):
   session when his NEXT word on it (within 7 days) is an add, trim or close. That reads the future.
 - `no_look_ahead` (rule 13, provisional, the `no_look_ahead` key): a position leaves at 15:55 ET of its first
   session unless one of its legs, posted before that moment, states a horizon past the session; a later word
-  starts afresh. Not the headline until hold intent is extracted (spec-audit story 17) and sizing and cash are
-  look-ahead-free (the bankroll model, story 8).
+  starts afresh. v1's horizons come from the hold-intent pass (spec-audit story 17, `horizon_source:
+  hold_intent_v1`); not the headline until sizing and cash are look-ahead-free (the bankroll model, story 8).
 """
 import datetime as dt
 import json
