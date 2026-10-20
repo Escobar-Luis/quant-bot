@@ -4,8 +4,13 @@ The rules are contracts.md "Copy-trade rules" (code decides, never the model):
 - every action the course announces (entry, add, trim, close) is copied at post time + delay, at the open of the
   first 1-minute bar whose open time is at or after that moment;
 - an entry with a trigger level fills when price trades the level after post time + delay, else `not_triggered`;
-- a stop or target, when stated, exits as soon as a bar trades it (both in one bar = stop);
-- whatever is still held after the last announced exit leaves at the position's default exit (`assumed`);
+- a stop or target, when stated, exits as soon as a bar trades it (both in one bar = stop); several targets with
+  no stated shares: the first that trades is the exit (rule 4);
+- a take-profit post (a trim naming TP n) sells TP n's share at post time + delay, unless the copier's own TP n
+  order already filled (rule 12c);
+- whatever is still held after the last announced exit leaves at the position's default exit (`assumed`); a post
+  whose fill would land at or after that exit comes too late, and a horizon that passed before the entry leaves
+  nothing to copy (`too_late`);
 - costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto.
 """
 import bisect
@@ -19,10 +24,11 @@ from .common import COSTS_BPS, MONEY_START, PER_TRADE_USD
 @dataclass
 class Leg:
     event_id: str
-    posted_ts: int
+    posted_ts: float                # rule 1's post time, unix seconds to the fraction (never truncated)
     action: str                     # open | add | trim | close
     qty: float | None = None        # the course's own size (shares, coins); None = not stated
     frac: float | None = None       # exits only: share of the held position to sell; None = work it out from qty
+    tp_index: int | None = None     # a trim that reports the course's own take-profit n (Crypto Wizard)
 
 
 @dataclass
@@ -90,7 +96,7 @@ def default_exit_ts(p: Position, entry_ts: int) -> int:
     """When whatever is still held leaves if the course never said: 15:55 ET same session, 5 sessions, or 24 h."""
     kind, _, arg = p.default_exit.partition(":")
     if kind == "at":
-        return max(int(arg), entry_ts)
+        return int(arg)   # may lie before the entry: the caller counts that trade as too late to copy
     if kind == "hours":
         return entry_ts + int(arg) * 3600
     day = bars.day_of(p.market, entry_ts)
@@ -133,8 +139,21 @@ def _simulate(p: Position, delay_min: int) -> Result:
     d = delay_min * 60
     sign = 1 if p.side == "long" else -1
     held, start_qty, stop = 0.0, 0.0, p.stop
-    targets = list(zip(p.targets, p.target_fracs or [1.0 / max(len(p.targets), 1)] * len(p.targets)))
-    host_held = 0.0  # the course's own running size, to turn a stated trim into a share of the position
+    # rule 4: with no stated shares, the first target that trades is the exit (it sells everything held)
+    targets = list(zip(p.targets, p.target_fracs or [1.0] * len(p.targets)))
+    n_targets = len(targets)
+    host_held = 0.0
+
+    def hit_count() -> int:
+        """Targets done: filled by the copier's own orders, or passed by the course's take-profit posts."""
+        return n_targets - len(targets)
+
+    def break_even():
+        nonlocal stop
+        if p.be_after_target and hit_count() >= p.be_after_target:
+            stop = r.entry_notional / start_qty   # their break-even move: stop to the average entry
+            return True
+        return False  # the course's own running size, to turn a stated trim into a share of the position
 
     def book(ts, px, qty, kind):
         nonlocal held
@@ -151,11 +170,16 @@ def _simulate(p: Position, delay_min: int) -> Result:
             r.pnl += sign * px * qty
             held -= qty
 
+    scanned = [0.0]   # bars before this moment were already watched: never watch a bar twice (a stop moved
+                      # later, e.g. to break-even, must not fill in a bar that came before the move)
+
     def scan(t0, t1):
         """Stops and targets between two moments; returns True when the position went flat."""
         nonlocal stop
+        t0 = max(t0, scanned[0])
         if held <= 0 or (stop is None and not targets) or t1 <= t0:
             return False   # nothing to watch (already flat after his own trim, or no levels)
+        scanned[0] = t1
         for k, (o, h, l, c, _v) in bars.between(p.market, p.ticker, t0, t1):
             if stop is not None and ((sign > 0 and l <= stop) or (sign < 0 and h >= stop)):
                 px = min(o, stop) if sign > 0 else max(o, stop)
@@ -167,15 +191,13 @@ def _simulate(p: Position, delay_min: int) -> Result:
                 book(k, px, held if not targets else start_qty * frac, "target")
                 if held <= 1e-12:
                     return True
-                hit_targets = sum(f.kind == "target" for f in r.fills)
-                if p.be_after_target and hit_targets >= p.be_after_target:
-                    stop = r.entry_notional / start_qty
+                if break_even():
                     if (sign > 0 and l <= stop) or (sign < 0 and h >= stop):
                         book(k, stop, held, "stop")
                         return True
         return False
 
-    clock, factor, cutoff = None, None, None
+    clock, factor, hz, hz_bar = None, None, None, None
     entries = [lg for lg in p.legs if lg.action in ("open", "add")]
     known = sorted(lg.qty for lg in entries if lg.qty)
     typical = known[len(known) // 2] if known else 1.0
@@ -183,23 +205,29 @@ def _simulate(p: Position, delay_min: int) -> Result:
     total_w = sum(weight.values()) or 1.0
     for leg in sorted(p.legs, key=lambda x: x.posted_ts):
         t = leg.posted_ts + d
-        if cutoff is not None and t >= cutoff:   # a day trade's later legs can't be copied after 15:55
-            break
         if leg.action in ("open", "add"):
             if clock is None and p.trigger is not None:
                 hit = _trigger_fill(p, t, default_exit_ts(p, t))
             else:
-                if clock is not None and scan(clock, t):
+                if clock is not None and scan(clock, min(t, hz)):
                     break
                 hit = _fill_at(p, t)
             if hit is None:
                 if clock is None:
                     return Result(p, delay_min, "not_triggered" if p.trigger is not None else "no_bars")
                 continue
+            if clock is not None and hit[0] >= hz_bar:   # at or after the default exit: too late to copy
+                break
             ts, px = hit
             if clock is None and p.portfolio == "day" and (
                     bars.et_date(ts) != bars.et_date(leg.posted_ts) or ts >= bars.et_at(bars.et_date(ts), 15, 55)):
                 return Result(p, delay_min, "too_late", why="day trade: no time left that session to copy it")
+            if clock is None:
+                hz = default_exit_ts(p, ts)
+                if ts >= hz:
+                    return Result(p, delay_min, "too_late", why="the stated horizon passed before the entry")
+                end_hit = _fill_at(p, hz)
+                hz_bar = end_hit[0] if end_hit else float("inf")
             if p.scale:
                 factor = factor or PER_TRADE_USD / (px * total_w)
                 qty = weight[id(leg)] * factor
@@ -210,16 +238,27 @@ def _simulate(p: Position, delay_min: int) -> Result:
             book(ts, px, qty, "entry")
             start_qty += qty
             host_held += leg.qty or 0
-            if clock is None and p.portfolio == "day":
-                cutoff = bars.et_at(bars.et_date(ts), 15, 55)
             clock = ts
         else:
             if clock is None:
                 continue
-            if scan(clock, t):
+            if scan(clock, min(t, hz)):
                 break
             hit = _fill_at(p, t)
             if hit is None:
+                continue
+            if hit[0] >= hz_bar:   # at or after the default exit: too late to copy
+                break
+            if leg.tp_index:
+                # rule 12(c): their post reporting take-profit n sells TP n's share at post time + delay, unless
+                # the copier's own TP n order already filled; either way TP 1..n are done
+                clock, n = hit[0], leg.tp_index
+                if n <= hit_count():
+                    continue
+                q = held if (n >= n_targets or not p.target_fracs) else p.target_fracs[n - 1] * start_qty
+                book(hit[0], hit[1], q, "exit")
+                del targets[:n - hit_count()]
+                break_even()
                 continue
             if leg.action == "close":
                 frac = 1.0
@@ -235,10 +274,8 @@ def _simulate(p: Position, delay_min: int) -> Result:
     if clock is None:
         return Result(p, delay_min, "no_bars", why="no entry bar")
     if held > 1e-12:
-        first_entry = r.fills[0].ts
-        end = default_exit_ts(p, first_entry)
-        if not scan(clock, end):
-            hit = _fill_at(p, max(end, clock))
+        if not scan(clock, hz):
+            hit = _fill_at(p, max(hz, clock))
             if hit is None:
                 return Result(p, delay_min, "no_bars", why="no exit bar")
             book(hit[0], hit[1], held, "default")
@@ -261,13 +298,11 @@ def word(trades: int, ret_pct: float, hold_ret_pct: float) -> str:
     return "Barely"
 
 
-MIN_TRADE_USD = 100.0
-
-
 def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int, int]:
     """Copy trades in entry order with $10k of cash: a trade uses its entry money until it exits, and realized
     gains or losses change the cash. When open trades leave too little, the next trade is sized down to what is
-    left, or skipped below $100 (counted as "couldn't copy"), so the account never spends money it doesn't have."""
+    left, or skipped when no cash is left (counted as "couldn't copy"), so the account never spends money it
+    doesn't have. Rule 6 names no minimum size."""
     kept, sized_down, skipped, peak = [], 0, 0, 0.0
     open_: list[tuple[int, float, float]] = []      # (exit ts, money in use, pnl to book at exit)
     cash = MONEY_START
@@ -280,14 +315,12 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
                 still.append((ts, used, pnl))
         open_ = still
         need = r.entry_notional
-        if cash < MIN_TRADE_USD or need <= 0:
-            skipped += 1
-            continue
-        f = min(1.0, cash / need)
-        if f < 1.0:
-            if cash < MIN_TRADE_USD:
+        f = 1.0
+        if need > cash + 1e-9:
+            if cash <= 0:
                 skipped += 1
                 continue
+            f = cash / need
             sized_down += 1
         cash -= need * f
         open_.append((r.last_exit.ts, need * f, r.pnl * f))

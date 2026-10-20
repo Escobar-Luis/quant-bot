@@ -32,13 +32,10 @@ def test_calc_cash_rule_has_no_minimum():
     assert S.audit_cash(trades) == want
 
 
-# Where backtest.engine departs from the contract on these cases (findings, PR #55). A change in this list means
+# Where backtest.engine departs from the contract on these cases. PR #55 found three ("two targets, no fractions",
+# "at: exit before entry", "cash under $100"); story audit-2b-engine-fixes fixed them. A change in this list means
 # the engine (or the contract) changed: update it on purpose, never to make the test pass.
-KNOWN_ENGINE_DIVERGENCES = {
-    "two targets, no fractions",
-    "at: exit before entry",
-    "cash under $100",
-}
+KNOWN_ENGINE_DIVERGENCES: set[str] = set()
 
 
 def test_engine_divergences_are_the_known_ones():
