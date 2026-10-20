@@ -52,7 +52,8 @@ def events(p: Path) -> dict:
     ts = sorted(e["wall_utc"] for e in evs if e.get("wall_utc"))
     return {"file": str(p.relative_to(DATA.parent)) if p.exists() else f"{p} (missing)",
             "events": len(evs), "by_type": dict(sorted(Counter(e.get("type") for e in evs).items())),
-            "passed": st.get("ok", 0), "in_review": sum(v for k, v in st.items() if k != "ok"),
+            "passed": st.get("ok", 0), "in_review": st.get("needs_review", 0),
+            "other_status": sum(v for k, v in st.items() if k not in ("ok", "needs_review")),
             "first": ts[0][:10] if ts else None, "last": ts[-1][:10] if ts else None}
 
 

@@ -72,6 +72,8 @@ def main(argv=None) -> int:
                     help="also retry sessions where yt-dlp earlier found no English captions")
     ap.add_argument("--limit", type=int, default=0, help="fetch at most N sessions (0 = all)")
     a = ap.parse_args(argv)
+    if a.limit < 0:
+        ap.error("--limit must be >= 0")
 
     if not a.urls.exists():
         print(f"no link list at {a.urls}; collect the Discord links first (see module docstring)", file=sys.stderr)
@@ -99,11 +101,17 @@ def main(argv=None) -> int:
     failed = []
     for i, vid in enumerate(todo, 1):
         print(f"[{i}/{len(todo)}] {vid}", flush=True)
-        if subprocess.run(ytdlp_cmd(vid, exe)).returncode != 0:
+        try:
+            rc = subprocess.run(ytdlp_cmd(vid, exe), timeout=600).returncode
+        except subprocess.TimeoutExpired:
+            rc = -1
+        if rc != 0 and status(vid) != "ok":
             failed.append(vid)
     got = [v for v in todo if status(v) == "ok"]
     print(f"fetched {len(got)} of {len(todo)}; yt-dlp errors {len(failed)}; "
           f"no captions {sum(1 for v in todo if status(v) == 'no_captions')}")
+    if failed:   # a failed run can leave info.json without subtitles; rerun these with --retry-no-captions
+        print("failed (rerun with --retry-no-captions):", " ".join(failed))
     return 1 if failed else 0
 
 

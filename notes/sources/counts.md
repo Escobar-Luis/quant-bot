@@ -31,7 +31,7 @@ It reads the gitignored `data/` in the main checkout and the committed `results/
 
 Reading it:
 1. **LPP sources.** 247 Discord links to morning live streams (2024-08-15 to 2025-09-12); 246 have English captions, 1 (`41ixdD2nUp0`) has none. The 23 extra folders are the Apr-May 2018 early sample, not in the year. Fetch: `uv run python -m lpp.fetch_captions --dry-run` (see that module).
-2. **LPP events vs trades.** Events are trade legs (entries, trims, exits), calls and rules. The backtest pairs ok trade legs into 315 round trips; `results/lpp/v1.json` keeps a 200-row sample of them, so trades can't be summed from the file (story 2 writes the full ledger).
+2. **LPP events vs trades.** Events are trade legs (entries, trims, exits), calls and rules. The backtest pairs ok trade legs into 315 round trips; `results/lpp/v1.json` keeps a 200-row sample of them, so trades can't be summed from the file (audit story 2, `story/audit-2-math-eval`, writes the full ledger).
 3. **LPP v2** prices only the 30-session PRISM proof set (51 trades), though its events cover all 247 sessions.
 4. **Crypto Wizard** posts reach back to 2021 (lessons); only setups inside the window 2025-10-17 to 2026-10-16 are priced.
 5. Trade counts are the same at every delay: a delay moves the fill, it doesn't drop the trade.
