@@ -81,13 +81,38 @@ function holdName(h) {
   if (sym.startsWith('BTC')) return 'Bitcoin';
   return sym || 'the market';
 }
+// contracts.md rule 9 (CAP-7): the benchmark in plain words, and a word that never reads as success when the copy lost money.
+function benchName(r) {
+  if (r?.compare_with?.name) return r.compare_with.name;
+  const sym = (r?.hold?.symbol || '').toUpperCase();
+  return sym.startsWith('BTC') ? 'Bitcoin' : sym === 'SPY' ? 'the S&P' : sym || 'the market';
+}
+const wordFor = (ret, bench, trades) => (trades != null && trades < 30 ? 'Not enough trades' : ret < 0 ? 'No' : ret - bench >= 2 ? 'Yes' : ret - bench <= -2 ? 'No' : 'Barely');
+const outcomeFor = (ret, trades) => (trades === 0 ? 'No trades' : ret > 0 ? 'Made money' : ret < 0 ? 'Lost money' : 'Broke even');
+function vsFor(ret, bench, trades, name) {
+  if (trades === 0 || bench == null) return null;
+  const gap = Math.round((ret - bench) * 100) / 100;
+  if (gap >= 2) return ret < 0 ? `less than ${name}` : `beat ${name}`;
+  if (gap > -2) return `about the same as ${name}`;
+  return bench < 0 ? `more than ${name}` : `${name} did better`;
+}
+// The file's own words when it has them (results written after CAP-7); else the same rule on its numbers.
+function says(row, ret, bench, trades, name) {
+  return {
+    word: row?.word ?? wordFor(ret, bench, trades),
+    outcome: row?.outcome ?? outcomeFor(ret, trades),
+    vs: row && 'vs' in row ? row.vs : vsFor(ret, bench, trades, name)
+  };
+}
 function vm(c) {
   const r = c.r;
   if (!r) return { tested: false, word: 'Not tested yet' };
   const ports = (r.portfolios || []).map(portfolioAt);
   const head = ports.find(p => p.id === r.headline_portfolio && p.at) || ports.find(p => p.at);
   if (!head) return { tested: false, word: 'Not tested yet' };
-  return { tested: true, r, head, s: head.at, ports, word: head.at.word, start: r.money_start || 10000, hold: holdName(r.hold) };
+  const bench = benchName(r), s = head.at;
+  return { tested: true, r, head, s, ports, start: r.money_start || 10000, hold: holdName(r.hold), bench,
+           ...says(s, s.ret_pct, s.hold_ret_pct, s.trades, bench) };
 }
 // One honest fine-print line: sizing, plus trades we couldn't copy or had to shrink.
 function fineLine(r, s) {
@@ -171,19 +196,19 @@ const RANGES = [['3m', '3M', 3], ['6m', '6M', 6], ['1y', '1Y', 12], ['all', 'All
 let range = 'all';
 const extra = (c, key) => (c.r?.[key] != null ? { v: c.r[key], sample: !!c.r.sample } : null);
 const addMonths = (iso, n) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() + n); return d.toISOString().slice(0, 10); };
-const wordFor = (ret, hold, trades) => (trades != null && trades < 30 ? 'Not enough trades' : ret - hold >= 2 ? 'Yes' : ret - hold <= -2 ? 'No' : 'Barely');
 // The window, cut to the chosen range: numbers from ranges[...] when the file has them, else from the curve.
 function cut(v) {
   const S = v.head.series, curve = S?.by_delay?.[dkey(S?.by_delay)], dates = S?.dates || [];
   let n = curve ? curve.length - 1 : -1;
   const R = RANGES.find(x => x[0] === range);
   if (R[2] && dates.length) { const lim = v.r.ranges?.[range]?.until || addMonths(dates[0], R[2]); while (n > 0 && dates[n] > lim) n--; }
-  const out = { n, curve, dates, hold: S?.hold, end: v.s.end, hold_end: v.s.hold_end, word: v.word, ret: v.s.ret_pct, hold_ret: v.s.hold_ret_pct, trades: v.s.trades, from: 'file' };
+  const out = { n, curve, dates, hold: S?.hold, end: v.s.end, hold_end: v.s.hold_end, word: v.word, outcome: v.outcome, vs: v.vs, ret: v.s.ret_pct, hold_ret: v.s.hold_ret_pct, trades: v.s.trades, from: 'file' };
   if (range === 'all' || !curve) return out;
   const fileR = v.r.ranges?.[range]?.by_delay?.[dkey(v.r.ranges[range].by_delay)];
   const end = fileR?.end ?? curve[n], hold_end = fileR?.hold_end ?? S.hold?.[n];
   const ret = (end / v.start - 1) * 100, hold_ret = (hold_end / v.start - 1) * 100;
-  return { ...out, end, hold_end, ret, hold_ret, trades: fileR?.trades ?? null, word: fileR?.word ?? wordFor(ret, hold_ret, v.s.trades < 30 ? v.s.trades : null), from: fileR ? 'file' : 'curve' };
+  const trades = fileR?.trades ?? null;
+  return { ...out, end, hold_end, ret, hold_ret, trades, ...says(fileR, ret, hold_ret, trades ?? (v.s.trades < 30 ? v.s.trades : null), v.bench), from: fileR ? 'file' : 'curve' };
 }
 function bestStop(v, k) {
   const bs = range === 'all' ? v.r.best_stop?.by_delay?.[dkey(v.r.best_stop?.by_delay)] : null;
@@ -194,10 +219,22 @@ function bestStop(v, k) {
 }
 const LONGDAY = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const longDay = d => LONGDAY.format(new Date(d + 'T00:00:00Z'));
+// Outcome first, then the comparison, then the money (CAP-7): "Lost money, less than Bitcoin."
+const sentence = x => esc(x.vs ? `${x.outcome}, ${x.vs}.` : `${x.outcome}.`);
 function headline(v, k) {
-  const money = `${kMoney(v.start)} became ${fmt.money(k.end)}.`;
-  const acc = { Yes: `It beat holding ${esc(v.hold)}.`, Barely: `About the same as holding ${esc(v.hold)}.`, No: `Holding ${esc(v.hold)} made ${fmt.money(k.hold_end)}.`, 'Not enough trades': `Too few trades to judge.` }[k.word] || '';
-  return `${money} <span class="acc">${acc}</span>`;
+  const few = k.word === 'Not enough trades' ? ' Too few trades to judge.' : '';
+  return `${sentence(k)} <span class="acc">${kMoney(v.start)} became ${fmt.money(k.end)}.${few}</span>`;
+}
+// The held-out (sealed) months' own word, beside the headline.
+function sealedSays(v) {
+  const se = v.s.sealed, w = v.r.window;
+  if (!se || !w?.sealed_from || w.sealed_from <= w.start) return null;
+  return { ...says(se, se.ret_pct, se.hold_ret_pct, se.trades, v.bench), from: w.sealed_from, to: w.end, trades: se.trades };
+}
+function heldLine(v) {
+  const h = sealedSays(v);
+  if (!h) return '';
+  return `Held-out months, ${month(h.from)} – ${month(h.to)}: <b style="color:${WORD_COLOR[wcls(h.word)]}">${esc(h.word ?? '')}</b> · ${sentence(h)}`;
 }
 function spark(arr, color, w = 92, h = 28) {
   if (!arr || arr.length < 2) return '';
@@ -322,7 +359,7 @@ function renderVerdict(fresh) {
   if (!v.tested) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
-    $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = '';
+    $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = ''; $('#vSealed').hidden = true;
     ['cChart', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
@@ -333,6 +370,7 @@ function renderVerdict(fresh) {
   $('#vHead').innerHTML = headline(v, k);
   $('#vChip').textContent = k.word;
   $('#vMeta').textContent = k.trades != null ? nTrades(k.trades) : '';
+  const held = heldLine(v); $('#vSealed').hidden = !held; $('#vSealed').innerHTML = held;
   $('#vFine').innerHTML = fineLine(v.r, v.s).split(' · ').filter(Boolean).map(b => `<span class="nw">${esc(b)}</span>`).join(' · ');
   const span = v.head.series?.dates;
   $('#vRanges').innerHTML = RANGES.map(([id, lab, mo]) => {
@@ -346,7 +384,8 @@ function renderVerdict(fresh) {
   drawMain(v, k);
   renderStrats(c, v);
   renderBotMix(c);
-  $('#live').textContent = `${c.name}: ${k.word}. ${kMoney(v.start)} became ${fmt.money(k.end)}; holding ${v.hold} made ${fmt.money(k.hold_end)}.`;
+  const h = sealedSays(v);
+  $('#live').textContent = `${c.name}: ${k.word}. ${k.vs ? `${k.outcome}, ${k.vs}` : k.outcome}. ${kMoney(v.start)} became ${fmt.money(k.end)}; holding ${v.hold} made ${fmt.money(k.hold_end)}.${h ? ` Held-out months: ${h.word}.` : ''}`;
 }
 $('#vRanges').addEventListener('click', e => { const b = e.target.closest('[data-range]'); if (!b || b.disabled) return; range = b.dataset.range; renderVerdict(false); });
 $('#proofBtn').addEventListener('click', () => { openedByUser = true; location.hash = '#proof-' + KEYS[cur]; });
@@ -549,7 +588,9 @@ function renderProof() {
   if (se && r.window.sealed_from && r.window.sealed_from > r.window.start) {
     const mx = Math.max(Math.abs(se.ret_pct), Math.abs(se.hold_ret_pct), 0.1);
     const bar = (x, cl) => { const w = Math.abs(x) / mx * 50; return `<i style="background:${cl};width:${w}%;left:${x >= 0 ? 50 : 50 - w}%"></i>`; };
+    const h = sealedSays(v);
     $('#pNew').innerHTML = `<h3 class="p-h">Newest months</h3><p class="p-s cap num">${month(r.window.sealed_from)} – ${month(r.window.end)} · kept sealed${has(se.trades) ? ` · ${nTrades(se.trades)}` : ''}</p>
+      ${h ? `<p class="held"><b style="color:${WORD_COLOR[wcls(h.word)]}">${esc(h.word ?? '')}</b> · ${sentence(h)}</p>` : ''}
       <div class="nd num">
         <div class="nd-row"><span>Copying</span><span class="nd-bar">${bar(se.ret_pct, col)}</span><b>${pct(se.ret_pct)}</b></div>
         <div class="nd-row"><span>Holding ${esc(v.hold)}</span><span class="nd-bar">${bar(se.hold_ret_pct, HOLD_INK)}</span><b>${pct(se.hold_ret_pct)}</b></div>
