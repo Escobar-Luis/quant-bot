@@ -52,6 +52,16 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
   - **intent:** Every copy decision uses only what the host said before that moment.
   - **success:** A test feeds a session where a later statement would change an earlier decision, and the earlier decision does not change.
 
+- **CAP-13**
+  - **intent:** Every LPP trade's entry and exit comes from what he actually said or posted, streams plus Discord chat.
+  - **success:** Each exit shows its source (stream or chat post); trades with no stated exit are counted and listed; the 43 overnight trades are re-checked.
+- **CAP-14**
+  - **intent:** The app states LPP's strategy as rules, each with how often he follows it, its win rate and P&L.
+  - **success:** A strategy card per course lists rules with numbers computed by code and short cited quotes.
+- **CAP-15**
+  - **intent:** Proposed improvements from his losses, and his strategy run as code on recent prices and other stocks, show what works.
+  - **success:** Every variant tried is logged; each shows dev, held-out and new-stocks results; the app marks what held up.
+
 ## Constraints
 
 - Gate: the LinkedIn post and the video render wait until CAP-3 passes (Luis, 2026-10-20).
@@ -66,6 +76,8 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 - No margin or borrowing: a trade that doesn't fit the cash left is sized down or skipped, and the app says how many. Exact rules: bankroll-rules.md.
 - Stories that write `app/backtest/` or `results/` first amend AGENTS.md contracts 1 and 6; each one reruns `app/audit` and refreshes `proofs/audit.json`.
 - Any model call (CAP-10 wording) goes through Nicrron and is traced to PRISM under its own agent_id.
+
+- Discord stays read-only, light and supervised: no posting, reacting or bulk scraping; raw messages stay in `data/`.
 
 ## Non-goals
 

@@ -17,6 +17,31 @@
     CAP-12. Overnight holds, sizes and adds are decided only from what was said before each moment.
   invoke_dev_with: >-
     Engine change (app/backtest/lpp.py keeps a position overnight when a later statement within CARRY_DAYS=7 mentions it; scaled entry size counts later adds). Amend AGENTS.md contracts 1 and 6 first. Rerun results and app/audit; report every headline that moves.
+- id: "18"
+  title: Re-audit LPP exits from his Discord chat
+  description: >-
+    CAP-13. Read LPP's Discord channels where he posts closes, match each post to a stream trade, and rebuild every exit from what he actually said or posted; count trades whose exit is still assumed.
+  spec_checkpoint: true
+  invoke_dev_with: >-
+    Read-only and supervised via Luis's Chrome (memory: discord-chrome-collection); no bulk scraping, no posting. Raw messages stay in data/lpp/discord/. First measure: of the 43 overnight trades, how many have a same-day close in chat.
+- id: "19"
+  title: Write down his strategy
+  description: >-
+    CAP-14. From the accurate record, state LPP's strategy as rules with frequency, win rate and P&L per rule, citing short quotes.
+  invoke_dev_with: >-
+    Model proposes rule wording through Nicrron, traced to PRISM; code computes every number. Depends on 18 and 17.
+- id: "20"
+  title: Improve it from his losses
+  description: >-
+    CAP-15. Propose rule changes from his losing trades, as code; pick on dev months, confirm on held-out months.
+  invoke_dev_with: >-
+    Extend the existing improver (daytrader-improver-v1); log every version tried (AGENTS.md rule 4).
+- id: "21"
+  title: Backtest the strategy on new prices and other stocks
+  description: >-
+    CAP-15. Run his strategy and the improved one as code on recent prices and on stocks he didn't trade; show what works and what doesn't.
+  invoke_dev_with: >-
+    Alpaca 1-minute bars; pick the stock universe before looking at results; report all variants tried.
 - id: "8"
   title: Bankroll simulator
   description: >-
