@@ -50,11 +50,11 @@ ET = ZoneInfo("America/New_York")
 ALPACA = "https://data.alpaca.markets/v2/stocks"
 ASSETS = "https://paper-api.alpaca.markets/v2/assets"
 
-# The freeze point: the commit that added rules-v1.json (tag paper-rules-v1). Recorded by hand right after it
-# (the commit cannot name its own sha). Squash merges keep the tag's commit reachable on origin.
-FREEZE = {"sha": "0e79dd8edfb2d44a1023df3d0555993894e35529", "tag": "paper-rules-v1",
-          "at": "2026-10-20T21:38:43Z",
-          "rules_sha256": "7eb5f5fc74310b58e856f5ab78cc255ffe2e0d34083a00e336447905ed9f0a94"}
+# The freeze point is the tag on the commit that added rules-v1.json: its sha, its commit time and the file as it
+# stands at the tag all come from git (`git show paper-rules-v1:app/paper/rules-v1.json`), never from a constant.
+# Squash merges keep the tag's commit reachable on origin (`git fetch --tags` in a fresh clone).
+FREEZE_TAG = "paper-rules-v1"
+RULES_REL = "app/paper/rules-v1.json"
 COMPLETE_AFTER_ET = dt.time(16, 30)   # a session's bars are final enough to use after this
 LOOKBACK_DAYS = 45                    # calendar days of daily bars per session: 20+ sessions for the volume average
 MODELS = ("realistic", "x2", "base")
@@ -62,11 +62,43 @@ MODELS = ("realistic", "x2", "base")
 
 # ---- rules -------------------------------------------------------------------------------------------------------
 
+class NotReady(Exception):
+    """Data a session needs isn't there yet (an empty Alpaca answer): nothing is cached; the next run retries."""
+
+
+def _git(*args: str) -> str:
+    r = subprocess.run(["git", *args], cwd=HERE, capture_output=True)
+    if r.returncode:
+        raise SystemExit(f"git {' '.join(args)} failed: {r.stderr.decode().strip()[:160]} (is tag {FREEZE_TAG} "
+                         "fetched? git fetch --tags)")
+    return r.stdout.decode()
+
+
+def frozen_rules_bytes() -> bytes:
+    r = subprocess.run(["git", "show", f"{FREEZE_TAG}:{RULES_REL}"], cwd=HERE, capture_output=True)
+    if r.returncode:
+        raise SystemExit(f"cannot read {RULES_REL} at tag {FREEZE_TAG}: {r.stderr.decode().strip()[:160]}")
+    return r.stdout
+
+
+_FREEZE: dict = {}
+
+
+def freeze() -> dict:
+    """{sha, tag, at, rules_sha256}: the tag's commit, its commit time (UTC) and the frozen file's hash."""
+    if not _FREEZE:
+        sha, ts = _git("log", "-1", "--format=%H %ct", f"{FREEZE_TAG}^{{commit}}").split()
+        _FREEZE.update({"sha": sha, "tag": FREEZE_TAG,
+                        "at": dt.datetime.fromtimestamp(int(ts), dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "rules_sha256": hashlib.sha256(frozen_rules_bytes()).hexdigest()})
+    return _FREEZE
+
+
 def load_rules() -> dict:
     raw = RULES_FILE.read_bytes()
-    h = hashlib.sha256(raw).hexdigest()
-    if h != FREEZE["rules_sha256"]:
-        raise SystemExit(f"{RULES_FILE.name} differs from the frozen file ({h[:12]} != {FREEZE['rules_sha256'][:12]}):"
+    h, want = hashlib.sha256(raw).hexdigest(), freeze()["rules_sha256"]
+    if h != want:
+        raise SystemExit(f"{RULES_FILE.name} differs from the file at tag {FREEZE_TAG} ({h[:12]} != {want[:12]}):"
                          " a rule change is a new rules file with its own freeze and ledger, never an edit")
     return json.loads(raw)
 
@@ -111,7 +143,7 @@ def iso(ts: int) -> str:
 
 
 def freeze_ts() -> int:
-    return int(dt.datetime.fromisoformat(FREEZE["at"].replace("Z", "+00:00")).timestamp())
+    return int(dt.datetime.fromisoformat(freeze()["at"].replace("Z", "+00:00")).timestamp())
 
 
 def counts(day: str) -> bool:
@@ -189,6 +221,8 @@ def minutes(t: str, day: str) -> dict[int, list]:
         token = js.get("next_page_token")
         if not token:
             break
+    if not rows:   # a trigger session (it has a daily bar) with no minutes yet: unknown, never cached as empty
+        raise NotReady(f"{t} {day}: Alpaca returned no 1-minute bars")
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(rows))
     return rows
@@ -218,6 +252,8 @@ def daily_for(day: str, syms: list[str]) -> dict:
     rec = {"day": day, "fetched_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "split": daily_multi(syms, start, day, "split"), "raw": daily_multi(syms, start, day, "raw"),
            "spy_all": daily_multi(["SPY"], start, day, "all").get("SPY", []), "easy_to_borrow": {}}
+    if not any(r[0] == day for r in rec["spy_all"]) or not any(r[0] == day for v in rec["split"].values() for r in v):
+        raise NotReady(f"{day}: Alpaca returned no daily bars for the session")   # not cached; retried next run
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(rec))
     return rec
@@ -263,7 +299,7 @@ def triggers(rules: dict, day: str, daily: dict) -> list[tuple[dict, str, float]
 
 def simulate(rules: dict, day: str, daily: dict, equity: dict) -> dict:
     """One session's ledger line. `equity` = {rule: {model: realized end before this session}}."""
-    line = {"day": day, "rules": rules["version"], "rules_sha256": FREEZE["rules_sha256"],
+    line = {"day": day, "rules": rules["version"], "rules_sha256": freeze()["rules_sha256"],
             "spy_factor": None, "rules_out": {}}
     spy = daily["spy_all"]
     i = next((k for k, r in enumerate(spy) if r[0] == day), None)
@@ -376,7 +412,7 @@ def summarize(rules: dict, ledger: list[dict], first_session: str | None) -> dic
     return {
         "schema": "paper/1", "generated_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rules_file": "app/paper/rules-v1.json", "rules_version": rules["version"],
-        "rules_sha256": FREEZE["rules_sha256"], "freeze": {k: FREEZE[k] for k in ("sha", "tag", "at")},
+        "rules_sha256": freeze()["rules_sha256"], "freeze": {k: freeze()[k] for k in ("sha", "tag", "at")},
         "status": "running" if ledger else "waiting",
         "first_session": ledger[0]["day"] if ledger else first_session,
         "last_session": ledger[-1]["day"] if ledger else None,
@@ -440,7 +476,11 @@ def main(argv=None) -> int:
     if a.shakedown:
         before = [d for d in cal if not counts(d)]
         day = before[-1]
-        daily, _ = prepare(rules, day, a.fetch_cap)
+        try:
+            daily, _ = prepare(rules, day, a.fetch_cap)
+        except NotReady as e:
+            print(f"{e}; run again later", file=sys.stderr)
+            return 3
         line = simulate(rules, day, daily, {r["id"]: {m: 10_000.0 for m in MODELS} for r in rules["rules"]})
         PDATA.mkdir(parents=True, exist_ok=True)
         (PDATA / "shakedown.json").write_text(json.dumps({"counts": False, **line}, indent=1))
@@ -452,7 +492,7 @@ def main(argv=None) -> int:
     ledger_p = out / "ledger.jsonl"
     ledger = read_ledger(ledger_p)
     done = {ln["day"] for ln in ledger}
-    if any(ln["rules_sha256"] != FREEZE["rules_sha256"] for ln in ledger):
+    if any(ln["rules_sha256"] != freeze()["rules_sha256"] for ln in ledger):
         raise SystemExit("the ledger holds sessions simulated under other rules: refusing to mix")
     todo = [d for d in cal if counts(d) and d not in done]
     if ledger and todo and todo[0] <= ledger[-1]["day"]:
@@ -461,7 +501,11 @@ def main(argv=None) -> int:
     first = next((d for d in cal if counts(d)), None)
     added, fetched = 0, 0
     for day in todo:
-        daily, n = prepare(rules, day, a.fetch_cap - fetched)
+        try:
+            daily, n = prepare(rules, day, a.fetch_cap - fetched)
+        except NotReady as e:
+            print(f"{e}; stopping here, the next run retries {day}", file=sys.stderr)
+            break
         if daily is None:
             print(f"{day}: over the fetch cap this run; run again to continue", file=sys.stderr)
             break
@@ -479,9 +523,14 @@ def main(argv=None) -> int:
         print(f"{day}: " + "; ".join(f"{rid} {len(x['trades'])} trades, realistic {x['equity']['realistic']:.2f}"
                                        for rid, x in line["rules_out"].items()), file=sys.stderr)
     summary_p = out / "summary.json"
-    if added or not summary_p.exists():
+    old = json.loads(summary_p.read_text()) if summary_p.exists() else None
+    last = ledger[-1]["day"] if ledger else None
+    # crash-safe: the summary follows the ledger whenever they disagree (a run that died between the two writes)
+    if added or old is None or old.get("last_session") != last or old.get("days") != len(ledger):
         out.mkdir(parents=True, exist_ok=True)
-        summary_p.write_text(json.dumps(summarize(rules, ledger, first), indent=1) + "\n")
+        tmp = summary_p.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(summarize(rules, ledger, first), indent=1) + "\n")
+        os.replace(tmp, summary_p)
         print(f"wrote {summary_p} ({len(ledger)} sessions)", file=sys.stderr)
     else:
         print(f"nothing new: {len(ledger)} sessions, last {ledger[-1]['day'] if ledger else 'none'}"

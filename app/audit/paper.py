@@ -14,6 +14,7 @@ kinds and words exact. The random band itself is a seeded simulation and is list
 import datetime as dt
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 from .bars import ET, MissingBar
@@ -110,6 +111,9 @@ def check(paper_dir: Path = PAPER, rules_file: Path = RULES_FILE) -> dict:
     ledger = [json.loads(x) for x in lp.read_text().splitlines() if x.strip()] if lp.exists() else []
     rules_sha = hashlib.sha256(rules_file.read_bytes()).hexdigest()
     cmp("rules", "sha256 (file vs frozen)", rules_sha, FROZEN["rules_sha256"])
+    tagged = subprocess.run(["git", "show", "paper-rules-v1:app/paper/rules-v1.json"], cwd=REPO, capture_output=True)
+    cmp("rules", "sha256 (file at tag paper-rules-v1 vs frozen)",
+        hashlib.sha256(tagged.stdout).hexdigest() if tagged.returncode == 0 else "tag missing", FROZEN["rules_sha256"])
     cmp("summary", "rules_sha256", FROZEN["rules_sha256"], summary.get("rules_sha256"))
     cmp("summary", "freeze.at", FROZEN["freeze_at"], (summary.get("freeze") or {}).get("at"))
     rf = json.loads(rules_file.read_text())

@@ -8,6 +8,8 @@ import pytest
 from audit import paper as audit_paper
 from paper import run
 
+REAL_MINUTES = run.minutes
+
 D0, D1, D2 = "2026-10-20", "2026-10-21", "2026-10-22"
 
 
@@ -102,9 +104,37 @@ def test_ledger_is_append_only_and_idempotent(world):
 
 def test_refuses_edited_rules(world, monkeypatch):
     out, _ = world
-    monkeypatch.setitem(run.FREEZE, "rules_sha256", "0" * 64)
+    monkeypatch.setattr(run, "_FREEZE", {})
+    monkeypatch.setattr(run, "frozen_rules_bytes", lambda: b"{}")   # the file at the tag differs from the one on disk
     with pytest.raises(SystemExit):
         run.main(["--out-dir", str(out)])
+
+
+def test_freeze_comes_from_the_tag():
+    f = run.freeze()
+    assert f["sha"].startswith("0e79dd8") and f["at"] == "2026-10-20T21:38:43Z" and f["tag"] == "paper-rules-v1"
+    assert f["rules_sha256"] == "7eb5f5fc74310b58e856f5ab78cc255ffe2e0d34083a00e336447905ed9f0a94"
+
+
+def test_summary_follows_the_ledger_after_a_crash(world):
+    out, _ = world
+    run.main(["--out-dir", str(out)])
+    good = (out / "summary.json").read_text()
+    s = json.loads(good)
+    s["days"], s["last_session"] = 1, D1                      # as if the run died after appending D2
+    (out / "summary.json").write_text(json.dumps(s))
+    run.main(["--out-dir", str(out)])
+    assert json.loads((out / "summary.json").read_text())["last_session"] == D2
+
+
+def test_empty_bars_are_never_cached(world, monkeypatch):
+    out, _ = world
+    run.minute_path("SOGP", D2).unlink()
+    monkeypatch.setattr(run, "minutes", REAL_MINUTES)
+    monkeypatch.setattr(run, "_get", lambda url, params: {"bars": []})
+    run.main(["--out-dir", str(out)])
+    days = [json.loads(x)["day"] for x in (out / "ledger.jsonl").read_text().splitlines()]
+    assert days == [D1] and not run.minute_path("SOGP", D2).exists()   # D2 waits for the next run
 
 
 def test_audit_agrees_and_catches_tampering(world):
