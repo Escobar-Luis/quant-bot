@@ -387,6 +387,36 @@ function renderHis(v) {
       <p class="h-text">${esc(p.label || p.id)}</p>
       <p class="h-num mono num">${hisNums(p)} · ${Math.round(p.share_of_losses_pct)}% of the $ lost on losing trades</p></li>`).join('');
 }
+// What would have helped (spec-audit CAP-15): rule changes from his losses, applied by code to his own trades,
+// picked on past (dev) months and tested once on the held-out months. Kept and not kept, both shown. Missing key: hidden.
+// The file's kept_reason, in plain words (the decision itself is the file's `kept`).
+function helpWhy(x) {
+  const r = x.kept_reason || '';
+  if (x.kept) return 'Kept: helped on past months, held up on held-out ones';
+  if (/fewer than/.test(r)) return 'Not kept: too few trades left';
+  if (/\(dev\)/.test(r)) return "Not kept: didn't help on past months";
+  if (/held-out/.test(r)) return 'Not kept: helped on past months, hurt on held-out ones';
+  return 'Not kept';
+}
+function renderHelp(v) {
+  const im = v.r?.improvements;
+  $('#cHelp').hidden = !im;
+  if (!im) { $('#helpKept').innerHTML = ''; $('#helpNot').innerHTML = ''; return; }
+  const w = im.window || {}, sp = im.spy || {};
+  $('#helpMeta').textContent = `picked on ${month(w.dev_from)}–${month(w.sealed_from)}, tested on ${month(w.sealed_from)}–${month(w.sealed_to)}`;
+  $('#helpBase').innerHTML = `As posted: <span class="mono num">${pct2(im.as_is.dev.ret_pct)}</span> past, <span class="mono num">${pct2(im.as_is.sealed.ret_pct)}</span> held-out. Holding SPY: <span class="mono num">${pct2(sp.dev_ret_pct)}</span>, <span class="mono num">${pct2(sp.sealed_ret_pct)}</span>.`;
+  const row = x => `<li>
+      <p class="h-text">${esc(x.text)}</p>
+      <p class="h-num mono num">Past ${pct2(x.dev.as_is_ret_pct)} → <b class="${x.dev.vs_as_is_pts > 0 ? 'pos' : 'neg'}">${pct2(x.dev.ret_pct)}</b> · held-out ${pct2(x.sealed.as_is_ret_pct)} → <b class="${x.sealed.vs_as_is_pts >= 0 ? 'pos' : 'neg'}">${pct2(x.sealed.ret_pct)}</b> · ${nTrades(x.sealed.trades)}</p>
+      <p class="h-num mono num">vs holding SPY: ${x.sealed.vs_spy_pts >= 0 ? 'ahead' : 'behind'} ${Math.abs(x.sealed.vs_spy_pts).toFixed(2)} pts held-out</p>
+      <p class="bot-kept" data-kept="${!!x.kept}">${esc(helpWhy(x))}</p></li>`;
+  const vs = im.variants || [], kept = vs.filter(x => x.kept), not = vs.filter(x => !x.kept);
+  $('#helpKept').innerHTML = kept.length ? kept.map(row).join('') : '<li><p class="h-text">Nothing held up on the held-out months.</p></li>';
+  $('#helpNot').innerHTML = not.map(row).join('');
+  $('#helpNotSec').hidden = !not.length;
+  if (kept.length && kept.every(x => x.sealed.vs_spy_pts < 0)) $('#helpBase').innerHTML += ' Even the changes that held up trailed holding SPY.';
+  $('#helpLink').innerHTML = link(im.prism_url, 'See the run in PRISM');
+}
 let shownWord = null;
 function renderVerdict(fresh) {
   const c = COURSES[cur], v = vm(c);
@@ -395,7 +425,7 @@ function renderVerdict(fresh) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
     $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = ''; $('#vSealed').hidden = true;
-    ['cChart', 'cYear', 'cHis', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    ['cChart', 'cYear', 'cHis', 'cHelp', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
@@ -419,6 +449,7 @@ function renderVerdict(fresh) {
   drawMain(v, k);
   renderYears(v);
   renderHis(v);
+  renderHelp(v);
   renderStrats(c, v);
   renderBotMix(c);
   const h = sealedSays(v);
