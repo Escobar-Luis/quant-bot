@@ -1,41 +1,164 @@
 {
- "schema": "audit/1",
- "generated_at": "2026-10-20T17:38:27Z",
+ "schema": "audit/2",
+ "generated_at": "2026-10-20T17:54:07Z",
  "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
- "pass": true,
+ "pass": false,
  "sizing": "trade",
  "hold_close": "official",
  "command": "cd app && uv run python -m audit.run",
  "files": {
   "cryptowizard/v1": {
-   "pass": true,
+   "pass": false,
    "trades_checked": 1736,
-   "mismatches": 0,
-   "max_abs_diff": 0.0
+   "mismatches": 2720,
+   "max_abs_diff": 6829.51,
+   "position_differences": 251,
+   "unverifiable": 28,
+   "math_on_loader_positions": 0
   },
   "lpp/v1": {
-   "pass": true,
-   "trades_checked": 3605,
-   "mismatches": 0,
-   "max_abs_diff": 0.0
+   "pass": false,
+   "trades_checked": 1638,
+   "mismatches": 4213,
+   "max_abs_diff": 411.09,
+   "position_differences": 505,
+   "unverifiable": 0,
+   "math_on_loader_positions": 0
   },
   "lpp/v2": {
-   "pass": true,
-   "trades_checked": 1071,
-   "mismatches": 0,
-   "max_abs_diff": 0.0
+   "pass": false,
+   "trades_checked": 861,
+   "mismatches": 1053,
+   "max_abs_diff": 121.59,
+   "position_differences": 100,
+   "unverifiable": 0,
+   "math_on_loader_positions": 0
   },
   "ziptrader/v1": {
-   "pass": true,
+   "pass": false,
    "trades_checked": 14,
-   "mismatches": 0,
-   "max_abs_diff": 0.0
+   "mismatches": 156,
+   "max_abs_diff": 78.01,
+   "position_differences": 2,
+   "unverifiable": 0,
+   "math_on_loader_positions": 0
   }
  },
- "tolerance": {
-  "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact)",
-  "headline": "$1 (returns 0.01 pts; trades and word exact)"
+ "results_sha256": {
+  "cryptowizard/v1": "06b912e4edca6547f042bc59fbcc92f01a979898afa477f7eb80bdefed171205",
+  "lpp/v1": "447e54cee043a83036e2ca7f47af438f43f82d28e163dc9e50cf3736fb8da00e",
+  "lpp/v2": "6ffdfac69fd1930ed9b886adbd34819675b075520a02c11382112285bc8aea2b",
+  "ziptrader/v1": "d95fa42d9f6a67f32c5fda6f3c27adb56a190563bda0e0309c7daaca8aef629f"
  },
+ "tolerance": {
+  "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",
+  "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, won_pct and word exact)"
+ },
+ "notes": {
+  "sizing": "LPP sizing 'trade' (all of a trade's buys together are $1,000, in his ratios; an entry with no count takes the upper median of his stated counts; a trim sells his stated share of his holding) was inferred from the engine's ledger output, then written into contracts.md rule 6. It is superseded by the bankroll model (spec-audit CAP-9).",
+  "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last 1-minute bar's close is reported as an alternative (--hold-close minute)."
+ },
+ "positions": {
+  "cryptowizard/v1": {
+   "v1": {
+    "loader_positions": 126,
+    "audit_positions": 126,
+    "differences": 251,
+    "positions_differing": 95,
+    "by_field": {
+     "default_exit": 56,
+     "leg": 192,
+     "leg.posted_ts": 3
+    }
+   }
+  },
+  "lpp/v1": {
+   "v1": {
+    "loader_positions": 315,
+    "audit_positions": 229,
+    "differences": 505,
+    "positions_differing": 289,
+    "by_field": {
+     "presence": 234,
+     "leg": 218,
+     "leg.posted_ts": 33,
+     "portfolio": 10,
+     "default_exit": 10
+    }
+   }
+  },
+  "lpp/v2": {
+   "v2": {
+    "loader_positions": 51,
+    "audit_positions": 50,
+    "differences": 15,
+    "positions_differing": 13,
+    "by_field": {
+     "presence": 1,
+     "leg": 3,
+     "leg.posted_ts": 11
+    }
+   },
+   "v1-same_sessions": {
+    "loader_positions": 51,
+    "audit_positions": 40,
+    "differences": 85,
+    "positions_differing": 58,
+    "by_field": {
+     "presence": 45,
+     "leg": 27,
+     "leg.posted_ts": 9,
+     "portfolio": 2,
+     "default_exit": 2
+    }
+   }
+  },
+  "ziptrader/v1": {
+   "v1": {
+    "loader_positions": 1,
+    "audit_positions": 1,
+    "differences": 2,
+    "positions_differing": 1,
+    "by_field": {
+     "portfolio": 1,
+     "default_exit": 1
+    }
+   }
+  }
+ },
+ "unverifiable": {
+  "cryptowizard/v1": [
+   "cw-1437156872678277261@1",
+   "cw-1437156872678277261@10",
+   "cw-1437156872678277261@15",
+   "cw-1437156872678277261@3",
+   "cw-1437156872678277261@30",
+   "cw-1437156872678277261@5",
+   "cw-1437156872678277261@60",
+   "cw-1509940542690164948@1",
+   "cw-1509940542690164948@10",
+   "cw-1509940542690164948@15",
+   "cw-1509940542690164948@3",
+   "cw-1509940542690164948@30",
+   "cw-1509940542690164948@5",
+   "cw-1509940542690164948@60",
+   "cw-1516022984505294978@1",
+   "cw-1516022984505294978@10",
+   "cw-1516022984505294978@15",
+   "cw-1516022984505294978@3",
+   "cw-1516022984505294978@30",
+   "cw-1516022984505294978@5",
+   "cw-1516022984505294978@60",
+   "cw-1522233204826837124@1",
+   "cw-1522233204826837124@10",
+   "cw-1522233204826837124@15",
+   "cw-1522233204826837124@3",
+   "cw-1522233204826837124@30",
+   "cw-1522233204826837124@5",
+   "cw-1522233204826837124@60"
+  ]
+ },
+ "signoff": null,
  "alternatives": {
   "sizing=trade,hold_close=official": {
    "generated_at": "2026-10-20T17:28:59Z",
