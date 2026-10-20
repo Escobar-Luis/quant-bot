@@ -68,3 +68,21 @@
     CAP-8. Add a beat to the Oct 21 episode naming the second calculator's result, then render the video and the 4:5 cut.
   invoke_dev_with: >-
     Repo ~/dev/showcase-videos/day-trader-ai-2026-10-21. Render only after story 2's gate opens (exit 0 plus Luis's sign-off). Runs in its own session in that repo. Never post.
+- id: "12"
+  title: AGENTS.md stops overclaiming tracing and the sealed holdout
+  description: >-
+    CAP-6 follow-up. AGENTS.md shared rule 1 says "every run is traced to PRISM" (only the 30-session LPP proof set and verdict runs are, per contract 5), and rule 4 promises a sealed holdout after the model's training cutoff (LPP's held-out months from 2025-06-12 predate it). Reword both to match what is true.
+  invoke_dev_with: >-
+    AGENTS.md change by PR, then message the running lanes. Wording only; the README (story audit-6-readme) already states the true scope.
+- id: "13"
+  title: ZipTrader results say 13 briefings, there are 12
+  description: >-
+    results/ziptrader/v1.json unknown says "Only 13 briefings"; build() in app/backtest/ziptrader.py counts distinct source_ids, which includes the strategy card. Count briefings only.
+  invoke_dev_with: >-
+    Found in notes/sources/counts.md. Writes results/: amend AGENTS.md contracts 1 and 6 first if required, rerun app/audit and refresh proofs/audit.json. Do not redeploy.
+- id: "14"
+  title: Refresh proofs/prism.json from current results
+  description: >-
+    proofs/prism.json predates the audit engine fixes (PR #58): knowledge_base.answer quotes $9,765.86 and its hit snippets say 3000 passed / 1196 in review (now $9,763.83, 2,883 / 1,313); evaluator.money_same_sessions says $10,290.71 / $10,303.25 vs results/lpp/v2.json $10,287.41 / $10,300.52. Refresh the numbers from results/.
+  invoke_dev_with: >-
+    Owner: app/prism (story 2 lane). No new PRISM runs needed for the numbers; rebuild via prism.proofs from current results. The KB answer text is model output: either rerun the verdict run or mark it as the text of that dated run. Then update the README note in "Architecture".
