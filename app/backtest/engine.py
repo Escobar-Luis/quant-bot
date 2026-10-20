@@ -6,11 +6,11 @@ The rules are contracts.md "Copy-trade rules" (code decides, never the model):
 - an entry with a trigger level fills when price trades the level after post time + delay, else `not_triggered`;
 - a stop or target, when stated, exits as soon as a bar trades it (both in one bar = stop); several targets with
   no stated shares: the first that trades is the exit (rule 4);
-- a take-profit post (a trim naming TP n) sells TP n's share at post time + delay, unless the copier's own TP n
-  order already filled (rule 12c);
+- a take-profit post (a trim naming TP n) sells, at post time + delay, the shares of TP 1..n the copier's own
+  orders have not sold, and nothing when its own TP n order already filled (rule 12c);
 - whatever is still held after the last announced exit leaves at the position's default exit (`assumed`); a post
-  whose fill would land at or after that exit comes too late, and a horizon that passed before the entry leaves
-  nothing to copy (`too_late`);
+  whose fill would land at or after that exit comes too late, a horizon that passed before the entry leaves
+  nothing to copy (`too_late`), and when the bars end before the exit it leaves at the last bar's close;
 - costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto.
 """
 import bisect
@@ -101,7 +101,9 @@ def default_exit_ts(p: Position, entry_ts: int) -> int:
         return entry_ts + int(arg) * 3600
     day = bars.day_of(p.market, entry_ts)
     if kind == "sessions":
-        n, last = int(arg), day + dt.timedelta(days=15)   # bounded: a halted or delisted ticker stops here
+        # bounded so a halted or delisted ticker stops; the bound grows with n, so a long horizon is never cut
+        n = int(arg)
+        last = day + dt.timedelta(days=2 * n + 15)
         while n and day < last:
             day += dt.timedelta(days=1)
             if day.weekday() < 5 and bars.day_bars(p.market, p.ticker, day):
@@ -112,6 +114,29 @@ def default_exit_ts(p: Position, entry_ts: int) -> int:
 def _fill_at(p: Position, ts: int) -> tuple[int, float] | None:
     hit = bars.first_at_or_after(p.market, p.ticker, ts)
     return (hit[0], hit[1][0]) if hit else None
+
+
+def _exit_bar(p: Position, hz: float) -> tuple[int, float] | None:
+    """The default exit's fill: the open of the first bar at or after hz; None when the bars end before it."""
+    try:
+        return _fill_at(p, hz)
+    except bars.NoBars:
+        return None
+
+
+def _last_before(p: Position, t0: float, t1: float) -> tuple[int, float] | None:
+    """The last bar with t0 <= open time < t1, as (its time, its close): where the bars end before the exit."""
+    day, first = bars.day_of(p.market, t1 - 1), bars.day_of(p.market, t0)
+    while day >= first:
+        try:
+            b = bars.day_bars(p.market, p.ticker, day)
+        except bars.NoBars:
+            b = {}
+        ks = [k for k in b if t0 <= k < t1]
+        if ks:
+            return max(ks), b[max(ks)][3]
+        day -= dt.timedelta(days=1)
+    return None
 
 
 def _trigger_fill(p: Position, t0: int, t1: int) -> tuple[int, float] | None:
@@ -207,9 +232,14 @@ def _simulate(p: Position, delay_min: int) -> Result:
         t = leg.posted_ts + d
         if leg.action in ("open", "add"):
             if clock is None and p.trigger is not None:
-                hit = _trigger_fill(p, t, default_exit_ts(p, t))
+                until = default_exit_ts(p, t)
+                if until <= t:   # an at: horizon that passed before the post + delay: nothing to copy
+                    return Result(p, delay_min, "too_late", why="the stated horizon passed before the entry")
+                hit = _trigger_fill(p, t, until)
             else:
                 if clock is not None and scan(clock, min(t, hz)):
+                    break
+                if clock is not None and t >= hz:   # posted at or after the default exit: too late to copy
                     break
                 hit = _fill_at(p, t)
             if hit is None:
@@ -226,8 +256,8 @@ def _simulate(p: Position, delay_min: int) -> Result:
                 hz = default_exit_ts(p, ts)
                 if ts >= hz:
                     return Result(p, delay_min, "too_late", why="the stated horizon passed before the entry")
-                end_hit = _fill_at(p, hz)
-                hz_bar = end_hit[0] if end_hit else float("inf")
+                end_hit = _exit_bar(p, hz)
+                hz_bar = end_hit[0] if end_hit else float("inf")   # no bar after hz: the bars end first
             if p.scale:
                 factor = factor or PER_TRADE_USD / (px * total_w)
                 qty = weight[id(leg)] * factor
@@ -244,18 +274,22 @@ def _simulate(p: Position, delay_min: int) -> Result:
                 continue
             if scan(clock, min(t, hz)):
                 break
+            if t >= hz:   # posted at or after the default exit: too late to copy
+                break
             hit = _fill_at(p, t)
             if hit is None:
                 continue
             if hit[0] >= hz_bar:   # at or after the default exit: too late to copy
                 break
             if leg.tp_index:
-                # rule 12(c): their post reporting take-profit n sells TP n's share at post time + delay, unless
-                # the copier's own TP n order already filled; either way TP 1..n are done
+                # rule 12(c): their post reporting take-profit n sells at post time + delay what TP 1..n would
+                # have sold and the copier's own orders haven't (TP n's share, plus any earlier TP that never
+                # filled); nothing when the copier's own TP n order already filled. Either way TP 1..n are done.
                 clock, n = hit[0], leg.tp_index
                 if n <= hit_count():
                     continue
-                q = held if (n >= n_targets or not p.target_fracs) else p.target_fracs[n - 1] * start_qty
+                q = held if (n >= n_targets or not p.target_fracs) else \
+                    sum(p.target_fracs[hit_count():n]) * start_qty
                 book(hit[0], hit[1], q, "exit")
                 del targets[:n - hit_count()]
                 break_even()
@@ -275,7 +309,7 @@ def _simulate(p: Position, delay_min: int) -> Result:
         return Result(p, delay_min, "no_bars", why="no entry bar")
     if held > 1e-12:
         if not scan(clock, hz):
-            hit = _fill_at(p, max(hz, clock))
+            hit = _exit_bar(p, max(hz, clock)) or _last_before(p, clock, hz)   # bars end first: their last bar
             if hit is None:
                 return Result(p, delay_min, "no_bars", why="no exit bar")
             book(hit[0], hit[1], held, "default")
@@ -298,11 +332,14 @@ def word(trades: int, ret_pct: float, hold_ret_pct: float) -> str:
     return "Barely"
 
 
+MIN_CASH_USD = 1.0   # at $1 of cash or less a trade is couldn't-copy: no sub-dollar trade counts toward rule 9's 30
+
+
 def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int, int]:
     """Copy trades in entry order with $10k of cash: a trade uses its entry money until it exits, and realized
     gains or losses change the cash. When open trades leave too little, the next trade is sized down to what is
-    left, or skipped when no cash is left (counted as "couldn't copy"), so the account never spends money it
-    doesn't have. Rule 6 names no minimum size."""
+    left, or skipped when $1 or less is left (counted as "couldn't copy"), so the account never spends money it
+    doesn't have. Rule 6 names no minimum size; the $1 floor only keeps sub-dollar trades out of the count."""
     kept, sized_down, skipped, peak = [], 0, 0, 0.0
     open_: list[tuple[int, float, float]] = []      # (exit ts, money in use, pnl to book at exit)
     cash = MONEY_START
@@ -317,7 +354,7 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
         need = r.entry_notional
         f = 1.0
         if need > cash + 1e-9:
-            if cash <= 0:
+            if cash <= MIN_CASH_USD:
                 skipped += 1
                 continue
             f = cash / need

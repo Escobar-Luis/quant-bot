@@ -17,6 +17,7 @@ DELAYS = [1, 3, 5, 10, 15, 30, 60]                          # rule 2
 DAY_EXIT = (15, 55)                                         # rule 4: 15:55 ET
 SWING_SESSIONS = 5                                          # rule 4
 MIN_TRADES = 30                                             # rule 9
+MIN_CASH = 1.0                                              # rule 6: $1 or less of cash = couldn't copy
 
 
 @dataclass
@@ -110,6 +111,28 @@ def _first_entry_bar(p, t0: float, until: float | None):
     return None
 
 
+def _bars_until(p, t0, t1):
+    """bars_between, except days with no cached bars are passed over (the data may end before t1)."""
+    day, last = B.day_of(p.market, t0), B.day_of(p.market, max(t0, t1 - 1))
+    while day <= last:
+        try:
+            b = B.day_bars(p.market, p.ticker, day)
+        except B.MissingBar:
+            b = {}
+        for k in sorted(b):
+            if t0 <= k < t1:
+                yield k, b[k]
+        day += dt.timedelta(days=1)
+
+
+def _last_bar_before(p, t0, t1):
+    """(time, close) of the last cached bar with t0 <= open < t1, or None."""
+    last = None
+    for k, b in _bars_until(p, t0, t1):
+        last = (k, b[3])
+    return last
+
+
 def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     d = delay * 60
     legs = sorted(p.legs, key=lambda lg: lg.posted_ts)
@@ -120,7 +143,11 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     t0 = first.posted_ts + d
     if p.trigger is not None:
         # ASSUMPTION: a trigger may fill until the default exit measured from the post time + delay.
-        got = _first_entry_bar(p, t0, horizon_ts(p, t0))
+        until = horizon_ts(p, t0)
+        if until <= t0:
+            t.status = "too_late"        # rule 4/6: a stated horizon already past leaves nothing to copy
+            return t
+        got = _first_entry_bar(p, t0, until)
         if got is None:
             t.status = "not_triggered"
             return t
@@ -135,7 +162,16 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     if e_ts >= hz:
         t.status = "too_late"            # rule 6: couldn't copy (entry at or after the exit time)
         return t
-    hz_bar, hz_b = B.first_bar_at_or_after(p.market, p.ticker, hz)
+    try:
+        hz_bar, hz_b = B.first_bar_at_or_after(p.market, p.ticker, hz)
+        end_fill = (hz_bar, hz_b[0])     # rule 4: the default exit, at that bar's open
+    except B.MissingBar:
+        # ASSUMPTION: the cached bars end before the default exit: the position leaves at the close of the
+        # last bar before it, and posts at or after hz are too late (no later bar to fill them)
+        last = _last_bar_before(p, e_ts, hz)
+        if last is None:
+            raise
+        hz_bar, end_fill = hz, last
 
     held, avg, scale = 0.0, 0.0, None
     start_qty = 0.0
@@ -173,6 +209,8 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     # the course's own later posts (adds, trims, closes), each at post time + delay (rule 2)
     events = []
     for lg in legs[first_i + 1:]:
+        if lg.posted_ts + d >= hz:       # rule 4 order: posted at or after the default exit comes too late
+            continue
         k, b = B.first_bar_at_or_after(p.market, p.ticker, lg.posted_ts + d)
         if k < hz_bar:                   # rule 4 order: anything at or after the default exit comes too late
             events.append((k, b[0], lg))
@@ -196,12 +234,13 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
         elif lg.action == "close":
             sell(k, px, held, "exit")
         elif lg.action == "trim" and getattr(lg, "tp_index", None):
-            # their post reports take-profit n: skipped when the copier's own TP n order already filled
-            # (ASSUMPTION), else it sells TP n's share at post time + delay (rule 4: the course's own trim)
+            # rule 12(c): their post reports take-profit n: nothing when the copier's own TP n order already
+            # filled; else it sells, at post time + delay, the shares of every TP up to n that the copier's
+            # own orders have not sold (ASSUMPTION: an earlier TP that never filled is sold with it)
             n = lg.tp_index
             if n <= hit:
                 return
-            q = held if (n >= len(targets) or not fracs) else fracs[n - 1] * start_qty
+            q = held if (n >= len(targets) or not fracs) else sum(fracs[hit:n]) * start_qty
             sell(k, px, q, "exit")
             hit = n
             if p.be_after_target and hit >= p.be_after_target:
@@ -226,7 +265,8 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
         ev = {}
         for k, px, lg in events:
             ev.setdefault(k, []).append((px, lg))
-        for k, b in B.bars_between(p.market, p.ticker, e_ts, hz_bar):
+        walk = B.bars_between if end_fill[0] == hz_bar else (lambda m, s_, a, b_: _bars_until(p, a, b_))
+        for k, b in walk(p.market, p.ticker, e_ts, hz_bar):
             for px, lg in ev.get(k, []):
                 do_leg(k, px, lg)
             if held <= 1e-12:
@@ -257,7 +297,7 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
                 break
 
     if held > 1e-12:
-        sell(hz_bar, hz_b[0], held, "default")   # rule 4: the default exit, at that bar's open
+        sell(end_fill[0], end_fill[1], held, "default")   # rule 4: the default exit
         t.assumed_exit = True
 
     sign = 1 if long else -1
@@ -332,7 +372,8 @@ def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = Non
 
     Rule 6's cash cap: trades are copied in entry order; open trades hold their entry money until they exit,
     when their P&L lands in cash. A trade bigger than the cash left is sized down to it; with no cash left it is
-    couldn't-copy. ASSUMPTION: no minimum size (contracts.md names none; bankroll-rules.md's $100 is CAP-9's).
+    couldn't-copy. ASSUMPTION: $1 of cash or less is couldn't-copy (contracts.md names no minimum; the $1 floor
+    keeps sub-dollar trades out of rule 9's count; bankroll-rules.md's $100 is CAP-9's).
     won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade money from its high,
     booked on each exit's day (the contract's `unknown` says the drop counts closed trades only).
     sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000."""
@@ -348,7 +389,7 @@ def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = Non
         room = MONEY_START + cash_book - sum(o[1] for o in open_)
         f = 1.0
         if t.entry_notional > room + 1e-9:          # rule 6: open exposure capped at cash
-            if room <= 0:
+            if room <= MIN_CASH:
                 couldnt += 1
                 continue
             f = room / t.entry_notional
