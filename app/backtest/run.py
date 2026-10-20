@@ -348,6 +348,12 @@ def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfo
         if prof:
             out["strategy_profile"] = prof
             print(f"  strategy_profile: {len(prof['rules'])} rules kept, {len(prof['dropped'])} dropped")
+        from . import improvements   # spec-audit CAP-15: proposals from the cached reply; every number recomputed
+        base5 = {p.pid: by_pos[p.pid][DEFAULT_DELAY_MIN] for p in positions}
+        imp = improvements.key(mod, a.version, positions, base5, improvements.stored(a.course, a.version))
+        if imp:
+            out["improvements"] = imp
+            print(f"  improvements: {sum(v['kept'] for v in imp['variants'])} of {len(imp['variants'])} kept")
     sp = DATA / "improver" / f"{a.course}-{a.version}.json"   # written by backtest.improver (traced to PRISM)
     if sp.exists():
         out["suggestion"] = json.loads(sp.read_text())
