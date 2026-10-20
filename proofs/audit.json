@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T18:39:25Z",
- "results_git_sha": "f59318f6acc9e9d24c20e63a4249ff33d3206caf",
+ "generated_at": "2026-10-20T18:48:42Z",
+ "results_git_sha": "d51d186f337f95e192043f6957437eb89eafd190",
  "pass": true,
  "sizing": "trade",
  "hold_close": "official",
@@ -45,10 +45,10 @@
   }
  },
  "results_sha256": {
-  "cryptowizard/v1": "c4098c9f9dcdbd4875ad41fa67a6cdc09711ac5760ce10646a69f30d71a53683",
-  "lpp/v1": "bb920080a1d0599cbab95f82773dc14fbecdde6922784d4ae35b09e60c8533db",
-  "lpp/v2": "3777c197decfece0940c1fc857a8453c7f3a81622f77010691aef72f8f0313f9",
-  "ziptrader/v1": "ca934237c7334516467b4f21e73889cd84e86065d45abbebfbe331c39bab50fe"
+  "cryptowizard/v1": "e7305882f69b2ece5909dcea570320c4b2e9a0ba58241b61bda222b9a554c8c4",
+  "lpp/v1": "a6aa01b6416e8c9409b544c57de9be797ec4225208486ff74a1d0bda9be5ac2f",
+  "lpp/v2": "f8a53566a64bc43a3173676da2737ba801f13b9bf9322bf5d3261e8c54d23d30",
+  "ziptrader/v1": "83322ae9d4c62bf07185fe5cd62fe799b3e2bdcb0d75191c95be89b5728d48c2"
  },
  "tolerance": {
   "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",
@@ -176,7 +176,7 @@
    {
     "id": "cw-take-profit-trims-dropped",
     "file": "cryptowizard/v1",
-    "posts": 190,
+    "posts": 0,
     "trades_affected_5m": 0,
     "end_5m": 9290.3,
     "delta_usd": 0.0
@@ -200,7 +200,7 @@
   "contract_silent": [
    {
     "id": "zt-horizon-from-quote",
-    "proposal": "Yes (adopted, contracts.md rule 12a): the extraction moves the quote's horizon into its horizon field (app/collect/ziptrader/horizon.py); engine and audit read it."
+    "proposal": "Yes (adopted as contracts.md rule 12a): the extraction moves the quote's horizon into its horizon field (app/collect/ziptrader/horizon.py); engine and audit each read it."
    },
    {
     "id": "b1-ledger-look-ahead",
