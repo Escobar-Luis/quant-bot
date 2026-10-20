@@ -11,15 +11,18 @@ The rules are contracts.md "Copy-trade rules" (code decides, never the model):
 - whatever is still held after the last announced exit leaves at the position's default exit (`assumed`); a post
   whose fill would land at or after that exit comes too late, a horizon that passed before the entry leaves
   nothing to copy (`too_late`), and when the bars end before the exit it leaves at the last bar's close;
-- costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto;
+- costs per side on every fill: 5 bps stocks, 20 bps under $10, 25 bps crypto (rule 5's `simple` case; `reprice`
+  and a costs.Model price the same fills under `realistic` and `x2`, borrow fees included, for `cost_cases`);
+- a stop crossed by a gap fills at the bar's open (rule 12m);
 - scaled sizing (rule 13e): the first buy is $1,000; each add is sized only from the counts he had stated by then
   (rule 6's whole-trade scaling, which reads later adds, survives only in LPP's `as_taught_stitched` key).
 """
 import bisect
 import datetime as dt
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from . import bars
+from . import costs as C
 from .common import COSTS_BPS, MONEY_START, PER_TRADE_USD
 
 
@@ -77,6 +80,7 @@ class Result:
     entry_notional: float = 0.0
     assumed_exit: bool = False
     why: str | None = None
+    borrow: float = 0.0             # borrow fees inside `cost` (0 under rule 5's simple case)
 
     @property
     def entry(self) -> Fill:
@@ -401,13 +405,15 @@ def judge(row: dict, bench_ret: float | None, bench_sealed_ret: float | None, na
 MIN_CASH_USD = 1.0   # at $1 of cash or less a trade is couldn't-copy: no sub-dollar trade counts toward rule 9's 30
 
 
-def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int, int, float]:
+def fit_to_cash(results: list[Result], model: C.Model = C.SIMPLE,
+                totals: dict | None = None) -> tuple[list[tuple[Result, float]], int, int, float]:
     """Copy every fill in time order with $10k of cash (rule 6's cash cap, per buy): each buy takes its own money
     as it fills, never a later add's; when too little is left it is sized down to the cash, or skipped at $1 or
     less (a first buy skipped = the trade couldn't be copied, and its later buys go with it). Each sell returns
     its share of the money in the position plus its gain; the trade's costs are paid at its last sell. At one
     moment sells go before buys, then by trade id, except that a trade's own fills keep their order. Returns [(result, copied P&L)], buys sized down or skipped,
-    trades skipped, and the most money ever in open positions."""
+    trades skipped, and the most money ever in open positions. `model`: the cost case (rule 5; results already
+    repriced under it); `totals`, when given, receives the copied trades' costs_usd and borrow_usd."""
     order = []
     for i, r in enumerate(results):
         for j, f in enumerate(r.fills):
@@ -416,8 +422,8 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
             order.append((f.ts, f.kind == "entry" or after_own_buy, r.position.pid, i, j))
     order.sort(key=lambda x: x[:3] + (x[4],))
     cash, sized_down, skipped, peak = MONEY_START, 0, 0, 0.0
-    st = [{"on": None, "sim": 0.0, "held": 0.0, "basis": 0.0, "gross": 0.0, "cost": 0.0, "last": -1, "fs": []}
-          for _ in results]
+    st = [{"on": None, "sim": 0.0, "held": 0.0, "basis": 0.0, "gross": 0.0, "cost": 0.0, "borrow": 0.0, "last": -1,
+           "fs": []} for _ in results]
     for i, r in enumerate(results):
         st[i]["last"] = max(j for j, f in enumerate(r.fills) if f.kind != "entry")
     for _ts, _rank, _pid, i, j in order:
@@ -442,7 +448,7 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
             cash -= f.px * q
             s["held"] += q
             s["basis"] += f.px * q
-            s["cost"] += f.px * q * cost_bps(r.position.market, f.px) / 1e4
+            s["cost"] += model.fee(r.position.market, r.position.ticker, f.px, q, f.ts)
             peak = max(peak, sum(x["basis"] for x in st))
         else:
             share = min(1.0, f.qty / s["sim"]) if s["sim"] > 1e-12 else 1.0
@@ -453,7 +459,10 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
             if q > 1e-12:
                 avg = s["basis"] / s["held"]
                 s["gross"] += sign * (f.px - avg) * q
-                s["cost"] += f.px * q * cost_bps(r.position.market, f.px) / 1e4
+                s["cost"] += model.fee(r.position.market, r.position.ticker, f.px, q, f.ts)
+                fee = model.borrow(r.position.market, r.position.ticker, r.position.side, avg * q, r.entry.ts, f.ts)
+                s["cost"] += fee
+                s["borrow"] += fee
                 s["held"] -= q
                 s["basis"] -= avg * q
                 cash += avg * q + sign * (f.px - avg) * q
@@ -467,14 +476,48 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
         return s["gross"] - s["cost"]
 
     kept = [(r, copied_pnl(r, st[i])) for i, r in enumerate(results) if st[i]["on"]]
+    if totals is not None:
+        def copied(i, r, k):
+            fs = st[i]["fs"]
+            return getattr(r, k) * fs[0] if fs and max(fs) - min(fs) <= 1e-12 else st[i][k]
+        on = [(i, r) for i, r in enumerate(results) if st[i]["on"]]
+        totals["costs_usd"] = sum(copied(i, r, "cost") for i, r in on)
+        totals["borrow_usd"] = sum(copied(i, r, "borrow") for i, r in on)
     kept.sort(key=lambda x: x[0].entry.ts)
     return kept, sized_down, skipped, peak
 
 
+def reprice(r: Result, model: C.Model) -> Result:
+    """The same fills under another cost case (rule 5): per-side costs and, on a short, the borrow fee of each
+    cover (entry value of the shares covered, average-cost basis, days from the first entry). Decisions and fills
+    never depend on costs, so only pnl and cost change. Simple: the result itself."""
+    if model.case == "simple" or r.status != "priced":
+        return r
+    p = r.position
+    cost, borrow, held, basis = 0.0, 0.0, 0.0, 0.0
+    t0 = r.entry.ts
+    for f in r.fills:
+        cost += model.fee(p.market, p.ticker, f.px, f.qty, f.ts)
+        if f.kind == "entry":
+            held += f.qty
+            basis += f.px * f.qty
+        else:
+            q = min(f.qty, held)
+            avg = basis / held if held > 1e-12 else f.px
+            borrow += model.borrow(p.market, p.ticker, p.side, avg * q, t0, f.ts)
+            held -= q
+            basis -= avg * q
+    gross = r.pnl + r.cost
+    return replace(r, pnl=gross - cost - borrow, cost=cost + borrow, borrow=borrow)
+
+
 def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_from: str,
-                    name: str = "just holding") -> tuple[dict, list]:
-    """One delay of one portfolio: the by_delay entry and its daily money series (realized at each exit)."""
-    kept, sized_down, skipped, peak = fit_to_cash([r for r in results if r.status == "priced"])
+                    name: str = "just holding", model: C.Model = C.SIMPLE,
+                    totals: dict | None = None) -> tuple[dict, list]:
+    """One delay of one portfolio: the by_delay entry and its daily money series (realized at each exit).
+    `model` (rule 5's cost case) reprices the results first; `totals` receives costs_usd and borrow_usd."""
+    priced = [reprice(r, model) for r in results if r.status == "priced"]
+    kept, sized_down, skipped, peak = fit_to_cash(priced, model, totals)
     pnl_by_day: dict[str, float] = {}
     for r, pnl in kept:
         day = bars.day_of(r.position.market, r.last_exit.ts).isoformat()

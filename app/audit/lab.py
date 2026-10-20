@@ -61,14 +61,24 @@ def _et(day: str, hm: str) -> int:
 
 
 def _side_cost(model: str, px: float, adv: float) -> float:
-    """Per-side cost as a fraction of the fill's value (spec sections 5 and 5b)."""
-    if model == "small_cap":
+    """Per-side cost as a fraction of the fill's value (spec sections 5 and 5b; contracts rule 5's cases:
+    realistic = small_cap, x2_realistic = it doubled)."""
+    if model in ("small_cap", "x2_realistic"):
         b = 50 if px < 5 else (30 if px < 10 else 5)
         if adv < 50e6:
             b += 10
-        return b / 1e4
+        return (2 * b if model == "x2_realistic" else b) / 1e4
     b = 5 if px >= 10 else 20
     return (2 * b if model == "x2" else b) / 1e4
+
+
+# contracts rule 5 (story 29): one day of borrow fee per lab trade (all intraday shorts), annual rate by flag
+RATE = {True: 0.005, False: 0.30, None: 0.30}
+CASE_MODEL = {"simple": "base", "realistic": "small_cap", "x2": "x2_realistic"}
+
+
+def _outcome(n: int, ret: float) -> str:
+    return "No trades" if n == 0 else "Made money" if ret > 0 else "Lost money" if ret < 0 else "Broke even"
 
 
 def _word(n: int, ret: float, bench: float) -> str:
@@ -135,16 +145,17 @@ def recompute(d: dict) -> dict:
                     if w["from"] <= b <= w["to"]:
                         k = raw[b][0] / split[b][0]
                         fills.append((b, _et(b, "09:30"), t, split[b][0] * k, split[b][3] * k, _adv20(raw, b),
-                                      flags.get(t) is False))
+                                      flags.get(t) is False, flags.get(t)))
                 continue
             v = SPEC["variants"][vid]
             for day in _gap_days(split, v["gap_pct"], w["from"], w["to"]):
                 f = _fill_short(_minutes(t, day), day, entry_at[rid], v["stop_pct"], v["exit_et"])
                 if f:
-                    fills.append((day, f[0], t, f[1], f[2], _adv20(raw, day), flags.get(t) is False))
+                    fills.append((day, f[0], t, f[1], f[2], _adv20(raw, day), flags.get(t) is False, flags.get(t)))
         res = {}
-        for model in ("base", "x2", "small_cap", "borrow"):
-            cash_pnl, eq_peak, worst_dd, rows = 0.0, 10_000.0, 0.0, []
+        for model in ("base", "x2", "small_cap", "borrow", "case:simple", "case:realistic", "case:x2"):
+            case = model[5:] if model.startswith("case:") else None
+            cash_pnl, eq_peak, worst_dd, rows, lent = 0.0, 10_000.0, 0.0, [], 0.0
             for day in cal:
                 todays = sorted((f for f in fills if f[0] == day), key=lambda f: (f[1], f[2]))
                 if todays:
@@ -152,18 +163,22 @@ def recompute(d: dict) -> dict:
                     size = 1_000.0 if 1_000.0 * len(todays) <= room else max(room, 0.0) / len(todays)
                     for f in todays:
                         sh = size / f[3]
-                        cm = "base" if model == "borrow" else model
+                        cm = "base" if model == "borrow" else CASE_MODEL[case] if case else model
                         p = sh * (f[3] - f[4]) - sh * f[3] * _side_cost(cm, f[3], f[5]) \
                             - sh * f[4] * _side_cost(cm, f[4], f[5])
                         if model == "borrow" and f[6]:
                             p -= size * 0.004
+                        if case and case != "simple":
+                            fee = size * RATE[f[7]] * (2 if case == "x2" else 1) / 360
+                            p -= fee
+                            lent += fee
                         rows.append((f[0], f[1], f[2], p))
                         cash_pnl += p
                 eq = 10_000.0 + cash_pnl
                 eq_peak = max(eq_peak, eq)
                 worst_dd = min(worst_dd, eq / eq_peak - 1)
-            res[model] = (cash_pnl, worst_dd, rows)
-        pnl, dd, rows = res["base"]
+            res[model] = (cash_pnl, worst_dd, rows, lent)
+        pnl, dd, rows, _ = res["base"]
         n = len(rows)
         ret = pnl / 100
         lose = run_len = 0
@@ -182,6 +197,10 @@ def recompute(d: dict) -> dict:
             "worst_day": worst, "word": _word(n, ret, spy_ret),
             "x2": res["x2"][0] / 100, "small_cap": res["small_cap"][0] / 100, "borrow_high": res["borrow"][0] / 100,
             "htb_trades": sum(1 for f in fills if f[6]),
+            "cases": {c: {"pnl_usd": res[f"case:{c}"][0], "ret_pct": res[f"case:{c}"][0] / 100,
+                          "word": _word(len(res[f"case:{c}"][2]), res[f"case:{c}"][0] / 100, spy_ret),
+                          "outcome": _outcome(len(res[f"case:{c}"][2]), res[f"case:{c}"][0] / 100),
+                          "borrow_usd": res[f"case:{c}"][3]} for c in CASE_MODEL},
             "slice_trades": len(sl), "slice_ret": sl_ret, "slice_word": _word(len(sl), sl_ret, spy_slice)}
     return {"spy": spy_ret, "spy_slice": spy_slice, "runs": out}
 
@@ -230,6 +249,11 @@ def check(path: Path = LAB) -> dict:
         cmp(where, "slice.trades", r["slice"]["trades"], m["slice_trades"], None)
         cmp(where, "slice.ret_pct", r["slice"]["ret_pct"], m["slice_ret"], 0.01)
         cmp(where, "slice.word", r["slice"]["word"], m["slice_word"], None)
+        for c, mc in m["cases"].items():   # contracts rule 5's three cost cases (story 29)
+            rc = (r.get("cost_cases") or {}).get(c) or {}
+            for f, tol in (("pnl_usd", 0.01), ("ret_pct", 0.01), ("borrow_usd", 0.01), ("word", None),
+                           ("outcome", None)):
+                cmp(where, f"cost_cases.{c}.{f}", rc.get(f), mc[f], tol)
     for rule, v in d["verdict"].items():
         prim = [mine["runs"][k] for k in mine["runs"] if k[0] == rule and k[1] == "P" and k[2] != "new-hot-raw"]
         cmp(f"verdict|{rule}", "held_up", v["held_up"], bool(prim) and all(p["word"] == "Yes" for p in prim), None)

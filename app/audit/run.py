@@ -200,6 +200,91 @@ def compare_head(portfolio: str, delay: str, theirs: dict, ours: dict, out: list
     return worst
 
 
+CASE_MONEY = ("end", "costs_usd", "borrow_usd")
+CASE_POINTS = ("ret_pct", "hold_ret_pct")
+CASE_EXACT = ("trades", "won_pct", "sized_down", "couldnt_copy", "word", "outcome", "vs")
+
+
+def check_cost_cases(d: dict, mine: dict, same_mine: dict, hold_row: dict, sealed_from, name, market) -> list[dict]:
+    """contracts.md section cost_cases: the flags of every ticker the priced trades short (from the cached
+    lookups), then every portfolio x delay x case recomputed with calc's own cost code ($1, 0.01 pt, counts and
+    words exact); a case row's `simple` must equal the file's headline row."""
+    cc, out = d["cost_cases"], []
+
+    def miss(where, field, theirs, ours, diff=None):
+        out.append({"kind": "cost_cases", "portfolio": where, "field": field, "theirs": theirs, "ours": ours,
+                    **({} if diff is None else {"diff": round(diff, 4)})})
+
+    if cc.get("cases") != list(calc.CASES) or cc.get("default") != "realistic":
+        miss("file", "cases", [cc.get("cases"), cc.get("default")], [list(calc.CASES), "realistic"])
+    trades = [t for t in list(mine.values()) + list(same_mine.values()) if t.status == "priced"]
+    shorted = sorted({t.ticker for t in trades if t.side == "short"})
+    cached = calc.read_flags()
+    flags = {t: "crypto" if market == "crypto" else cached.get(t, "unknown") for t in shorted}
+    theirs_flags = (cc.get("borrow") or {}).get("flags")
+    if theirs_flags != flags:
+        diff = sorted(t for t in set(flags) | set(theirs_flags or {}) if (theirs_flags or {}).get(t) != flags.get(t))
+        miss("file", "borrow.flags", {t: (theirs_flags or {}).get(t) for t in diff[:20]},
+             {t: flags.get(t) for t in diff[:20]})
+    for k, v in (("shorted_tickers", len(shorted)), ("hard", sum(x == "hard" for x in flags.values())),
+                 ("unknown", sum(x == "unknown" for x in flags.values()))):
+        if (cc.get("borrow") or {}).get(k) != v:
+            miss("file", f"borrow.{k}", (cc.get("borrow") or {}).get(k), v)
+
+    def row(ts, case, bench):
+        tot = {}
+        r = calc.portfolio(ts, hold_row, sealed_from, bench, name, case, flags, tot)
+        return {**r, **tot}
+
+    def cmp(where, dl, theirs, ours):
+        for f in CASE_MONEY + CASE_POINTS + CASE_EXACT:
+            a, b = theirs.get(f, "missing"), ours.get(f, "missing")
+            if f in CASE_EXACT or "missing" in (a, b) or None in (a, b):
+                if a != b:
+                    miss(f"{where}@{dl}", f, a, b)
+            elif abs(a - b) > (HEAD_TOL if f in CASE_MONEY else RET_TOL) + 1e-9:
+                miss(f"{where}@{dl}", f, a, b, abs(a - b))
+        for g in ("ret_pct", "hold_ret_pct") + SEALED_EXACT:
+            x, y = (theirs.get("sealed") or {}).get(g, "missing"), (ours.get("sealed") or {}).get(g, "missing")
+            if g in SEALED_EXACT or "missing" in (x, y) or None in (x, y):
+                if x != y:
+                    miss(f"{where}@{dl}", f"sealed.{g}", x, y)
+            elif abs(x - y) > RET_TOL + 1e-9:
+                miss(f"{where}@{dl}", f"sealed.{g}", x, y, abs(x - y))
+
+    same = d.get("same_sessions")
+    base = {}
+    if same:
+        got = (cc.get("same_sessions") or {}).get("by_delay") or {}
+        for dl in map(str, d["delays_min"]):
+            ts = [t for (pid, x), t in same_mine.items() if x == int(dl)]
+            for case in calc.CASES:
+                ours = base[(dl, case)] = row(ts, case, None)
+                cmp(f"same_sessions:{case}", dl, (got.get(dl) or {}).get(case) or {}, ours)
+    heads = {p["id"]: p["by_delay"] for p in d["portfolios"] if p.get("testable")}
+    got_pf = {p["id"]: p["by_delay"] for p in cc.get("portfolios") or []}
+    if sorted(got_pf) != sorted(heads):
+        miss("file", "portfolios", sorted(got_pf), sorted(heads))
+    for pf_id in heads:
+        for dl in map(str, d["delays_min"]):
+            ts = [t for (pid, x), t in mine.items() if x == int(dl) and (pf_id == "all" or t.portfolio == pf_id)]
+            theirs_all = (got_pf.get(pf_id) or {}).get(dl) or {}
+            for case in calc.CASES:
+                if not same:
+                    bench = "hold"
+                elif pf_id == same.get("portfolio", "all"):
+                    b = base[(dl, case)]
+                    bench = (b["ret_pct"], b["sealed"]["ret_pct"])
+                else:
+                    bench = None
+                cmp(f"{case}:{pf_id}", dl, theirs_all.get(case) or {}, row(ts, case, bench))
+            simple, head = theirs_all.get("simple") or {}, heads[pf_id].get(dl) or {}
+            for f in ("end", "ret_pct", "trades", "word", "outcome", "vs", "sized_down", "couldnt_copy"):
+                if simple.get(f, "missing") != head.get(f, "missing"):
+                    miss(f"simple:{pf_id}@{dl}", f"{f} vs headline", simple.get(f, "missing"), head.get(f, "missing"))
+    return out
+
+
 def lpp_sources(version: str) -> set[str]:
     return {e["source_id"] for e in P.rows(P.lpp_events_path(version))}
 
@@ -307,11 +392,12 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
                                      for m in mm)), "details": mm}
 
+    same_mine = {}
     if same:   # first: its rows are the proof-set headline's benchmark
         srcs = P.lpp_proof_set() if same.get("proof_set") else lpp_sources(version)
         base = own_positions(same["version"], srcs, f"{same['version']}-same_sessions")
         ss = [(same.get("portfolio", "all"), same["by_delay"])]
-        run_set(base, "-same_sessions", ss)
+        same_mine = run_set(base, "-same_sessions", ss)
         math_only(same["version"], srcs, "-same_sessions", ss)
 
     only = P.lpp_proof_set() if course == "lpp" and d["checks"].get("proof_set") else None
@@ -319,6 +405,21 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
     pfs = [(p["id"], p["by_delay"]) for p in d["portfolios"] if p.get("testable")]
     mine = run_set(positions, "", pfs)
     math_only(version, only, "", pfs)
+
+    # cost_cases (contracts.md rule 5 and section cost_cases, CAP-17): every testable portfolio and delay under the
+    # three cost cases, from this audit's own trades and its own cost code; simple must equal the headline
+    cc_note = "absent"
+    if not d.get("cost_cases"):
+        mismatches.append({"kind": "missing", "field": "cost_cases", "theirs": "absent",
+                           "ours": "expected in every course file (contracts.md section cost_cases)"})
+    else:
+        try:
+            found = check_cost_cases(d, mine, same_mine, hold_row, sealed_from, name, market)
+        except calc.B.MissingBar as e:
+            found = [{"kind": "missing", "field": "cost_cases", "theirs": "cost_cases", "ours": str(e)}]
+        mismatches.extend(found)
+        cc_note = {"cases": d["cost_cases"].get("cases"), "mismatches": len(found),
+                   "shorted_tickers": len(d["cost_cases"].get("borrow", {}).get("flags") or {})}
 
     # by_year (contracts.md section by_year): every file but a proof-set one (rule 9) carries it, for every
     # testable portfolio and delay the file has; the expected list comes from the portfolios, not from by_year
@@ -419,7 +520,8 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
     return {"file": f"{course}/{version}", "results_sha256": file_sha, "sizing": sizing, "hold_close": hold_close,
             "pass": not mismatches, "trades_checked": checked, "mismatches": len(mismatches),
             "max_abs_diff": round(worst, 4), "hold": hold_note, "by_year": by_year_note,
-            "strategy_profile": sp_note, "improvements": imp_note, "positions": position_reports,
+            "strategy_profile": sp_note, "improvements": imp_note, "cost_cases": cc_note,
+            "positions": position_reports,
             "unverifiable": sorted(unverifiable),
             "math_on_loader_positions": loader_math,
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
