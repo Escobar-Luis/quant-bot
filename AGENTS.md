@@ -14,7 +14,7 @@ Day Trader AI answers Luis's own question: if he had followed each paid course (
 - Spec and stories: `_bmad-output/planning-artifacts/spec-day-trader-ai/` (SPEC.md, lanes.md, contracts.md).
 
 ## Decisions (2026-10-17, 14:24)
-1. "Worked" = copy every posted trade with $10k fake money, after costs, vs just holding SPY (stocks) or BTC (crypto). Word: Yes (ahead 2+ pts), Barely (within 2), No (behind 2+), Not enough trades (under 30).
+1. "Worked" = copy every posted trade with $10k fake money, after costs, vs just holding SPY (stocks) or BTC (crypto). Word: Not enough trades (under 30); No if the copy lost money; else Yes (ahead 2+ pts), Barely (within 2), No (behind 2+). A word never reads as success when the copy lost money (spec-audit CAP-7, 2026-10-20). Every card says, in order: the outcome ("Made money", "Lost money"), then vs the benchmark ("beat the S&P", "less than Bitcoin"), then the held-out (sealed) months' own word. A proof-set file (LPP v2) is compared only with v1 on the same sessions, never with the full-window S&P.
 2. One portfolio per kind of trade (day, swing, options, crypto) plus "all", the headline. Options: counted, not priced.
 3. Anyone may sign in; everyone sees the same three verdicts. No per-user data on a server.
 4. Sign-in: Google via Clerk. Hosting: Vercel (https://day-trader-ai.vercel.app), static build deployed by hand with `web/deploy-vercel.sh --prod`; merging to main never deploys. Deploy only with Luis's OK.
