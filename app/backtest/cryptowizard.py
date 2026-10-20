@@ -1,12 +1,13 @@
 """Crypto Wizard: each "Trade Update" setup (entry now, stop, TP1-TP4 with close shares) -> one copyable position.
 
 Reads data/cryptowizard/events.calls.jsonl and events.rules.jsonl, written by story/collect-cryptowizard. A setup's
-targets close their stated shares (`close_pcts`) when price trades them; the stop moves to break-even once TP2
-fills (their "B/E" move, assumed at TP2); a linked "please close" post exits the rest at post time + delay. With no
-close post, the rest leaves 24 h after entry, or after the setup's last linked follow-up if that came later.
+targets close their stated shares (`close_pcts`) when price trades them; the stop moves to break-even after the TP
+their "B/E" note names (`be_move`); their linked follow-ups are the course's own exits (rule 4): a take-profit post
+(TP n) sells TP n's share at post time + delay unless the copier's own TP n order already filled (rule 12c), and the
+first "please close" post exits the rest. With no close post, the rest leaves 24 h after entry (rule 4).
 """
 import json
-import math
+import re
 
 from . import bars
 from .common import DATA
@@ -51,29 +52,36 @@ def build(version: str) -> dict:
     for e in evs:
         if e["type"] == "trade" and e.get("links_to") and e["status"] == "ok":
             follow.setdefault(e["links_to"], []).append(e)
-    positions, stats = [], {"no_close_post": 0, "side_unknown": 0,
+    positions, stats = [], {"no_close_post": 0, "side_unknown": 0, "tp_posts": 0,
                             "side_inferred": sum(bool((c.get("extra") or {}).get("side_inferred")) for c in calls)}
     for c in sorted(calls, key=lambda e: e["wall_utc"]):
         side = (c.get("side") or "").lower()
         if side not in ("long", "short"):
             stats["side_unknown"] += 1
             continue
-        t0 = bars.to_ts(c["wall_utc"])
-        legs = [Leg(c["event_id"], t0, "open")]
-        fus = sorted(follow.get(c["event_id"], []), key=lambda e: e["wall_utc"])
-        closes = [e for e in fus if e["action"] == "close"]
-        legs += [Leg(e["event_id"], bars.to_ts(e["wall_utc"]), "close") for e in closes[:1]]
-        if not closes:
+        x = c.get("extra") or {}
+        legs = [Leg(c["event_id"], bars.post_ts(c["wall_utc"]), "open")]
+        for f in sorted(follow.get(c["event_id"], []), key=lambda e: e["wall_utc"]):
+            if f["action"] not in ("trim", "close"):
+                continue
+            if legs[-1].action == "close":
+                break                     # the first close ends the position; later posts have nothing to sell
+            tp = (f.get("extra") or {}).get("tp_index") if f["action"] == "trim" else None
+            legs.append(Leg(f["event_id"], bars.post_ts(f["wall_utc"]), f["action"], tp_index=tp))
+        if not any(lg.action == "close" for lg in legs):
             stats["no_close_post"] += 1
-        last = max([bars.to_ts(e["wall_utc"]) for e in fus] or [t0])
-        hours = max(24, math.ceil((last - t0) / 3600))
-        pcts = (c.get("extra") or {}).get("close_pcts") or []
+        stats["tp_posts"] += sum(lg.action == "trim" for lg in legs)
+        pcts = x.get("close_pcts") or []
         fracs = [p / 100 for p in pcts] if len(pcts) == len(c["targets"]) else []
+        # rule 3: "Now or as close to" is a market entry; any other wording with a price waits for that level
+        trig = c["entry"] if c.get("entry") is not None and \
+            not (x.get("entry_wording") or "").lower().startswith("now") else None
+        be = re.search(r"TP\s*(\d)", x.get("be_move") or "", re.I)
         p = Position(pid=f"cw-{c['source_id'].rsplit('/', 1)[-1]}", course=COURSE, market=MARKET,
                      ticker=symbol(c), side=side, portfolio="crypto", legs=legs,
-                     default_exit=f"hours:{hours}", stop=c.get("stop"), targets=list(c["targets"]),
-                     target_fracs=fracs, quote=words(c.get("quote"), 12), cite=cite(c, CHANNEL), why=c.get("why"))
-        p.be_after_target = 2
+                     default_exit="hours:24", stop=c.get("stop"), targets=list(c["targets"]),
+                     target_fracs=fracs, trigger=trig, be_after_target=int(be.group(1)) if be else None,
+                     quote=words(c.get("quote"), 12), cite=cite(c, CHANNEL), why=c.get("why"))
         positions.append(p)
 
     rules = []
@@ -96,16 +104,18 @@ def unknown(stats, assumed, priced, total, status) -> list[str]:
     out = []
     if priced < total:
         out.append(f"Partial: {priced} of {total} setups are priced so far.")
-    out.append("Break-even stop assumed once the second target fills.")
+    out.append("Break-even stop moved once the target their B/E note names fills.")
     if stats.get("side_inferred"):
         out.append(f"Long or short was inferred for {stats['side_inferred']} setups that didn't say.")
     if stats.get("side_unknown"):
         out.append(f"{stats['side_unknown']} setups had no direction and were skipped.")
     if assumed.get("crypto"):
-        out.append(f"Exit assumed for {assumed['crypto']} setups they never closed (24 h or last update).")
+        out.append(f"Exit assumed 24 h after entry for {assumed['crypto']} setups they never closed.")
     if status.get("no_bars"):
         out.append(f"{status['no_bars']} setup-delays had no price bars and were skipped.")
-    out.append("Their take-profit posts are matched by the copier's own target orders.")
+    if stats.get("tp_posts"):
+        out.append(f"{stats['tp_posts']} take-profit posts sell that target's share, unless the copier's own "
+                   "order already filled.")
     out.append("$1,000 per setup: most of the $10k sits in cash, earning nothing.")
     out.append("Prices are Binance 1-minute bars; costs 25 bps per side.")
     return out
