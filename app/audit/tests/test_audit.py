@@ -5,7 +5,7 @@ import shutil
 import pytest
 
 from audit import calc, run
-from backtest.common import DATA, RESULTS
+from audit.paths import DATA, RESULTS
 
 
 def test_headline_tolerance_is_one_dollar():
@@ -37,6 +37,10 @@ def test_word_follows_rule_9():
 NEED = [DATA / "audit" / "ziptrader-v1-ledger.jsonl", DATA / "ziptrader" / "events.jsonl"]
 
 
+def _diff(tmp_path) -> dict:
+    return json.loads((tmp_path / "diff-ziptrader-v1.json").read_text())
+
+
 @pytest.mark.skipif(not all(p.exists() for p in NEED), reason="needs local data/ (ziptrader events, ledger, bars)")
 def test_altered_result_exits_non_zero(tmp_path):
     src = RESULTS / "ziptrader" / "v1.json"
@@ -45,16 +49,22 @@ def test_altered_result_exits_non_zero(tmp_path):
     args = ["--results-dir", str(tmp_path), "--out-dir", str(tmp_path), "--proofs", "", "--only", "ziptrader/v1"]
 
     shutil.copy(src, dst)
-    assert run.main(args) == 0                         # untouched: reconciles
+    run.main(args)                                     # untouched: the math alone reconciles, the ledger is fresh
+    clean = _diff(tmp_path)
+    assert clean["math_on_loader_positions"]["main"]["mismatches"] == 0
+    assert not any(m["kind"] == "stale" for m in clean["details"])
 
     d = json.loads(src.read_text())
     d["portfolios"][0]["by_delay"]["5"]["end"] += 5    # a headline $5 off
     dst.write_text(json.dumps(d))
     assert run.main(args) != 0
+    rep = _diff(tmp_path)
+    assert any(m["kind"] == "stale" for m in rep["details"])          # the ledger no longer matches the file
+    assert any(m["field"] == "end" and m["delay"] == 5 for m in rep["math_on_loader_positions"]["main"]["details"])
 
     d = json.loads(src.read_text())
     d["trades"][0]["by_delay"]["5"]["exit"] += 0.05    # one trade's exit 5 cents off
     dst.write_text(json.dumps(d))
     assert run.main(args) != 0
-    diff = json.loads((tmp_path / "diff-ziptrader-v1.json").read_text())
-    assert any(m["field"] == "exit" and m["delay"] == 5 for m in diff["details"])
+    assert any(m["field"] == "exit" and m["delay"] == 5 and m["against"] == "results"
+               for m in _diff(tmp_path)["details"])
