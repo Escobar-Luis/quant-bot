@@ -96,7 +96,7 @@ def trade_row(results: dict[int, engine.Result]) -> dict:
     return row
 
 
-def main():
+def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument("--course", required=True)
     ap.add_argument("--version", default="v1")
@@ -108,8 +108,11 @@ def main():
                     help="copy his raw share counts (default: scaled so each trade starts at $1,000)")
     a = ap.parse_args()
     a.scale = not a.literal
+    return a
 
-    mod = course_module(a.course)
+
+def load_positions(mod, a) -> tuple[dict, set | None, list]:
+    """Step 1, load: the course's extracted trades as positions, with unique ids."""
     only = mod.proof_set() if a.course == "lpp" and a.version != "v1" and not a.all_sessions else None
     built = mod.build(a.version, only) if only else mod.build(a.version)
     positions = built["positions"][: a.limit] if a.limit else built["positions"]
@@ -119,11 +122,13 @@ def main():
         seen[p.pid] += 1
         if seen[p.pid] > 1:
             p.pid = f"{p.pid}-{seen[p.pid]}"
-
     for p in positions:
         p.scale = a.scale
-    prefetch(positions)
-    hold, dates, hold_series = hold_numbers(mod.MARKET, getattr(mod, "HOLD_BARS", mod.HOLD["symbol"]), mod.WINDOW)
+    return built, only, positions
+
+
+def price_positions(positions) -> tuple[dict[str, dict[int, engine.Result]], Counter]:
+    """Step 2, price: copy every position at every delay on 1-minute bars."""
     by_pos: dict[str, dict[int, engine.Result]] = {}
     for i, p in enumerate(positions):
         by_pos[p.pid] = {d: engine.simulate(p, d) for d in DELAYS_MIN}
@@ -133,7 +138,11 @@ def main():
     print("  results by status (all delays):", dict(status))
     for why, n in Counter(r.why for rs in by_pos.values() for r in rs.values() if r.why).most_common(5):
         print(f"  skipped {n}x: {why}")
+    return by_pos, status
 
+
+def build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series) -> list[dict]:
+    """Step 3, portfolios: "all" plus one per kind of trade, each vs just holding; options counted, not priced."""
     kinds = ["day", "swing"] if mod.MARKET == "us_equities" else ["crypto"]
     portfolios = []
     for pid in ["all"] + kinds:
@@ -146,26 +155,40 @@ def main():
     if built["options_count"] or mod.MARKET == "us_equities":
         portfolios.append({"id": "options", "label": LABELS["options"], "testable": False,
                            "count": built["options_count"], "why": "No free options price history"})
+    return portfolios
 
+
+def same_sessions_baseline(mod, a, only, dates, hold) -> dict | None:
+    """Step 4, baseline: lpp v2+ only, v1's trades from exactly the same sessions, priced the same way."""
+    if not (a.course == "lpp" and a.version != "v1" and not a.limit):
+        return None
     d5 = DEFAULT_DELAY_MIN
-    same = None
-    if a.course == "lpp" and a.version != "v1" and not a.limit:   # the fix vs the failure in money: v1 priced on this version's sessions
-        srcs = only or {e["source_id"] for e in mod.load(a.version)}
-        base = mod.build("v1", srcs)["positions"]   # v1's events from exactly these sessions, same ledger rules
-        for p in base:
-            p.scale = a.scale
-        prefetch(base)
-        rows = {}
-        for d in DELAYS_MIN:
-            rs = [engine.simulate(p, d) for p in base]
-            rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
-        same = {"version": "v1", "sessions": len(srcs), "proof_set": bool(only), "portfolio": "all", "by_delay": rows,
-                "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
-        print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
+    srcs = only or {e["source_id"] for e in mod.load(a.version)}
+    base = mod.build("v1", srcs)["positions"]   # v1's events from exactly these sessions, same ledger rules
+    for p in base:
+        p.scale = a.scale
+    prefetch(base)
+    rows = {}
+    for d in DELAYS_MIN:
+        rs = [engine.simulate(p, d) for p in base]
+        rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
+    same = {"version": "v1", "sessions": len(srcs), "proof_set": bool(only), "portfolio": "all", "by_delay": rows,
+            "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
+    print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
+    return same
+
+
+def sample_trades(by_pos) -> list[dict]:
+    """The biggest wins and losses at the default delay, for the trade list."""
+    d5 = DEFAULT_DELAY_MIN
     priced = [rs for rs in by_pos.values() if rs[d5].status == "priced"]
     priced.sort(key=lambda rs: -abs(rs[d5].pnl))
-    trades = [trade_row(rs) for rs in priced[:SAMPLE_TRADES]]
+    return [trade_row(rs) for rs in priced[:SAMPLE_TRADES]]
 
+
+def unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only) -> list[str]:
+    """Step 5, unknowns: what the numbers can't tell you, in plain words."""
+    d5 = DEFAULT_DELAY_MIN
     st = built["stats"]
     assumed = Counter(p.portfolio for rs in by_pos.values() for d, r in rs.items()
                       if d == d5 and r.assumed_exit for p in [r.position])
@@ -180,8 +203,12 @@ def main():
         what = f"the {len(only)}-session proof set PRISM scores" if only else f"{same['sessions']} sessions"
         unknown.insert(0, f"{a.version} covers {what} only; compare it with v1 on the same sessions "
                           "(same_sessions), not with the full year.")
+    return unknown
 
-    out = {
+
+def assemble(mod, a, built, positions, status, portfolios, same, trades, unknown) -> dict:
+    """Step 6a, assemble: the results/1 file (contracts.md)."""
+    return {
         "schema": "results/1", "course": a.course, "course_name": mod.NAME, "version": a.version,
         "source_agent_id": f"extract-{a.course}-{a.version}", "sample": False,
         "partial": len(positions) < len(built["positions"]),
@@ -196,6 +223,10 @@ def main():
                                        "positions_priced": len(positions),
                                        "results_by_status": dict(status)},
     }
+
+
+def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios) -> None:
+    """Step 6b, v2 keys: strategies, ranges, combos, best stop, and the improver's suggestion if one exists."""
     results_all = {d: [by_pos[p.pid][d] for p in positions] for d in DELAYS_MIN}
     strat = extras.strategies(mod, a.version, positions, by_pos, dates, hold, mod.WINDOW)
     rng = extras.ranges(results_all, dates, hold_series, mod.WINDOW)
@@ -214,6 +245,10 @@ def main():
     for c in mix:
         print(f"  best mix {c['ids']}: dev {c['dev']['ret_pct']}% vs hold {c['dev']['hold_ret_pct']}%, "
               f"sealed {c['sealed']['ret_pct']}% vs {c['sealed']['hold_ret_pct']}% ({c['sealed']['trades']} trades) {c['word']}")
+
+
+def write_results(out, a, portfolios) -> None:
+    """Step 6c, write: results/<course>/<version>.json (or --out), then the headline per delay."""
     path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(public_json(out))
@@ -223,6 +258,22 @@ def main():
         print(f"  all @{d:>2}m: end {r['end']:>10,.0f}  ret {r['ret_pct']:>7.2f}%  hold {r['hold_ret_pct']:>6.2f}%  "
               f"trades {r['trades']:>4}  won {r['won_pct']}%  {r['word']}")
     print("wrote", path)
+
+
+def main():
+    a = parse_args()
+    mod = course_module(a.course)
+    built, only, positions = load_positions(mod, a)
+    prefetch(positions)
+    hold, dates, hold_series = hold_numbers(mod.MARKET, getattr(mod, "HOLD_BARS", mod.HOLD["symbol"]), mod.WINDOW)
+    by_pos, status = price_positions(positions)
+    portfolios = build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series)
+    same = same_sessions_baseline(mod, a, only, dates, hold)
+    trades = sample_trades(by_pos)
+    unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
+    out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
+    add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios)
+    write_results(out, a, portfolios)
 
 
 if __name__ == "__main__":
