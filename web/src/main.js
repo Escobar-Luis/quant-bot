@@ -315,6 +315,24 @@ function renderBotMix(c) {
       ${say ? `<p class="bot-say">${say}</p>` : ''}`;
   }
 }
+// Year by year (CAP-4): the headline portfolio at the chosen delay, each calendar year then all time. Missing key: hidden.
+function renderYears(v) {
+  const by = v.r?.by_year, rows = by?.portfolios?.[v.head.id]?.by_delay?.[dkey(by?.portfolios?.[v.head.id]?.by_delay)];
+  $('#cYear').hidden = !rows;
+  if (!rows) { $('#years').innerHTML = ''; return; }
+  const tr = by.hold?.basis === 'total_return';
+  $('#yearMeta').textContent = tr ? `holding ${v.hold} with dividends` : `holding ${v.hold}`;
+  const few = w => (w === 'Not enough trades' ? 'Too few' : w);
+  $('#years').innerHTML = `<thead><tr><th scope="col">Year</th><th scope="col">Copying</th><th scope="col">Holding</th><th scope="col">Trades</th><th scope="col">Answer</th></tr></thead><tbody>` +
+    (by.periods || []).filter(p => rows[p.id]).map(p => {
+      const r = rows[p.id], all = p.id === 'all';
+      return `<tr class="${all ? 'all' : ''}"><td>${all ? 'All time' : esc(p.id)}</td>
+        <td>${pct(r.ret_pct)}<small>${fmt.money(r.end)}</small></td>
+        <td>${pct(r.hold_ret_pct)}${tr ? `<small>${pct(r.hold_price_ret_pct)} price</small>` : ''}</td>
+        <td>${Number(r.trades).toLocaleString('en-US')}</td>
+        <td class="w-${wcls(r.word)}">${esc(few(r.word))}</td></tr>`;
+    }).join('') + '</tbody>';
+}
 let shownWord = null;
 function renderVerdict(fresh) {
   const c = COURSES[cur], v = vm(c);
@@ -323,7 +341,7 @@ function renderVerdict(fresh) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
     $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = '';
-    ['cChart', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    ['cChart', 'cYear', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
@@ -344,6 +362,7 @@ function renderVerdict(fresh) {
   if (fresh && !STILL) { const h = $('#vHead'); h.classList.remove('reveal'); void h.offsetWidth; h.classList.add('reveal'); }
   shownWord = k.word;
   drawMain(v, k);
+  renderYears(v);
   renderStrats(c, v);
   renderBotMix(c);
   $('#live').textContent = `${c.name}: ${k.word}. ${kMoney(v.start)} became ${fmt.money(k.end)}; holding ${v.hold} made ${fmt.money(k.hold_end)}.`;
