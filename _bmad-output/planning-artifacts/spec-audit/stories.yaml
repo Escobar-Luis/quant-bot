@@ -86,3 +86,9 @@
     proofs/prism.json predates the audit engine fixes (PR #58): knowledge_base.answer quotes $9,765.86 and its hit snippets say 3000 passed / 1196 in review (now $9,763.83, 2,883 / 1,313); evaluator.money_same_sessions says $10,290.71 / $10,303.25 vs results/lpp/v2.json $10,287.41 / $10,300.52. Refresh the numbers from results/.
   invoke_dev_with: >-
     Owner: app/prism (story 2 lane). No new PRISM runs needed for the numbers; rebuild via prism.proofs from current results. The KB answer text is model output: either rerun the verdict run or mark it as the text of that dated run. Then update the README note in "Architecture".
+- id: "15"
+  title: Ledgers per worktree, so parallel reruns don't clobber each other
+  description: >-
+    CAP-3 hygiene. backtest.run writes data/audit/<course>-<version>-ledger.jsonl into the one shared data/ folder (every worktree reads it via DATA_DIR or the main checkout), so two branches regenerating results at once overwrite each other's ledgers and audit.run then fails as stale on whichever branch ran first.
+  invoke_dev_with: >-
+    Found by story 4 (audit-4-honest-words) while stories 9 and 3 regenerate results on other branches. Key the ledger file by results sha256 (or branch) and let audit.run pick the ledger whose stamp matches the results file; keep inputs (events, bars) shared. Contract 6 lists data/audit/; amend it first if the path changes.

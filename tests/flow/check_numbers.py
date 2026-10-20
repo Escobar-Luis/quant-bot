@@ -69,6 +69,8 @@ def pct2(v: float) -> str:
 def word_for(ret: float, hold_ret: float, trades: int | None) -> str:
     if trades is not None and trades < 30:
         return "Not enough trades"
+    if ret < 0:   # contracts.md rule 9 (CAP-7): a copy that lost money is never Yes or Barely
+        return "No"
     d = ret - hold_ret
     return "Yes" if d >= 2 else "No" if d <= -2 else "Barely"
 
@@ -96,7 +98,13 @@ def close(a: float, b: float, tol: float) -> bool:
     return abs(a - b) <= tol
 
 
-def check_metrics(where: str, m: dict, start: float, need_trades: bool = True) -> None:
+def check_metrics(where: str, m: dict, start: float, need_trades: bool = True, bench: str | float | None = "hold") -> None:
+    """bench: rule 9's benchmark return; "hold" = just holding; None = not compared (a proof-set file's other
+    portfolios), so the word must be null."""
+    if bench is None:
+        if m.get("word") is not None:
+            say("FAIL", f"{where}: word {m['word']!r} on a row a proof-set file must not compare")
+        m = {**m, "word": "-"}
     for k in ("end", "ret_pct", "hold_end", "hold_ret_pct", "word") + (("trades",) if need_trades else ()):
         if m.get(k) is None:
             say("FAIL", f"{where}: missing {k}")
@@ -105,11 +113,13 @@ def check_metrics(where: str, m: dict, start: float, need_trades: bool = True) -
         say("FAIL", f"{where}: ret_pct {m['ret_pct']} ≠ end {m['end']} / {start}")
     if not close(m["hold_ret_pct"], (m["hold_end"] / start - 1) * 100, 0.06):
         say("FAIL", f"{where}: hold_ret_pct {m['hold_ret_pct']} ≠ hold_end {m['hold_end']} / {start}")
+    if bench is None:
+        return
+    b = m["hold_ret_pct"] if bench == "hold" else bench
     if m["word"] not in WORDS:
         say("FAIL", f"{where}: word {m['word']!r} not one of {sorted(WORDS)}")
-    elif m["word"] != word_for(m["ret_pct"], m["hold_ret_pct"], m.get("trades")):
-        say("FAIL", f"{where}: word {m['word']!r}, rule says "
-                    f"{word_for(m['ret_pct'], m['hold_ret_pct'], m.get('trades'))!r}")
+    elif m["word"] != word_for(m["ret_pct"], b, m.get("trades")):
+        say("FAIL", f"{where}: word {m['word']!r}, rule says {word_for(m['ret_pct'], b, m.get('trades'))!r}")
 
 
 def short(where: str, text: str | None, n: int) -> None:
@@ -143,8 +153,12 @@ def check_file(path: str, r: dict) -> None:
         holds = {bd[k]["hold_end"] for k in bd if bd[k].get("hold_end") is not None}
         if len(holds) > 1:
             say("FAIL", f"{path}: {p['id']} hold_end differs by delay {sorted(holds)}")
+        same = r.get("same_sessions")
         for k, m in bd.items():
-            check_metrics(f"{path} {p['id']}@{k}m", m, start)
+            # a proof-set file (LPP v2) compares its headline only with v1 on the same sessions
+            bench = "hold" if not same else \
+                same["by_delay"][k]["ret_pct"] if p["id"] == same.get("portfolio", "all") else None
+            check_metrics(f"{path} {p['id']}@{k}m", m, start, bench=bench)
         s = p.get("series")
         if s:
             n = len(s.get("dates", []))

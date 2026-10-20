@@ -93,6 +93,31 @@ def test_word_rule():
     assert engine.word(30, 8, 10) == "No"
 
 
+def test_lost_money_is_never_success():
+    """CAP-7: Crypto Wizard lost 7.1% while Bitcoin lost 24.6%; that is not a Yes."""
+    assert engine.word(122, -7.1, -24.57) == "No"
+    assert engine.word(122, -0.5, -1.0) == "No"        # within 2 pts but lost money: not Barely either
+    assert engine.word(122, 0.0, -5.0) == "Yes"        # broke even while holding lost 5
+    assert engine.outcome(122, -7.1) == "Lost money"
+    assert engine.versus(122, -7.1, -24.57, "Bitcoin") == "less than Bitcoin"
+    assert engine.versus(122, 3.0, 0.5, "the S&P") == "beat the S&P"
+    assert engine.versus(122, 3.0, 4.5, "the S&P") == "about the same as the S&P"
+    assert engine.versus(122, -2.4, 19.6, "the S&P") == "the S&P did better"
+    assert engine.versus(122, -9.0, -3.0, "Bitcoin") == "more than Bitcoin"
+    assert engine.outcome(0, 0.0) == "No trades" and engine.versus(0, 0.0, 1.0, "the S&P") is None
+
+
+def test_judge_sets_sealed_word_and_none_benchmark():
+    row = engine.judge({"trades": 122, "ret_pct": -7.1, "sealed": {"trades": 35, "ret_pct": -0.08}},
+                       -24.57, 26.04, "Bitcoin")
+    assert (row["word"], row["outcome"], row["vs"]) == ("No", "Lost money", "less than Bitcoin")
+    assert row["sealed"] | {} == {"trades": 35, "ret_pct": -0.08, "word": "No", "outcome": "Lost money",
+                                  "vs": "Bitcoin did better"}
+    bare = engine.judge({"trades": 50, "ret_pct": 2.6, "sealed": {"trades": 14, "ret_pct": 1.2}}, None, None, None)
+    assert bare["word"] is None and bare["vs"] is None and bare["outcome"] == "Made money"
+    assert bare["sealed"]["word"] is None and bare["sealed"]["outcome"] == "Made money"
+
+
 def test_scaled_sizing_keeps_his_ratios(fake):
     p = pos([Leg("a", T0, "open", 100), Leg("b", T0 + 300, "add", 300), Leg("c", T0 + 600, "close")], scale=True)
     r = engine.simulate(p, 1)
