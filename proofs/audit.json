@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T20:35:20Z",
- "results_git_sha": "dee71d2826f1578f3f40b60e93eac6ba3357a091",
+ "generated_at": "2026-10-20T20:35:39Z",
+ "results_git_sha": "0dd54f7fa4abb6681b3b4122da61deb972661fb1",
  "pass": true,
  "sizing": "known",
  "hold_close": "official",
