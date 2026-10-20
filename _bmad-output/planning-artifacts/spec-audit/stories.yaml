@@ -1,0 +1,44 @@
+- id: "1"
+  title: Land collection and extraction code on main
+  description: >-
+    CAP-1. Bring app/lpp from branch story/extract-lpp onto main and script the LPP link and caption fetch, so every course has a documented command that lists its sources and event counts.
+  invoke_dev_with: >-
+    The extract-lpp worktree is .claude/worktrees/extract-lpp-aa4bcf (branch story/extract-lpp); merge, don't rewrite. Never commit raw captions or course text.
+- id: "2"
+  title: Second calculator that checks the money math
+  description: >-
+    CAP-3, the gate for the post and video render. An independent recompute of every copied trade and headline per course and delay, reconciled with results/, plus a 10-trade hand-check sheet with raw bars.
+  done_checkpoint: true
+  invoke_dev_with: >-
+    New package app/audit/. Must not import app/backtest/engine.py. Write the full LPP trade ledger (all 315 at 5 min, not the 200-trade sample) to a gitignored file. Tolerance: 1 cent per trade, 1 dollar per headline. Prove it fails on an altered result.
+- id: "3"
+  title: Results by year and all time
+  description: >-
+    CAP-4. Add per-calendar-year and all-time numbers per course and delay to results/ and show them in the app, matching the story 2 recompute.
+  invoke_dev_with: >-
+    Additive results key; the UI hides a card whose key is missing. Do not redeploy.
+- id: "4"
+  title: Honest verdict words
+  description: >-
+    CAP-7. A verdict never reads as success when the copy lost money, and v2 is compared only with v1 on the same sessions.
+  invoke_dev_with: >-
+    Crypto Wizard: say it lost money and lost less than Bitcoin. Do not redeploy.
+- id: "5"
+  title: Luis grades a sample of extracted events
+  description: >-
+    CAP-2. A small local grading page shows each sampled event beside its source quote and context; Luis's verdicts give human precision and recall per course.
+  spec_checkpoint: true
+  invoke_dev_with: >-
+    Sample 30 LPP, 30 Crypto Wizard, all 86 ZipTrader events, seeded and reproducible. Local only: raw text never leaves data/.
+- id: "6"
+  title: Evals view and an auditable README
+  description: >-
+    CAP-5 and CAP-6. One evals view lists every check and evaluator with its score and source; the README gets the architecture diagram, tech stack, data layout and counts, assumptions and caveats, and fixes the three wrong claims.
+  invoke_dev_with: >-
+    Use architecture-diagrams.md in the spec folder as the starting diagram. Numbers come from results/, proofs/ and the story 2 and 5 outputs only.
+- id: "7"
+  title: Video beat on how we know, then render
+  description: >-
+    CAP-8. Add a beat to the Oct 21 episode naming the second calculator's result, then render the video and the 4:5 cut.
+  invoke_dev_with: >-
+    Repo ~/dev/showcase-videos/day-trader-ai-2026-10-21. Render only after story 2 passes. Never post.
