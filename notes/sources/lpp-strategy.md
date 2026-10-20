@@ -65,6 +65,8 @@ Picked by code from every one-feature condition and every pair of what he traded
 3. Short-into-resistance wins more often than not (52%) but loses big when it's wrong.
 4. **Worst 10 days:** every one has a trade with an assumed exit and 9 of 10 an add to a loser; 14 trades, 13 of them shorts. The worst, 2025-04-09 (TSLA and DJT shorts), lost $784.40.
 
+Story 20 turned these into code rule changes on his trades, picked on dev months and tested on the sealed months: `improvements` in `results/lpp/v1.json`, logged in `notes/research/backtesting.md` section 6.
+
 ## 5. Caveats
 
 1. Setups come from keyword rules on his stated reason (one-line paraphrases), not from charts.
