@@ -1,3 +1,5 @@
+<!-- bmad:context -->
+<!-- Verified 2026-10-20 against 937e399. Managed by bmad-project-context; edits inside this block are replaced on refresh. -->
 # Day Trader AI: rules every agent follows
 
 Hackathon: MONEY TALKS 2 (AI x Finance, NYC, 2026-10-17). The brief and judging are in `event.md`. When a decision here changes, change this file first (by PR), then message the running agents.
@@ -15,7 +17,7 @@ Day Trader AI answers Luis's own question: if he had followed each paid course (
 1. "Worked" = copy every posted trade with $10k fake money, after costs, vs just holding SPY (stocks) or BTC (crypto). Word: Yes (ahead 2+ pts), Barely (within 2), No (behind 2+), Not enough trades (under 30).
 2. One portfolio per kind of trade (day, swing, options, crypto) plus "all", the headline. Options: counted, not priced.
 3. Anyone may sign in; everyone sees the same three verdicts. No per-user data on a server.
-4. Sign-in: Google via Clerk. Hosting: Ninoo (`*.ninoo.app`), hello world first; Vercel if Ninoo fails by 15:00.
+4. Sign-in: Google via Clerk. Hosting: Vercel (https://day-trader-ai.vercel.app), static build deployed by hand with `web/deploy-vercel.sh --prod`; merging to main never deploys. Deploy only with Luis's OK.
 5. Data: raw and JSONL in gitignored `data/` on Luis's Mac; no Supabase. The public app reads only `results/` and `proofs/`.
 6. Prices: Alpaca paper keys for stock minute bars (Luis creates them), Binance or Coinbase for crypto, yfinance daily. Charts: TradingView Lightweight Charts (free).
 
@@ -49,3 +51,9 @@ Full shapes and an example: `_bmad-output/planning-artifacts/spec-day-trader-ai/
 5. **Traces:** `submit_trajectory`; `conversation_id` = `<course>-<source key>` or `verdict-<course>-<version>`; `tool_call` steps with snake_case `tool_name`, `reasoning` for model calls, one `final_answer` last; verdict runs start with `kb_search`; `final_status="error"` when a code check fails, naming the check; inputs are locators, never raw text; `metadata` = `{agent_version, course, prompt_version, git_sha, proof_set}`. Trace only the 30-session LPP proof set and verdict runs.
 6. **Who writes where:** collectors `app/lpp/`, `app/collect/*`, `data/<course>/`; story 1 `app/backtest/`, `results/`; story 2 `app/prism/`, `kb/`, `proofs/`; story 3 `web/`; story 4 `demo/`; story 5 `tests/flow/`; backend stories (spine: `_bmad-output/planning-artifacts/backend/architecture.md`) `app/api/`, later `app/pipeline/`, never `web/`, `results/` or `proofs/` (the frozen demo). `app/pyproject.toml` and `uv.lock` are shared: dependencies in their own small commit.
 7. **v2 keys (Luis, 15:00; additive, optional, still `results/1`):** `strategies` (trades grouped by setup, each with what it entails, quotes, per-delay metrics), `ranges` (3m / 6m / 1y from the window start), `best_stop` (peak date and value), `combos` and `suggestion` (picked on dev months, reported on sealed). The UI hides a card whose key is missing. Look: Mission Control (palette, IBM Plex, ecg and glow motion), replacing stamp-v2. Shapes: `contracts.md`, section v2.
+
+## Running and verifying
+- Python: `cd app && uv run pytest -q` (all suites, ~5 s); plain `pytest` misses the uv env.
+- Web: `cd web && npm ci && npm run build`; the build bakes in `results/` and `proofs/`.
+- No CI: run both before every PR.
+<!-- /bmad:context -->
