@@ -1,5 +1,8 @@
 """A 10-trade hand-check sheet: seeded random LPP v1 trades at 5 min, with the raw bars around every fill.
 
+The trades are the published ones (the loader's positions, as results/ prices them); each shows the engine's
+ledger fills and the audit's, every fill with its raw bars, and whether the audit's own position differs.
+
   cd app && uv run python -m audit.handcheck [--seed 20261020] [--n 10] [--delay 5]
 
 Writes data/audit/handcheck.md (gitignored). Numbers only: no quotes or course text. For each trade: the post
@@ -8,14 +11,13 @@ the engine's ledger P&L beside the audit's, so Luis can redo one by hand and sig
 """
 import argparse
 import datetime as dt
-import json
 import random
-
-from backtest.common import DATA
 
 from . import bars as B
 from . import calc
-from .run import loader, positions_for, read_ledger, RESULTS
+from . import positions as P
+from .paths import DATA
+from .run import read_ledger
 
 
 def et(ts: int) -> str:
@@ -24,8 +26,13 @@ def et(ts: int) -> str:
 
 def bar_rows(market: str, symbol: str, ts: int, before: int = 2, after: int = 2) -> list[str]:
     day = B.day_of(market, ts)
-    b = B.day_bars(market, symbol, day)
+    try:
+        b = B.day_bars(market, symbol, day)
+    except B.MissingBar as e:
+        return [f"Raw bars: none cached ({e}).", ""]
     keys = sorted(b)
+    if not keys:
+        return [f"Raw bars: {symbol} {day} is an empty session file (no trading).", ""]
     i = keys.index(ts) if ts in keys else min(range(len(keys)), key=lambda j: abs(keys[j] - ts))
     out = []
     for k in keys[max(0, i - before): i + after + 1]:
@@ -38,11 +45,12 @@ def bar_rows(market: str, symbol: str, ts: int, before: int = 2, after: int = 2)
 
 
 def sheet(seed: int, n: int, delay: int) -> str:
-    mod = loader("lpp")
-    d = json.loads((RESULTS / "lpp" / "v1.json").read_text())
-    positions = positions_for(mod, d, "v1")
-    ledger = read_ledger(DATA / "audit" / "lpp-v1-ledger.jsonl") or {}
+    positions = P.loader_positions("lpp", "v1")
+    own = {p.legs[0].event_id: p for p in P.build("lpp", "v1")}
+    _, ledger = read_ledger(DATA / "audit" / "lpp-v1-ledger.jsonl")
+    ledger = ledger or {}
     pool = [p for p in positions if ledger.get((p.pid, delay), {}).get("status") == "priced"]
+    n = min(n, len(pool))
     picks = random.Random(seed).sample(pool, n)
     lines = [f"# Hand-check: {n} LPP v1 trades at {delay} min (seed {seed})", "",
              "Rules (contracts.md): entry = open of the first 1-minute bar at or after post + delay; his later "
@@ -66,8 +74,14 @@ def sheet(seed: int, n: int, delay: int) -> str:
             lines.append(f"| {B.iso(f.ts)} | {f.kind} | {f.px} | {f.qty:.4f} | {f.px * f.qty:.2f} | "
                          f"{calc.cost_of(p.market, f.px, f.qty):.4f} |")
         lines.append("")
-        lines += ["Entry bar:", ""] + bar_rows(p.market, p.ticker, tr.entry.ts)
-        lines += ["Last exit bar:", ""] + bar_rows(p.market, p.ticker, tr.exit.ts)
+        lines += ["Engine ledger fills:", "", "| time (UTC) | kind | price | shares |", "|---|---|---|---|"]
+        lines += [f"| {B.iso(f[0])} | {f[3]} | {f[1]} | {f[2]:.4f} |" for f in e["fills"]]
+        lines.append("")
+        mine = own.get(p.legs[0].event_id)
+        same = mine is not None and not P.diff_positions([p], [mine])
+        lines += [f"Audit's own position from the events: {'same as this one' if same else 'DIFFERS (see diff-lpp-v1.json positions)'}.", ""]
+        for j, f in enumerate(tr.fills, 1):
+            lines += [f"Fill {j} ({f.kind}, {B.iso(f.ts)}):", ""] + bar_rows(p.market, p.ticker, f.ts)
         sign = 1 if p.side == "long" else -1
         avg, q, parts = 0.0, 0.0, []
         for f in tr.fills:
@@ -82,7 +96,8 @@ def sheet(seed: int, n: int, delay: int) -> str:
                   f"Engine ledger P&L: **{e['pnl']:.2f}** (entry {e['fills'][0][1]} at {B.iso(e['fills'][0][0])}). "
                   f"Audit `trade`: {tr.pnl:.2f}. Audit `first`: {lit.pnl:.2f}.", "",
                   "- [ ] Luis: entry bar open matches  - [ ] exit bar open matches  - [ ] P&L redone by hand", ""]
-    lines += ["---", "", "Signed off by Luis: ____  date: ____", ""]
+    lines += ["---", "", "Sign off with `cd app && uv run python -m audit.gate --sign Luis` (records this file's sha256 "
+              "in proofs/audit.json; any later edit to this sheet reopens the gate).", ""]
     return "\n".join(lines)
 
 
