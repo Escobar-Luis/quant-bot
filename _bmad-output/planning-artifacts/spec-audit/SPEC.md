@@ -15,14 +15,14 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 ## Capabilities
 
 - **CAP-1**
-  - **intent:** Anyone can see and rerun how each course's data was collected and turned into events, from code on main.
-  - **success:** For each course, a documented command on main lists its sources and event counts, and they equal the counts in the README.
+  - **intent:** Anyone can read how each course's data was collected and turned into events, from code on main, and Luis can rerun it.
+  - **success:** All collection and extraction code is on main; for each course a documented command, run against local `data/`, lists sources, events, passed and in-review counts and priced trades, and they equal the README; ZipTrader's 86 events vs 1 priced trade is explained.
 - **CAP-2**
   - **intent:** Luis grades a random sample of extracted events against their source, so digestion accuracy is measured by a human.
-  - **success:** A stored sample per course with Luis's verdict per event; human precision and recall per course appear in the README and the evals view.
+  - **success:** A stored, seeded sample per course with Luis's verdict per event (precision), plus a few source sessions where Luis lists trades the extraction missed (recall); both per course appear in the README and the evals view.
 - **CAP-3**
   - **intent:** A second, independent calculator recomputes every copied trade and each headline per course and delay, and checks them against results/.
-  - **success:** One command exits 0 when all trades and headlines reconcile within tolerance, exits non-zero on a deliberately altered result, and writes a per-trade diff; plus a 10-trade hand-check sheet with the raw bars for Luis.
+  - **success:** One command covers every results file, delay and portfolio, exits 0 when all trades (all 315 LPP, via the engine's full ledger) and headlines reconcile within tolerance at stored precision, exits non-zero on a deliberately altered result, writes a per-trade diff and records the pass in `proofs/audit.json` with the results `git_sha`; plus a 10-trade hand-check sheet with raw bars that Luis signs off.
 - **CAP-4**
   - **intent:** Each course shows copying vs just holding per calendar year and for all time.
   - **success:** results/ carries the per-year and all-time numbers (end value, return, holding return, trades, word); the app shows them; they match the CAP-3 recompute.
@@ -42,7 +42,9 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 ## Constraints
 
 - Gate: the LinkedIn post and the video render wait until CAP-3 passes (Luis, 2026-10-20).
-- The second calculator must not import `app/backtest/engine.py`; it reads events and raw bars itself, so a shared bug cannot hide.
+- The second calculator is written from `contracts.md`, never from or importing `app/backtest/engine.py`; it reads events and cached bars itself (alpaca_1m, then yahoo_1m; binance for crypto), never fetches, and fails with a named missing-bar error.
+- The gate opens on CAP-3 exit 0 plus Luis's hand-check sign-off; any later change to `results/` reopens it.
+- Changing the verdict words or adding a `results/` key changes the contract: edit `contracts.md` and AGENTS.md decision 1 first, by PR, then message the lanes.
 - Raw course content never enters git or the public app; the app reads only `results/` and `proofs/`.
 - No redeploy of the live app without Luis's explicit OK.
 - The model proposes, the code decides: every number shown comes from `results/`, `proofs/` or the eval output.
@@ -57,12 +59,13 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 
 ## Success signal
 
-- Luis opens the repo on GitHub, follows the README diagram, runs the audit command and sees it pass, reads LPP by year and all time, and explains in his own words how "No" was computed and how sure it is.
+- Luis opens the repo on GitHub, follows the README diagram, runs the audit command and sees it pass, reads LPP by year and all time, and explains in his own words how "No" was computed and how sure it is (human accuracy, second-calculator match, and how the answer moves across delays).
 
 ## Assumptions
 
-- By year means calendar years inside each course window (LPP 2024 and 2025; Crypto Wizard 2025 and 2026); all time is the full window.
-- Yearly numbers use realized P&L (closed trades), like the existing series.
+- By year means calendar years inside each course window (LPP 2024 and 2025; Crypto Wizard 2025 and 2026; ZipTrader 2026, equal to all time); all time is the full window.
+- A year is a slice of the one all-time run: a trade belongs to its exit year, the year return is realized P&L over equity at the year's start, holding runs from the year's first to last trading day inside the window, and under 30 trades reads "Not enough trades".
+- v2 is compared with v1 on the same sessions (`same_sessions`).
 
 ## Open Questions
 

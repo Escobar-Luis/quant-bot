@@ -16,6 +16,8 @@ flowchart LR
   C2 --> E
   C3 --> E
   E -->|code checks: quote, number, ticker, price, ledger| P[passed events]
+  E -->|failed a check| RV[in review: not priced]
+  E -.->|5 LPP sessions| GS[gold set, AI-drafted]
   P -->|engine: 1-min bars Alpaca/Binance, delay, costs, $10k| R[results/course/version.json]
   R --> W[web app on Vercel]
   E -.->|30-session LPP proof set only| PR[PRISM traces, evaluators, root cause]
