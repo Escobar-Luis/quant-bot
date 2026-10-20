@@ -80,3 +80,9 @@
     results/ziptrader/v1.json unknown says "Only 13 briefings"; build() in app/backtest/ziptrader.py counts distinct source_ids, which includes the strategy card. Count briefings only.
   invoke_dev_with: >-
     Found in notes/sources/counts.md. Writes results/: amend AGENTS.md contracts 1 and 6 first if required, rerun app/audit and refresh proofs/audit.json. Do not redeploy.
+- id: "14"
+  title: Refresh proofs/prism.json from current results
+  description: >-
+    proofs/prism.json predates the audit engine fixes (PR #58): knowledge_base.answer quotes $9,765.86 and its hit snippets say 3000 passed / 1196 in review (now $9,763.83, 2,883 / 1,313); evaluator.money_same_sessions says $10,290.71 / $10,303.25 vs results/lpp/v2.json $10,287.41 / $10,300.52. Refresh the numbers from results/.
+  invoke_dev_with: >-
+    Owner: app/prism (story 2 lane). No new PRISM runs needed for the numbers; rebuild via prism.proofs from current results. The KB answer text is model output: either rerun the verdict run or mark it as the text of that dated run. Then update the README note in "Architecture".

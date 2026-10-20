@@ -12,9 +12,9 @@ We copy each course's posted trades with $10,000 of fake money, after trading co
 
 <!-- numbers: update after stories 3,4,9 -->
 
-$1,000 per trade, entering 5 minutes after each post, after costs. Source: `portfolios[id=all].by_delay["5"]` in each [`results/`](results/) file.
+Computed by today's copy engine at a flat $1,000 per trade (a compounding bankroll model, story 8, is coming), entering 5 minutes after each post, after costs. Source: `portfolios[id=all].by_delay["5"]` in each [`results/`](results/) file.
 
-| Course | Window | Trades copied | $10k became | Just holding | Word | Held-out last 3 months |
+| Course | Window | Trades copied | $10k became | Just holding | Word | Held-out (sealed) last 3 months |
 |---|---|---|---|---|---|---|
 | Learn Plan Profit ([`lpp/v1`](results/lpp/v1.json)) | 2024-08-15 → 2025-09-12 | 315 | **$9,763.83** (−2.36%) | $11,963.79 SPY (+19.64%) | **No** | −2.16% vs SPY +9.56% (93 trades) |
 | Crypto Wizard ([`cryptowizard/v1`](results/cryptowizard/v1.json)) | 2025-10-17 → 2026-10-16 | 122 | **$9,290.30** (−7.10%) | $7,543.43 BTC (−24.57%) | **Yes**, see note | −0.08% vs BTC +26.04% (35 trades) |
@@ -24,6 +24,8 @@ $1,000 per trade, entering 5 minutes after each post, after costs. Source: `port
 2. **The word** (`contracts.md` rule 9): under 30 trades = Not enough trades; else beat holding by 2+ points = Yes, within 2 = Barely, behind by 2+ = No.
 3. **Delay doesn't flip it.** LPP is "No" at every delay from 1 to 60 minutes (−0.57% to −2.70%). Crypto Wizard is "Yes" at every delay (−6.46% to −7.62%).
 4. **LPP v2** ([`lpp/v2`](results/lpp/v2.json)) re-extracts only the 30-session PRISM proof set: $10,300.52 vs v1's $10,287.41 on the same sessions (`same_sessions`). Never compare it with the full-year SPY return.
+
+Held-out (sealed) months: each course's last 3 months, kept apart so a later tweak can't be tuned on them.
 
 The app reads only `results/` and `proofs/`. The delay slider and the 3m/6m/1y chips read the same files.
 
@@ -50,7 +52,7 @@ flowchart LR
   AUD --> PA[(proofs/audit.json<br/>PASS, 0 mismatches)]
 ```
 
-The model proposes; code decides. No number shown in the app comes from a model: it comes from the copy engine, checked by a second calculator.
+The model proposes; code decides. Every number in `results/` comes from the copy engine, checked by a second calculator. `proofs/prism.json` predates the audit fixes: its Knowledge Base `answer` is model-written text quoting older numbers ($9,765.86; 3,000 passed / 1,196 in review), and its `money_same_sessions` ($10,290.71 / $10,303.25) differ from `results/lpp/v2.json` ($10,287.41 / $10,300.52). Story 14 refreshes it.
 
 ## Tech stack
 
@@ -59,7 +61,7 @@ The model proposes; code decides. No number shown in the app comes from a model:
 | yt-dlp | Downloads YouTube auto-captions of LPP's live streams | `app/lpp/fetch_captions.py` |
 | Chrome (Luis's signed-in session) | Reads Discord read-only via its own search; never posts | method in `notes/sources/*.md` |
 | Nicrron API (OpenAI-compatible) | Routes every model call | `app/lpp/extract.py`, `app/collect/*/common.py` |
-| Claude Sonnet 5.5 / Haiku 5.5 | Reads captions, screenshots and charts into events with quotes | same as above |
+| Claude Sonnet 5.5 / Haiku 5.5 | Reads captions, screenshots and charts into events with quotes. LPP: Claude Sonnet 5.5 via Nicrron (fallbacks: Claude Sonnet 5, then GPT-5.4, from `extract.py`), temperature 0 | same as above |
 | Python checks | Reject events whose quote, number, ticker or price isn't in the source or the market | `app/lpp/checks.py`, `app/collect/ziptrader/checks.py`, `app/collect/cryptowizard/build_events.py` |
 | Alpaca (paper keys) | Stock 1-minute bars (Yahoo 1-minute as fallback) | `app/backtest/bars.py` |
 | Binance public klines | Crypto 1-minute bars, no key | `app/backtest/bars.py` |
@@ -77,11 +79,13 @@ The model proposes; code decides. No number shown in the app comes from a model:
 
 <!-- numbers: update after stories 3,4,9 -->
 
-Counts from `cd app && uv run python -m audit.counts` (2026-10-20), explained in [`notes/sources/counts.md`](notes/sources/counts.md). An event is one thing the course said: a trade leg (open, add, trim, close), a call (a level to watch) or a rule.
+Counts from `cd app && uv run python -m audit.counts` (2026-10-20), explained in [`notes/sources/counts.md`](notes/sources/counts.md). 1. **Event:** one thing the course said: a trade leg (open, add, trim, close), a call (a level to watch) or a rule.
+2. **In review:** an event that failed a code check; it is kept but never priced.
+3. **Setup vs trade:** a setup is a posted plan (entry, stop, targets); it becomes a priced trade only once it has price bars and a fill.
 
 | Course | Sources | Pulled how | Read by | Events | Passed every check | In review | Trades priced |
 |---|---|---|---|---|---|---|---|
-| Learn Plan Profit v1 | 247 live-stream links (246 with captions) | Discord links, then yt-dlp **YouTube auto-captions** | Sonnet, one call per session, temp 0 | 4,196 | 2,883 | 1,313 | 315 |
+| Learn Plan Profit v1 | 247 live-stream links (246 with captions) | Discord links, then yt-dlp **YouTube auto-captions** | Claude Sonnet 5.5 via Nicrron (fallbacks: Sonnet 5, GPT-5.4), one call per session, temperature 0 | 4,196 | 2,883 | 1,313 | 315 |
 | Learn Plan Profit v2 | same captions, new prompt | same | same | 4,128 | 3,773 | 355 | 51 (proof set only) |
 | ZipTrader | 13 (12 briefings + 1 strategy card) | Discord screenshots | vision model, then a second model re-reads each briefing | 86 | 85 | 1 | 1 |
 | Crypto Wizard | 595 posts (440 trade feed, 155 lessons; 42 skipped) | Discord search, read-only | code (regex) reads every number of the post template; Sonnet reads charts and lesson rules | 670 | 598 | 72 | 122 (126 setups; 4 had no price bars) |
@@ -134,6 +138,8 @@ PASS: every position, trade and headline reconciles
 
 Tolerance: 1 cent per trade, $1 per headline. The 28 unverifiable rows are 4 Crypto Wizard setups × 7 delays with no price bars (skipped by both). It found 5 places the engine broke the contract; all were fixed in PR #58 ([`notes/audit/findings-story-2.md`](notes/audit/findings-story-2.md)).
 
+**This PASS is code-to-code:** two programs agree on the same events and bars. It doesn't show the events are what the course said; Luis's hand-check sign-off and human grading are still open.
+
 **5. Hand-check.** `cd app && uv run python -m audit.handcheck` writes 10 random trades with their raw bars for a person to verify; `uv run python -m audit.gate --sign Luis` records the sign-off.
 
 **6. Observed in PRISM.** Only the 30-session LPP proof set and the verdict runs are traced (not every run; budget). From [`proofs/prism.json`](proofs/prism.json):
@@ -161,7 +167,7 @@ Our 52%/66% and the 53.3%/66.7% in older notes use different denominators.
 <!-- numbers: update after stories 3,4,9 -->
 
 1. **Dividends left out.** SPY is price only; real holders got about 1% a year more, so just holding looks slightly worse than it was. That flatters the courses.
-2. **Exposure vs fully invested.** At $1,000 a trade, LPP never had more than $4,715 of the $10k invested; Crypto Wizard $5,000. Just holding is 100% invested. A same-money benchmark (story 10) and a compounding bankroll (story 8) are coming.
+2. **Exposure vs fully invested.** At $1,000 a trade, LPP had at most $4,730 (of $10,000) invested, at any delay; Crypto Wizard $5,000. Just holding is 100% invested. A same-money benchmark (story 10) and a compounding bankroll (story 8) are coming.
 3. **Look-ahead being removed.** LPP's ledger (rule 11) keeps a position overnight when his *later* words mention it, which a real follower couldn't know. Story 9 replaces it with decisions made only from what was said before.
 4. **Held-out months are before the model's training cutoff.** LPP's held-out months (from 2025-06-12) predate the extraction model's training cutoff, so AGENTS.md's "sealed after the cutoff" rule isn't met. The model only reads captions and prices come from code, but it isn't a clean out-of-sample test.
 5. **The gold set is AI-drafted** (see above).
