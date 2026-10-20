@@ -156,3 +156,31 @@ Written by story 1, read by story 3; a missing key hides its card. Strategy = tr
                "kept": true, "prism_url": null}
 }
 ```
+
+## `by_year` (additive, optional; spec-audit CAP-4, story audit-3-by-year)
+
+Written by `app/backtest` (`extras.by_year`), reconciled by `app/audit`, shown by `web/` as a small table per course (year rows plus All time); a missing key hides the table. `schema` stays `results/1`. Rules (spec-audit SPEC.md Assumptions):
+
+1. **Periods:** each calendar year inside the window (`from`/`to` = its first and last trading day there), plus `all` (the full window). A year is a slice of the one all-time run: the same copied trades, sizes and cash cap (rule 6) as the headline; nothing is re-run per year.
+2. **A trade belongs to the year it exits** (its last exit's day: ET for stocks, UTC for crypto; an exit after the window's last trading day counts in the last year, as in `series`).
+3. **Copying:** `start` = money at the year's start ($10,000 plus every earlier year's realized P&L); `end` = `start` + the year's realized P&L; `ret_pct` = the year's realized P&L / `start`. `all` equals the headline `end`, `ret_pct` and `trades` exactly.
+4. **Just holding** is also one all-time run: $10,000 bought at the window's first trading minute (rule 7), valued at each trading day's official close. `hold_start` = its value at the previous year's last close ($10,000 for the first year), `hold_end` = at the year's last close, `hold_ret_pct` = `hold_end / hold_start − 1`. Stocks use SPY **total return**: each dividend (Yahoo Finance's published SPY dividends, cached in `data/bars/dividends/`) is reinvested at its ex-date's official close; an ex-date on the buy day earns nothing. `hold_price_ret_pct` is the same without dividends (price only, the basis of the headline `hold_ret_pct`). Crypto holds BTC (no dividends: both are equal).
+5. **Word:** rule 9 on the period's `trades`, `ret_pct` and `hold_ret_pct` (total return): under 30 trades is `Not enough trades`. So `all`'s word can differ from the headline's (price-only holding) by the dividends.
+6. Every testable portfolio and every delay; money to the cent, returns to 0.01 pt.
+
+```json
+"by_year": {
+  "hold": {"symbol": "SPY", "basis": "total_return",
+           "source": "Yahoo Finance SPY dividends, reinvested at the ex-date close", "dividends": 2},
+  "periods": [{"id": "2024", "from": "2024-08-15", "to": "2024-12-31"},
+              {"id": "2025", "from": "2025-01-02", "to": "2025-09-12"},
+              {"id": "all", "from": "2024-08-15", "to": "2025-09-12"}],
+  "portfolios": {"all": {"by_delay": {"5": {
+    "2024": {"start": 10000, "end": 9850.1, "ret_pct": -1.5, "hold_start": 10000, "hold_end": 10910.4,
+             "hold_ret_pct": 9.1, "hold_price_ret_pct": 8.6, "trades": 120, "word": "No"},
+    "2025": {"start": 9850.1, "end": 9763.83, "ret_pct": -0.88, "hold_start": 10910.4, "hold_end": 12100.2,
+             "hold_ret_pct": 10.9, "hold_price_ret_pct": 10.2, "trades": 195, "word": "No"},
+    "all":  {"start": 10000, "end": 9763.83, "ret_pct": -2.36, "hold_start": 10000, "hold_end": 12100.2,
+             "hold_ret_pct": 21.0, "hold_price_ret_pct": 19.64, "trades": 315, "word": "No"}}}}}
+}
+```
