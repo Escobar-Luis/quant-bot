@@ -19,6 +19,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 
 from checks import check, clip_quote, failed, panel_of, status
+from horizon import fill as horizon_from_quote
 from common import (BRIEFING_XCHECK_MODEL, DATA, TRANSCRIPTS, VISION_BRIEFING_MODEL, chat, is_num, parse_json, prism,
                     read_jsonl, write_jsonl)
 
@@ -82,6 +83,7 @@ def to_event(src: dict, n: int, e: dict, text: str, xtext: str | None, model: st
         "watch": text_or_none(e.get("watch")), "quote": clip_quote(text_or_none(e.get("quote")), text),
         "model": model, "prompt_version": PROMPT_VERSION,
     }
+    horizon_from_quote(ev)   # rule 12(a): a horizon said only in the quote goes into `horizon`
     span = panel_of(text, ev["ticker"], ev["quote"]) or text
     xspan = panel_of(xtext, ev["ticker"], ev["quote"]) if xtext else None
     ev["checks"] = check(ev, span, (xspan or xtext) if xtext else None)

@@ -214,3 +214,13 @@ def test_gutters_found_in_three_column_grid():
 def test_no_gutters_returns_empty():
     rng = np.random.default_rng(1)
     assert gutters(Image.fromarray(rng.integers(0, 255, (300, 900), dtype=np.uint8))) == []
+
+
+def test_horizon_said_only_in_the_quote_fills_the_field():
+    """Rule 12(a): the quote's horizon moves into `horizon`; an existing horizon and plain quotes are kept."""
+    from horizon import fill
+    ev = {"type": "call", "horizon": None, "quote": "keep working for more than one session"}
+    assert fill(ev) and ev["horizon"] == "more than one session"
+    kept = {"type": "call", "horizon": "today", "quote": "hold 3 days"}
+    assert not fill(kept) and kept["horizon"] == "today"
+    assert not fill({"type": "call", "horizon": None, "quote": "looks set to bounce for the day"})

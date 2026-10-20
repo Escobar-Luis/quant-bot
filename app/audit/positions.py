@@ -234,6 +234,10 @@ def cryptowizard(version: str = "v1") -> dict:
 # ---- ZipTrader -------------------------------------------------------------------------------------------------
 
 HORIZON_DAYS = re.compile(r"(\d+)\s*(day|session|week)", re.I)
+# rule 12(a): a horizon longer than the session with no count ("more than one session") is a swing horizon;
+# with no count, rule 4's swing default (5 sessions) applies
+HORIZON_LONG = re.compile(r"\b(?:more than|over|several|multiple|a few|next)\s+(?:\w+\s+)?(?:trading\s+)?"
+                          r"(?:sessions?|days?|weeks?)\b|\bovernight\b|\bmulti-?day\b", re.I)
 
 
 def ziptrader(version: str = "v1") -> dict:
@@ -242,7 +246,8 @@ def ziptrader(version: str = "v1") -> dict:
     - ok call/setup/trade events with a ticker and a side; post time = the Discord timestamp (rule 1);
     - rule 3: a stated `entry` is the trigger level; rule 4: its stop and targets;
     - rule 8: `swing` only when the extracted `horizon` is in days or sessions (rule 4's "horizon as written"),
-      else `day`. ASSUMPTION: the quote's own words are not read (the structured field is the contract input).
+      else `day`; a count gives the sessions held, no count ("more than one session") rule 4's 5. Rule 12(a): a
+      horizon said only in the quote is moved into `horizon` by the extraction; the quote is not read here.
     """
     evs = rows(DATA / "ziptrader" / "events.jsonl")
     stats, positions = Counter(), []
@@ -253,7 +258,7 @@ def ziptrader(version: str = "v1") -> dict:
             stats["watch_only"] += 1
             continue
         hz = HORIZON_DAYS.search(e.get("horizon") or "")
-        swing = bool(hz)
+        swing = bool(hz) or bool(HORIZON_LONG.search(e.get("horizon") or ""))
         n = (int(hz.group(1)) * (5 if hz.group(2).lower() == "week" else 1)) if hz else 5
         positions.append(Position(
             pid=f"zt-{e['event_id'].split(':', 1)[-1].replace(':', '-')}", course="ziptrader",
