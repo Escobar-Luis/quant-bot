@@ -146,3 +146,13 @@ def test_prism_payload_shape():
     final = json.loads(p["steps"][-1]["output_summary"])  # still valid JSON after dropping events to fit
     assert len(p["steps"][-1]["output_summary"]) <= 30000 and final["events_left_out"] > 0
     assert final["failures"][0]["check"] == ["x"]
+
+
+def test_fetch_captions_ids_and_command(tmp_path):
+    from lpp import fetch_captions as fc
+    f = tmp_path / "urls.txt"
+    f.write_text("# list\nhttps://www.youtube.com/watch?v=A4929OT4Jls\n\nhttps://youtu.be/A4929OT4Jls\n"
+                 "https://www.youtube.com/live/Jds31wPEh1U?si=x\nnot a link\n")
+    assert fc.video_ids(f) == ["A4929OT4Jls", "Jds31wPEh1U"]
+    cmd = fc.ytdlp_cmd("A4929OT4Jls")
+    assert "--skip-download" in cmd and "json3" in cmd and cmd[-1].endswith("A4929OT4Jls")
