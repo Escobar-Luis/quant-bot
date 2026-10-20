@@ -90,9 +90,9 @@ def course_items(course: str, version: str, only=None) -> tuple[dict, list, list
         b.append({"id": "zt-horizon-from-quote", "file": head["file"], "positions": 1,
                   "question": "Is a horizon said only in the quote ('more than one session') a swing horizon "
                               "when the extracted `horizon` field is empty?",
-                  "engine": "swing (reads the quote text)", "audit": "day (reads the structured field)",
-                  "proposal": "Yes: rule 4's 'horizon as written' includes the quote; move it into the "
-                              "extraction's horizon field so code reads one place.",
+                  "engine": "the extraction's horizon field", "audit": "the extraction's horizon field",
+                  "proposal": "Yes (adopted, contracts.md rule 12a): the extraction moves the quote's horizon into "
+                              "its horizon field (app/collect/ziptrader/horizon.py); engine and audit read it.",
                   "if_audit_reading": effect(res, theirs, ours, base_end, base_trades)})
     return head, a, b
 
@@ -178,8 +178,9 @@ def write_note(heads, a, b) -> str:
             extra = f" (audit reading: {money(x['if_audit_reading']['delta_usd'])} on the 5-min end)"
         L.append(f"| {x['id']} | {x['question']} | {x['proposal']}{extra} |")
     L += ["", "## (c) The audit's own errors (fixed)", ""] + [f"- **{x['id']}**: {x['what']}" for x in AUDIT_FIXED]
-    L += ["", "Nothing in results/ or the engine's math was changed; each (a) item is a separate fix for a "
-          "spec-approved story.", ""]
+    L += ["", "Story audit-2b-engine-fixes applied every (a) fix to the engine and regenerated results/; each "
+          "row's $ effect is what that fix would still change (zero once fixed). A fixed row whose count is 0 "
+          "(posted-time-truncated) drops out of the table.", ""]
     return "\n".join(L)
 
 
