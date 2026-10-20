@@ -62,6 +62,16 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
   - **intent:** Proposed improvements from his losses, and his strategy run as code on recent prices and other stocks, show what works.
   - **success:** Every variant tried is logged; each shows dev, held-out and new-stocks results; the app marks what held up.
 
+- **CAP-16**
+  - **intent:** Every strategy claim says how many variants were tried and survives a luck test, walk-forward, threshold changes and bull vs bear months.
+  - **success:** Results carry trials, deflated Sharpe, a shuffle-test band, walk-forward folds, sensitivity rows and drawdown/streak/worst day; the app marks claims that fail any as "not proven".
+- **CAP-17**
+  - **intent:** Costs match reality for small caps and shorts.
+  - **success:** A cost model by price and volume, a 2x stress, borrow fees and hard-to-borrow flags, gap fills at the open; every headline shown under base and stressed costs.
+- **CAP-18**
+  - **intent:** A frozen rule set is paper-traded forward from today, so there is clean out-of-sample evidence.
+  - **success:** A forward ledger starts at a tagged commit and updates daily from live prices; the app shows days elapsed and results since the freeze.
+
 ## Constraints
 
 - Gate: the LinkedIn post and the video render wait until CAP-3 passes (Luis, 2026-10-20).

@@ -42,6 +42,24 @@
     CAP-15. Run his strategy and the improved one as code on recent prices and on stocks he didn't trade; show what works and what doesn't.
   invoke_dev_with: >-
     Alpaca 1-minute bars; pick the stock universe before looking at results; report all variants tried.
+- id: "28"
+  title: Honest strategy evaluation
+  description: >-
+    CAP-16. Trial counts with a deflated-Sharpe haircut, shuffle test, walk-forward folds, threshold sensitivity, bull vs bear split, and risk metrics for every strategy claim (stories 20 and 21).
+  invoke_dev_with: >-
+    Read notes/research/quant-practice-2026-10-20.md. Absorbs story 27 (luck test). Audit recomputes the new numbers independently.
+- id: "29"
+  title: Realistic costs for small caps and shorts
+  description: >-
+    CAP-17. Spread/slippage by price and volume, 2x cost stress, borrow fees and hard-to-borrow flags, gap fills at the open.
+  invoke_dev_with: >-
+    Contract first; regenerate all results; show base and stressed side by side.
+- id: "30"
+  title: Forward paper test from a frozen rule file
+  description: >-
+    CAP-18. Freeze the best-supported rules at a tagged commit and paper-trade them forward daily on live prices.
+  invoke_dev_with: >-
+    Fake money only (AGENTS.md rule 7); Alpaca paper or computed from bars; never a real brokerage.
 - id: "8"
   title: Bankroll simulator
   description: >-
