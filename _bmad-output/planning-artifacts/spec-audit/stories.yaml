@@ -129,3 +129,9 @@
     CAP-12 follow-up. A model pass over the LPP captions records what he says about holding (a stated horizon, holding overnight or over a weekend, or saying he won't hold) with its timestamp, into each trade event's `horizon` field, so contracts.md rule 13 can keep a position overnight only on intent said before 15:55 ET.
   invoke_dev_with: >-
     Found in the PR #61 review: of the 43 as-taught swing trades, 2 have clear hold intent, 4 are ambiguous and 1 is an explicit no-hold; streams end about 10:30 ET, so most intent, if said, is said early. The model proposes, the code decides: keep the quote (12 words or fewer) and t_s as evidence, trace to PRISM, and never let a statement after 15:55 ET of the session count. Then rerun results (no_look_ahead key) and app/audit. Rule 13 becomes the headline only after this and story 8 (bankroll model). Raw captions stay in data/.
+- id: "22"
+  title: Hold intent for LPP v2, and act on the stated no-holds
+  description: >-
+    Story 17 follow-up. The hold-intent pass (app/lpp/hold_intent.py) wrote `horizon` on LPP v1 events only, so results/lpp/v2.json's no_look_ahead still has no hold intent. It also found 3 of the 43 as-taught overnight trades where he said in the stream he would not carry the position overnight (TSLA 2024-10-24, HOOD 2025-07-07, HIMS 2025-05-07), which rule 11's as-taught headline still holds for 5 sessions.
+  invoke_dev_with: >-
+    Map v2 trade events to the v1 decisions (data/lpp/hold_intent/decisions.jsonl) by session, ticker, side and t_s, or run the pass on v2 positions (about $4 at Nicrron's Sonnet price); trace under extract-lpp-hold-v1 with prompt_version lpp-hold-v1. Raise the 3 stated no-holds with story 18 (Discord exits) before any change to rule 11. Rerun results under the data lock, app/audit must pass.

@@ -128,6 +128,9 @@ def write(L, results=None):
                 continue
             _, tr, raw, events, trips = process(vid, L[vid], do_extract=False)
             results[vid] = (tr, raw, events, trips)
+    if VERSION == "v1":   # story 17: horizons the hold-intent pass kept (data/lpp/hold_intent/decisions.jsonl)
+        from . import hold_intent
+        hold_intent.apply([e for _, _, events, _ in results.values() for e in events])
     RES.mkdir(parents=True, exist_ok=True)
     with open(RES / "sources.jsonl", "w") as fs, open(RES / "events.jsonl", "w") as fe, \
             open(RES / "sessions.jsonl", "w") as fss:

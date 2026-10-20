@@ -236,8 +236,8 @@ def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list
 
 def no_look_ahead_alternative(mod, a, only, dates, hold) -> tuple[dict | None, list]:
     """Step 4b, LPP only: the same events through rule 13 (no look-ahead), shown beside the as-taught headline.
-    Provisional (contracts.md rule 13): not the headline until hold intent is extracted and sizing and cash are
-    look-ahead-free."""
+    Provisional (contracts.md rule 13): v1's hold intent is extracted (story 17); not the headline until sizing
+    and cash are look-ahead-free."""
     if not (a.course == "lpp" and not a.limit):
         return None, []
     built = mod.build(a.version, only, ledger="no_look_ahead") if only else \
@@ -264,8 +264,11 @@ def no_look_ahead_alternative(mod, a, only, dates, hold) -> tuple[dict | None, l
     block = {"provisional": True, "label": "Provisional: no look-ahead",
              "rules": "contracts.md rule 13: a position stays overnight only on a horizon he said before 15:55 "
                       "ET, a later add starts a new trade, and each add is sized from what he had said by then.",
-             "why_provisional": "Not the headline until his hold intent is extracted (he rarely says it in a "
-                                "field we read) and sizing and cash are look-ahead-free (the bankroll model).",
+             "why_provisional": ("Not the headline until sizing and cash are look-ahead-free (the bankroll "
+                                 "model). His hold intent is read from the stream by a model pass and kept only "
+                                 "when the quote is in the captions and said before 15:55 ET.") if a.version == "v1"
+             else ("Not the headline until his hold intent is extracted (he rarely says it in a field we read) "
+                   "and sizing and cash are look-ahead-free (the bankroll model)."),
              "positions": len(positions), "portfolios": pfs}
     return block, [r for rs in by_pos.values() for r in rs.values()]
 
