@@ -46,7 +46,8 @@ def _quotes(group: list, n: int = 3) -> list[dict]:
     return out
 
 
-def strategies(mod, version: str, positions: list, by_pos: dict, dates: list, hold: dict, window: dict) -> list:
+def strategies(mod, version: str, positions: list, by_pos: dict, dates: list, hold: dict, window: dict,
+               name: str = "just holding") -> list:
     if not hasattr(mod, "STRATEGIES"):
         return []
     soft = mod.untestable(version) if hasattr(mod, "untestable") else []
@@ -58,7 +59,7 @@ def strategies(mod, version: str, positions: list, by_pos: dict, dates: list, ho
         rows, series = {}, {}
         for d in DELAYS_MIN:
             rs = [by_pos[p.pid][d] for p in group]
-            rows[str(d)], series[str(d)] = engine.portfolio_stats(rs, dates, hold, window["sealed_from"])
+            rows[str(d)], series[str(d)] = engine.portfolio_stats(rs, dates, hold, window["sealed_from"], name)
         kinds = [p.portfolio for p in group]
         words = spec.get("words") or ()
         mine = [r for r in soft if any(w in r.lower() for w in words)] or soft[len(out)::7]
@@ -82,7 +83,7 @@ def _add_months(day: dt.date, n: int) -> dt.date:
             continue
 
 
-def ranges(results_all: dict, dates: list, hold_series: list, window: dict) -> dict:
+def ranges(results_all: dict, dates: list, hold_series: list, window: dict, name: str = "just holding") -> dict:
     """3m / 6m / 1y from the window start: trades closed by then, against holding to the same day."""
     start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
     out = {}
@@ -103,7 +104,9 @@ def ranges(results_all: dict, dates: list, hold_series: list, window: dict) -> d
             money = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)
             ret = round((money / MONEY_START - 1) * 100, 2)
             rows[str(d)] = {"end": money, "ret_pct": ret, "hold_end": hold_end, "hold_ret_pct": hold_ret,
-                            "trades": len(kept), "word": engine.word(len(kept), ret, hold_ret)}
+                            "trades": len(kept), "word": engine.word(len(kept), ret, hold_ret),
+                            "outcome": engine.outcome(len(kept), ret),
+                            "vs": engine.versus(len(kept), ret, hold_ret, name)}
         out[key] = {"until": dates[last], "by_delay": rows}
     return out
 

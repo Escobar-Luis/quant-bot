@@ -321,15 +321,60 @@ def _simulate(p: Position, delay_min: int) -> Result:
 # ---- portfolios ------------------------------------------------------------------------------------------------
 
 def word(trades: int, ret_pct: float, hold_ret_pct: float) -> str:
-    """contracts.md rule 9."""
+    """contracts.md rule 9 (CAP-7): a copy that lost money is never Yes or Barely."""
     if trades < 30:
         return "Not enough trades"
+    if ret_pct < 0:
+        return "No"
     gap = round(ret_pct - hold_ret_pct, 2)
     if gap >= 2:
         return "Yes"
     if gap <= -2:
         return "No"
     return "Barely"
+
+
+BENCH_NAMES = {"SPY": "the S&P", "BTC": "Bitcoin"}
+
+
+def bench_name(symbol: str) -> str:
+    return BENCH_NAMES.get(symbol.upper(), symbol)
+
+
+def outcome(trades: int, ret_pct: float) -> str:
+    """Rule 9's absolute outcome: what the copy did to the money, before any comparison."""
+    if trades == 0:
+        return "No trades"
+    return "Made money" if ret_pct > 0 else "Lost money" if ret_pct < 0 else "Broke even"
+
+
+def versus(trades: int, ret_pct: float, bench_ret_pct: float, name: str) -> str | None:
+    """Rule 9's comparison in plain words, never reading as a win when the copy lost money."""
+    if trades == 0:
+        return None
+    gap = round(ret_pct - bench_ret_pct, 2)
+    if gap >= 2:
+        return f"less than {name}" if ret_pct < 0 else f"beat {name}"
+    if gap > -2:
+        return f"about the same as {name}"
+    return f"more than {name}" if bench_ret_pct < 0 else f"{name} did better"
+
+
+def judge(row: dict, bench_ret: float | None, bench_sealed_ret: float | None, name: str | None) -> dict:
+    """Set word, outcome and vs on a by_delay row and its sealed block (rule 9). A None benchmark means the row
+    is not compared (a proof-set file's non-headline portfolios): word and vs are null."""
+    n, ret = row["trades"], row["ret_pct"]
+    row["word"] = word(n, ret, bench_ret) if bench_ret is not None else None
+    row["outcome"] = outcome(n, ret)
+    row["vs"] = versus(n, ret, bench_ret, name) if bench_ret is not None else None
+    s = row.get("sealed")
+    if s is not None:
+        sn, sr = s["trades"], s["ret_pct"]
+        ok = bench_sealed_ret is not None
+        s["word"] = word(sn, sr, bench_sealed_ret) if ok else None
+        s["outcome"] = outcome(sn, sr)
+        s["vs"] = versus(sn, sr, bench_sealed_ret, name) if ok else None
+    return row
 
 
 MIN_CASH_USD = 1.0   # at $1 of cash or less a trade is couldn't-copy: no sub-dollar trade counts toward rule 9's 30
@@ -366,7 +411,8 @@ def fit_to_cash(results: list[Result]) -> tuple[list[tuple[Result, float]], int,
     return kept, sized_down, skipped, peak
 
 
-def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_from: str) -> tuple[dict, list]:
+def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_from: str,
+                    name: str = "just holding") -> tuple[dict, list]:
     """One delay of one portfolio: the by_delay entry and its daily money series (realized at each exit)."""
     kept, sized_down, skipped, peak = fit_to_cash([r for r in results if r.status == "priced"])
     pnl_by_day: dict[str, float] = {}
@@ -394,8 +440,7 @@ def portfolio_stats(results: list[Result], dates: list[str], hold: dict, sealed_
         "peak_invested_usd": round(peak),
         "won_pct": round(100 * sum(r.pnl > 0 for r, _ in kept) / len(kept)) if kept else 0,
         "worst_drop_pct": round(worst, 1),
-        "word": word(len(kept), ret, hold["ret_pct"]),
         "sealed": {"ret_pct": round(100 * sum(r.pnl * f for r, f in sealed) / MONEY_START, 2),
                    "hold_ret_pct": hold["sealed_ret_pct"], "trades": len(sealed)},
     }
-    return entry, series
+    return judge(entry, hold["ret_pct"], hold["sealed_ret_pct"], name), series

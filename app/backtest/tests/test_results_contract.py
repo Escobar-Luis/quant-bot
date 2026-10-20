@@ -7,6 +7,26 @@ from backtest import engine
 from backtest.common import DELAYS_MIN, RESULTS
 
 FILES = sorted(p for p in RESULTS.glob("*/*.json"))
+WORDS = {"Yes", "Barely", "No", "Not enough trades"}
+
+
+def assert_judged(d, pid, k, row):
+    """Rule 9 (CAP-7): word, outcome and vs on the row and its sealed block, against the file's benchmark."""
+    cw = d["compare_with"]
+    if cw["kind"] == "hold":
+        assert cw["name"] == engine.bench_name(d["hold"]["symbol"])
+        bench, sealed_bench = row["hold_ret_pct"], row["sealed"]["hold_ret_pct"]
+    else:   # a proof-set file: only the headline is compared, and only with v1 on the same sessions
+        assert cw == {"kind": "same_sessions", "name": d["same_sessions"]["version"]}
+        assert not {"strategies", "ranges", "combos", "best_stop"} & set(d)
+        base = d["same_sessions"]["by_delay"][k] if pid == d["same_sessions"]["portfolio"] else None
+        bench, sealed_bench = (base["ret_pct"], base["sealed"]["ret_pct"]) if base else (None, None)
+    want = engine.judge(json.loads(json.dumps(row)), bench, sealed_bench, cw["name"])
+    for f in ("word", "outcome", "vs"):
+        assert row[f] == want[f] and row["sealed"][f] == want["sealed"][f], (pid, k, f)
+    assert row["word"] in WORDS | {None}
+    if row["ret_pct"] < 0:
+        assert row["word"] not in {"Yes", "Barely"} and row["outcome"] == "Lost money"
 
 
 @pytest.mark.parametrize("path", FILES, ids=[f"{p.parent.name}/{p.name}" for p in FILES])
@@ -22,8 +42,7 @@ def test_results_file_matches_contract(path):
     if d["course"] == "lpp":
         assert d["sizing"] == "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6
     need = {"end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy", "won_pct",
-            "worst_drop_pct", "word", "sealed"}
-    words = {"Yes", "Barely", "No", "Not enough trades"}
+            "worst_drop_pct", "word", "outcome", "vs", "sealed"}
     for p in d["portfolios"]:
         if not p["testable"]:
             assert "count" in p and p["why"]
@@ -32,8 +51,7 @@ def test_results_file_matches_contract(path):
         assert len(p["series"]["dates"]) == len(p["series"]["hold"])
         for k, row in p["by_delay"].items():
             assert need <= set(row) and {"ret_pct", "hold_ret_pct"} <= set(row["sealed"])
-            assert row["word"] in words
-            assert row["word"] == engine.word(row["trades"], row["ret_pct"], row["hold_ret_pct"])
+            assert_judged(d, p["id"], k, row)
             assert len(p["series"]["by_delay"][k]) == len(p["series"]["dates"])
             assert row["end"] == pytest.approx(p["series"]["by_delay"][k][-1], abs=0.05)
     for item in d["rules"] + d["trades"]:
@@ -64,6 +82,9 @@ def test_optional_v2_keys(path):
         assert set(r["by_delay"]) == {str(x) for x in DELAYS_MIN}
         for row in r["by_delay"].values():
             assert row["word"] == engine.word(row["trades"], row["ret_pct"], row["hold_ret_pct"])
+            assert row["outcome"] == engine.outcome(row["trades"], row["ret_pct"])
+            assert row["vs"] == engine.versus(row["trades"], row["ret_pct"], row["hold_ret_pct"],
+                                              d["compare_with"]["name"])
     if "best_stop" in d:
         dates = d["portfolios"][0]["series"]["dates"]
         for k, b in d["best_stop"]["by_delay"].items():

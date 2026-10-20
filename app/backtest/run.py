@@ -183,13 +183,33 @@ def build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series) ->
         rows, series = {}, {}
         for d in DELAYS_MIN:
             rs = [by_pos[p.pid][d] for p in positions if pid == "all" or p.portfolio == pid]
-            rows[str(d)], series[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])
+            rows[str(d)], series[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"],
+                                                                  bench(mod))
         portfolios.append({"id": pid, "label": LABELS[pid], "testable": True, "by_delay": rows,
                            "series": {"dates": dates, "hold": hold_series, "by_delay": series}})
     if built["options_count"] or mod.MARKET == "us_equities":
         portfolios.append({"id": "options", "label": LABELS["options"], "testable": False,
                            "count": built["options_count"], "why": "No free options price history"})
     return portfolios
+
+
+def bench(mod) -> str:
+    """Rule 9's benchmark name: just holding's symbol in plain words."""
+    return engine.bench_name(mod.HOLD["symbol"])
+
+
+def compare_with_same_sessions(portfolios, same) -> None:
+    """Rule 9 for a proof-set file (CAP-7): its headline is compared only with v1 on the same sessions, never
+    with the full-window benchmark; its other portfolios carry no comparison. The baseline itself is the
+    benchmark, so it carries none either."""
+    for p in portfolios:
+        if not p.get("testable"):
+            continue
+        for d, row in p["by_delay"].items():
+            base = same["by_delay"][d] if p["id"] == same.get("portfolio", "all") else None
+            engine.judge(row, base and base["ret_pct"], base and base["sealed"]["ret_pct"], same["version"])
+    for row in same["by_delay"].values():
+        engine.judge(row, None, None, None)
 
 
 def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list]:
@@ -252,6 +272,8 @@ def assemble(mod, a, built, positions, status, portfolios, same, trades, unknown
         "window": mod.WINDOW, "money_start": int(MONEY_START), "course_fee_usd": None,
         "delays_min": DELAYS_MIN, "default_delay_min": DEFAULT_DELAY_MIN, "costs_bps_per_side": COSTS_BPS,
         "sizing": getattr(mod, "SIZING_SCALED", mod.SIZING) if a.scale else mod.SIZING, "hold": mod.HOLD, "headline_portfolio": "all",
+        "compare_with": {"kind": "same_sessions", "name": same["version"]} if same
+        else {"kind": "hold", "name": bench(mod)},
         "portfolios": portfolios, **({"same_sessions": same} if same else {}),
         "rules": built["rules"], "trades": trades,
         **({"days": built["days"]} if built["days"] else {}),
@@ -266,8 +288,8 @@ def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfo
 
     Side effect: rewrites data/improver/<course>-<version>.json with the code's keep decision."""
     results_all = {d: [by_pos[p.pid][d] for p in positions] for d in DELAYS_MIN}
-    strat = extras.strategies(mod, a.version, positions, by_pos, dates, hold, mod.WINDOW)
-    rng = extras.ranges(results_all, dates, hold_series, mod.WINDOW)
+    strat = extras.strategies(mod, a.version, positions, by_pos, dates, hold, mod.WINDOW, bench(mod))
+    rng = extras.ranges(results_all, dates, hold_series, mod.WINDOW, bench(mod))
     mix = extras.combos(mod, positions, by_pos, dates, hold, hold_series, mod.WINDOW)
     out.update({k: v for k, v in (("strategies", strat), ("ranges", rng), ("combos", mix)) if v})
     out["best_stop"] = extras.best_stop(portfolios[0], hold_series)
@@ -325,13 +347,16 @@ def main():
     same, same_ledger = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
     unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
+    if same:
+        compare_with_same_sessions(portfolios, same)
     out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
     ledgers = [("", [r for rs in by_pos.values() for r in rs.values()])] + \
         ([("-same_sessions", same_ledger)] if same else [])
     if a.ledger_only:
         ledger_only(a, out, ledgers)
         return
-    add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios)
+    if not same:   # rule 9: a proof-set file has no full-window comparisons (strategies, ranges, combos)
+        add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios)
     path = write_results(out, a, portfolios)
     run_id = uuid.uuid4().hex
     for name, rows in ledgers:
