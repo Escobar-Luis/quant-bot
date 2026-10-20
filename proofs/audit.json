@@ -1,6 +1,6 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T17:54:07Z",
+ "generated_at": "2026-10-20T17:57:48Z",
  "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
  "pass": false,
  "sizing": "trade",
@@ -10,27 +10,27 @@
   "cryptowizard/v1": {
    "pass": false,
    "trades_checked": 1736,
-   "mismatches": 2720,
+   "mismatches": 2718,
    "max_abs_diff": 6829.51,
-   "position_differences": 251,
+   "position_differences": 249,
    "unverifiable": 28,
    "math_on_loader_positions": 0
   },
   "lpp/v1": {
    "pass": false,
-   "trades_checked": 1638,
-   "mismatches": 4213,
-   "max_abs_diff": 411.09,
-   "position_differences": 505,
+   "trades_checked": 3605,
+   "mismatches": 620,
+   "max_abs_diff": 4.9,
+   "position_differences": 16,
    "unverifiable": 0,
    "math_on_loader_positions": 0
   },
   "lpp/v2": {
    "pass": false,
-   "trades_checked": 861,
-   "mismatches": 1053,
-   "max_abs_diff": 121.59,
-   "position_differences": 100,
+   "trades_checked": 1071,
+   "mismatches": 437,
+   "max_abs_diff": 4.82,
+   "position_differences": 9,
    "unverifiable": 0,
    "math_on_loader_positions": 0
   },
@@ -63,11 +63,11 @@
    "v1": {
     "loader_positions": 126,
     "audit_positions": 126,
-    "differences": 251,
+    "differences": 249,
     "positions_differing": 95,
     "by_field": {
      "default_exit": 56,
-     "leg": 192,
+     "leg": 190,
      "leg.posted_ts": 3
     }
    }
@@ -75,41 +75,31 @@
   "lpp/v1": {
    "v1": {
     "loader_positions": 315,
-    "audit_positions": 229,
-    "differences": 505,
-    "positions_differing": 289,
+    "audit_positions": 315,
+    "differences": 16,
+    "positions_differing": 15,
     "by_field": {
-     "presence": 234,
-     "leg": 218,
-     "leg.posted_ts": 33,
-     "portfolio": 10,
-     "default_exit": 10
+     "leg.posted_ts": 16
     }
    }
   },
   "lpp/v2": {
    "v2": {
     "loader_positions": 51,
-    "audit_positions": 50,
-    "differences": 15,
-    "positions_differing": 13,
+    "audit_positions": 51,
+    "differences": 4,
+    "positions_differing": 4,
     "by_field": {
-     "presence": 1,
-     "leg": 3,
-     "leg.posted_ts": 11
+     "leg.posted_ts": 4
     }
    },
    "v1-same_sessions": {
     "loader_positions": 51,
-    "audit_positions": 40,
-    "differences": 85,
-    "positions_differing": 58,
+    "audit_positions": 51,
+    "differences": 5,
+    "positions_differing": 5,
     "by_field": {
-     "presence": 45,
-     "leg": 27,
-     "leg.posted_ts": 9,
-     "portfolio": 2,
-     "default_exit": 2
+     "leg.posted_ts": 5
     }
    }
   },
@@ -159,6 +149,137 @@
   ]
  },
  "signoff": null,
+ "findings": {
+  "note": "notes/audit/findings-story-2.md",
+  "end_5m_all": [
+   {
+    "file": "lpp/v1",
+    "published_end_5m": 9765.86,
+    "engine_positions_end_5m": 9765.86,
+    "audit_positions_end_5m": 9763.83
+   },
+   {
+    "file": "lpp/v2",
+    "published_end_5m": 10303.25,
+    "engine_positions_end_5m": 10303.25,
+    "audit_positions_end_5m": 10300.52
+   },
+   {
+    "file": "cryptowizard/v1",
+    "published_end_5m": 9221.2,
+    "engine_positions_end_5m": 9221.2,
+    "audit_positions_end_5m": 9290.3
+   },
+   {
+    "file": "ziptrader/v1",
+    "published_end_5m": 10007.02,
+    "engine_positions_end_5m": 10007.02,
+    "audit_positions_end_5m": 10078.01
+   }
+  ],
+  "engine_deviates": [
+   {
+    "id": "posted-time-truncated",
+    "file": "lpp/v1",
+    "legs": 16,
+    "trades_affected_5m": 15,
+    "end_5m": 9763.83,
+    "delta_usd": -2.03
+   },
+   {
+    "id": "posted-time-truncated",
+    "file": "lpp/v2",
+    "legs": 4,
+    "trades_affected_5m": 4,
+    "end_5m": 10300.52,
+    "delta_usd": -2.73
+   },
+   {
+    "id": "posted-time-truncated",
+    "file": "cryptowizard/v1",
+    "legs": 3,
+    "trades_affected_5m": 3,
+    "end_5m": 9221.76,
+    "delta_usd": 0.56
+   },
+   {
+    "id": "cw-24h-default-exit",
+    "file": "cryptowizard/v1",
+    "positions": 56,
+    "trades_affected_5m": 48,
+    "end_5m": 9293.74,
+    "delta_usd": 72.54
+   },
+   {
+    "id": "cw-take-profit-trims-dropped",
+    "file": "cryptowizard/v1",
+    "posts": 190,
+    "trades_affected_5m": 6,
+    "end_5m": 9219.57,
+    "delta_usd": -1.63
+   },
+   {
+    "id": "targets-split-equally",
+    "positions": 0,
+    "delta_usd": 0.0
+   },
+   {
+    "id": "at-exit-before-entry",
+    "positions": 0,
+    "delta_usd": 0.0
+   },
+   {
+    "id": "hundred-dollar-minimum",
+    "positions": 0,
+    "delta_usd": 0.0
+   }
+  ],
+  "contract_silent": [
+   {
+    "id": "zt-horizon-from-quote",
+    "proposal": "Yes: rule 4's 'horizon as written' includes the quote; move it into the extraction's horizon field so code reads one place."
+   },
+   {
+    "id": "b1-ledger-look-ahead",
+    "proposal": "Keep for the as-taught numbers; CAP-12 replaces it with a carry decided only from what was said before 15:55."
+   },
+   {
+    "id": "b2-tp-post-after-own-order",
+    "proposal": "No: skip it; it sells only when the TP order has not filled (what audit.calc does)."
+   },
+   {
+    "id": "b3-gap-trigger",
+    "proposal": "At the gap bar's open (a stop order's fill). Engine and audit agree."
+   },
+   {
+    "id": "b4-moved-stop-same-bar",
+    "proposal": "Yes, at the stop level (not the bar's open). Engine and audit agree."
+   },
+   {
+    "id": "b5-sizing-reference-price",
+    "proposal": "The first fill's price (only price known then); CAP-9's bankroll model supersedes it."
+   },
+   {
+    "id": "b6-unsized-trim",
+    "proposal": "Half the position (engine, audit and bankroll-rules.md agree); write it into rule 6."
+   },
+   {
+    "id": "b7-hold-close",
+    "proposal": "The official daily close; report the last 1-minute close as an alternative."
+   }
+  ],
+  "audit_fixed": [
+   "c1-ok-only",
+   "c2-open-joins",
+   "c3-subsecond-noise",
+   "c4-cw-second-close"
+  ],
+  "counts": {
+   "a": 8,
+   "b": 8,
+   "c": 4
+  }
+ },
  "alternatives": {
   "sizing=trade,hold_close=official": {
    "generated_at": "2026-10-20T17:28:59Z",

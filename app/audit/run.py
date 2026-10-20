@@ -334,6 +334,7 @@ def write_proofs(path: Path, a, rdir: Path, ok: bool, summary: dict, reports: di
                "positions": {k: r["positions"] for k, r in reports.items()},
                "unverifiable": {k: r["unverifiable"] for k, r in reports.items() if r["unverifiable"]},
                "signoff": old.get("signoff"),
+               "findings": old.get("findings"),   # refreshed by python -m audit.findings (run it after this)
                "alternatives": {k: v for k, v in old.get("alternatives", {}).items()
                                 if v.get("results_git_sha") == run["results_git_sha"]}}
     else:
