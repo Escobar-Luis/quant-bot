@@ -1,5 +1,5 @@
 import './ui.css';
-import { COURSE_META, latest, proofSet, PROOF, LAB } from './data.js';
+import { COURSE_META, latest, proofSet, PROOF, LAB, PAPER_TEST } from './data.js';
 import { initAuth, signInWithGoogle, signOut, hasClerk } from './auth.js';
 import { drawTrade, destroy as destroyTrade, etTime } from './tradeChart.js';
 
@@ -475,6 +475,26 @@ function renderLab(c) {
   }).join('');
   $('#labFine').textContent = `$1,000 a trade from $10,000. The S&P is fully invested; a rule holds money a few hours a trade. ${L.variants_tried} versions tried, all in the file. Rules fixed before the test (${L.preregistered_sha}); the corrected list is a disclosed change made after it.`;
 }
+// Paper test (spec-audit CAP-18, story 30): S4 and S5 frozen at a tagged commit, traded forward with fake money one
+// session at a time. Every number from results/paper/summary.json; LPP only.
+function renderPaper(c) {
+  const P = PAPER_TEST, show = !!P && c.key === 'lpp';
+  $('#cPaper').hidden = !show;
+  if (!show) return;
+  const since = new Date(P.freeze.at).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  $('#paperTitle').textContent = `Paper test since ${since}: ${P.days} day${P.days === 1 ? '' : 's'}`;
+  $('#paperMeta').textContent = P.last_session ? `to ${P.last_session}` : '';
+  $('#paperHead').innerHTML = P.days
+    ? `His rules, frozen, on days nobody had seen. The S&amp;P made ${pct(P.benchmark.ret_pct)}.`
+    : 'His rules are frozen. The first day counts after the next session.';
+  $('#paperRules').innerHTML = P.days ? P.rules.map(r => {
+    const c = r.costs.realistic;
+    return `<li><p class="h-text">${esc(r.id)} · ${esc(r.label)}</p>
+      <p class="h-num mono num"><b class="${c.ret_pct < 0 ? 'neg' : 'pos'}">${pct(c.ret_pct)}</b> · 2× costs ${pct(r.costs.x2.ret_pct)} · ${nTrades(r.trades)}${r.won_pct != null ? ` · won ${r.won_pct}%` : ''}</p>
+      <p class="h-num mono num">${esc(r.word === 'Not enough trades' ? 'Too few trades yet' : r.word)}${r.vs_random ? ` · vs random: ${r.vs_random.pct_rank}th percentile` : ''}</p></li>`;
+  }).join('') : '';
+  $('#paperFine').textContent = `Fake money: $1,000 a trade from $10,000, realistic small-cap and borrow costs. Rules fixed at ${P.freeze.sha.slice(0, 7)} before any of these days; nothing is re-run.`;
+}
 let shownWord = null;
 function renderVerdict(fresh) {
   const c = COURSES[cur], v = vm(c);
@@ -483,7 +503,7 @@ function renderVerdict(fresh) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
     $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = ''; $('#vSealed').hidden = true;
-    ['cChart', 'cYear', 'cHis', 'cHelp', 'cLab', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    ['cChart', 'cYear', 'cHis', 'cHelp', 'cLab', 'cPaper', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
@@ -514,6 +534,7 @@ function renderVerdict(fresh) {
   renderHis(v);
   renderHelp(v);
   renderLab(c);
+  renderPaper(c);
   renderStrats(c, v);
   renderBotMix(c);
   const h = sealedSays(v);

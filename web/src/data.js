@@ -48,4 +48,8 @@ export function proofSet(course) {
 const LABS = import.meta.glob(['../../results/strategy-lab.json', '../results/strategy-lab.json'], { eager: true, import: 'default' });
 export const LAB = Object.values(LABS).find(j => j?.schema === 'strategy-lab/1') || null;
 
+// results/paper/summary.json (spec-audit story 30): the frozen rules paper-traded forward from the freeze. Missing: hidden.
+const PAPERS = import.meta.glob(['../../results/paper/summary.json', '../results/paper/summary.json'], { eager: true, import: 'default' });
+export const PAPER_TEST = Object.values(PAPERS).find(j => j?.schema === 'paper/1') || null;
+
 export const PROOF = Object.values(PROOFS)[0] || null;

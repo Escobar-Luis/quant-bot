@@ -1,0 +1,102 @@
+{
+ "schema": "paper/1",
+ "generated_at": "2026-10-20T21:40:13Z",
+ "rules_file": "app/paper/rules-v1.json",
+ "rules_version": "v1",
+ "rules_sha256": "7eb5f5fc74310b58e856f5ab78cc255ffe2e0d34083a00e336447905ed9f0a94",
+ "freeze": {
+  "sha": "0e79dd8edfb2d44a1023df3d0555993894e35529",
+  "tag": "paper-rules-v1",
+  "at": "2026-10-20T21:38:43Z"
+ },
+ "status": "waiting",
+ "first_session": null,
+ "last_session": null,
+ "days": 0,
+ "money_start": 10000.0,
+ "per_trade_usd": 1000.0,
+ "cost_models": [
+  "realistic",
+  "x2",
+  "base"
+ ],
+ "benchmark": {
+  "symbol": "SPY",
+  "ret_pct": 0.0,
+  "basis": "total return (Alpaca daily adjustment=all) from the close before the first counted session to the last counted close"
+ },
+ "rules": [
+  {
+   "id": "S4",
+   "label": "Short the run-up",
+   "text": "Short a hot stock at 09:45 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET.",
+   "lists": [
+    "his-hot",
+    "new-hot-raw"
+   ],
+   "trades": 0,
+   "won_pct": null,
+   "stops": 0,
+   "skipped_no_bars": 0,
+   "sized_down_days": 0,
+   "hard_to_borrow_trades": 0,
+   "unknown_borrow_trades": 0,
+   "costs": {
+    "realistic": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "max_drawdown_pct": 0.0
+    },
+    "x2": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "max_drawdown_pct": 0.0
+    },
+    "base": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "max_drawdown_pct": 0.0
+    }
+   },
+   "vs_spy_pts": 0.0,
+   "word": "Not enough trades",
+   "vs_random": null
+  },
+  {
+   "id": "S5",
+   "label": "Short crypto stocks that open up",
+   "text": "Short a crypto-linked stock at 09:35 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET.",
+   "lists": [
+    "his-crypto",
+    "new-crypto"
+   ],
+   "trades": 0,
+   "won_pct": null,
+   "stops": 0,
+   "skipped_no_bars": 0,
+   "sized_down_days": 0,
+   "hard_to_borrow_trades": 0,
+   "unknown_borrow_trades": 0,
+   "costs": {
+    "realistic": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "max_drawdown_pct": 0.0
+    },
+    "x2": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "max_drawdown_pct": 0.0
+    },
+    "base": {
+     "end": 10000.0,
+     "ret_pct": 0.0,
+     "max_drawdown_pct": 0.0
+    }
+   },
+   "vs_spy_pts": 0.0,
+   "word": "Not enough trades",
+   "vs_random": null
+  }
+ ]
+}

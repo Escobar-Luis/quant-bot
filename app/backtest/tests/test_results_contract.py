@@ -6,7 +6,7 @@ import pytest
 from backtest import engine
 from backtest.common import DELAYS_MIN, RESULTS
 
-FILES = sorted(p for p in RESULTS.glob("*/*.json"))
+FILES = sorted(p for p in RESULTS.glob("*/*.json") if p.parent.name != "paper")   # results/paper/: contract `paper`
 WORDS = {"Yes", "Barely", "No", "Not enough trades"}
 
 

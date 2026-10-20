@@ -1,0 +1,87 @@
+{
+ "schema": "paper-rules/1",
+ "version": "v1",
+ "what": "Forward paper test (spec-audit CAP-18, story audit-30-paper). The rules below are frozen at the commit that adds this file (tag paper-rules-v1). Only sessions that open after that commit count. Never edited: a change is a new file (rules-v2.json) with its own freeze and its own ledger; past days are never re-simulated.",
+ "fake_money_only": "AGENTS.md shared rule 7: fills are computed from Alpaca market data; no order is ever sent to any broker, paper or real.",
+ "source": {
+  "spec": "notes/research/strategy-as-code.md",
+  "preregistered_sha": "eb6c3e8",
+  "results": "results/strategy-lab.json",
+  "variant": "P (primary): gap +5%, stop 5%, exit 15:55 ET",
+  "universe_note": "S4 runs on his-hot plus new-hot-raw, the corrected list (floors on the raw close of 2025-09-12; section 8 item 5), never new-hot. S5 runs on his-crypto plus new-crypto."
+ },
+ "money": {
+  "start_usd": 10000,
+  "per_trade_usd": 1000,
+  "accounts": "one $10,000 account per rule (S4, S5), each run under every cost model",
+  "sizing": "a session's trades share the account: when n trades x $1,000 is more than the lesser of $10,000 and $10,000 + realized P&L so far (under that cost model), each is sized to that amount / n (sized_down). Fractional shares. Cash-secured shorts, no margin.",
+  "order_in_session": "by entry time, then ticker"
+ },
+ "signal": {
+  "gap": "daily open(d) / daily close(previous bar) - 1, Alpaca SIP daily bars, adjustment=split, rounded to 9 decimals",
+  "trigger": "gap >= gap_min_pct / 100",
+  "no_signal": "no daily bar on d, or no earlier bar in the fetched lookback"
+ },
+ "rules": [
+  {
+   "id": "S4",
+   "label": "Short the run-up",
+   "text": "Short a hot stock at 09:45 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET.",
+   "lists": {
+    "his-hot": ["AFRM", "AI", "CVNA", "DJT", "GME", "HIMS", "OPEN", "PLTR", "RDDT", "SMCI", "SOFI", "SOUN", "TEM"],
+    "new-hot-raw": ["SOGP", "ORBS", "NEGG", "CWD", "WLDS", "ONDS", "BMNR", "AAOI", "RUN", "SEDG", "BLSH", "UUUU", "SBET", "APLD", "CRCL", "SMR", "PL", "PGY", "SKYD", "QS"]
+   },
+   "gap_min_pct": 5,
+   "entry_et": "09:45",
+   "stop_pct": 5,
+   "exit_et": "15:55"
+  },
+  {
+   "id": "S5",
+   "label": "Short crypto stocks that open up",
+   "text": "Short a crypto-linked stock at 09:35 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET.",
+   "lists": {
+    "his-crypto": ["COIN", "HOOD", "MARA", "MSTR"],
+    "new-crypto": ["HUT", "KEEL", "HIVE", "BTBT", "BTDR", "IREN", "CIFR", "GLXY", "WULF", "LUNR"]
+   },
+   "gap_min_pct": 5,
+   "entry_et": "09:35",
+   "stop_pct": 5,
+   "exit_et": "15:55"
+  }
+ ],
+ "fills": {
+  "bars": "Alpaca SIP 1-minute bars, adjustment=raw, regular session 09:30-16:00 ET, keyed by bar open time",
+  "entry": "the open of the first 1-minute bar at or after entry_et; no such bar = skipped (no_bars)",
+  "stop": "from the entry bar on, the first bar whose high reaches entry x (1 + stop_pct/100) covers at max(that bar's open, the stop)",
+  "exit": "else the open of the first bar at or after exit_et; else the last bar's close",
+  "pnl": "shares x (entry - exit) - per-side costs on both fills - borrow fee"
+ },
+ "costs": {
+  "reference": "notes/research/strategy-as-code.md section 5b (small_cap and borrow_high), frozen here. Story 29 (CAP-17) may change app/backtest costs later; this test keeps these numbers until a rules-v2 freeze.",
+  "realistic": {
+   "bps_per_side": "50 when the fill price is under $5, 30 under $10, else 5; plus 10 when the stock's 20-session average dollar volume (raw close x volume) before the session is under $50M",
+   "thin_adv_usd": 50000000,
+   "adv_sessions": 20,
+   "borrow_fee_pct_of_notional": 0.4,
+   "borrow_fee_applies_to": "trades on names Alpaca does not flag easy_to_borrow (flag read when the day is simulated), including an unknown flag"
+  },
+  "x2": "every realistic per-side cost and the borrow fee doubled",
+  "base": "5 bps per side, 20 bps when the fill price is under $10 (contracts rule 5); no borrow fee. For comparison with results/strategy-lab.json only."
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "basis": "total return, dividends reinvested: the product of each counted session's close-to-close factor on Alpaca daily bars adjustment=all, from the close of the last session before the first counted one"
+ },
+ "word": "contracts rule 9 on the realistic return vs SPY: under 30 trades Not enough trades; return below 0 No; ahead 2+ pts Yes; within 2 Barely; behind 2+ No",
+ "vs_random": {
+  "min_trades": 30,
+  "draws": 2000,
+  "seed": 30,
+  "twin": "each trigger session shorted at the daily open and covered at the daily close, $1,000, base costs (split-adjusted ratios, raw prices for the cost tier)",
+  "pool": "every (ticker, counted session) of the rule's lists with a daily bar and an earlier bar",
+  "band": "2.5th to 97.5th percentile of the random draws' P&L; the twin's percentile rank"
+ },
+ "counts_from": "the first session whose 09:30 ET open is after the freeze commit's time",
+ "data_budget": "at most 200 new 1-minute ticker-days per run; a day is simulated whole or not at all"
+}

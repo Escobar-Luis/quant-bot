@@ -23,7 +23,9 @@ For each results file:
      re-priced by audit.calc, its dev and sealed numbers, SPY's total return and the keep decision
      (audit.improvements).
   Then results/strategy-lab.json (when present, on a full run): every run recomputed by audit.lab from the cached
-  bars (contracts.md section strategy-lab), written to data/audit/diff-strategy-lab.json.
+  bars (contracts.md section strategy-lab), written to data/audit/diff-strategy-lab.json; and results/paper/
+  (the forward paper test, CAP-18) recomputed by audit.paper from data/paper/daily/ and the 1-minute cache, written
+  to data/audit/diff-paper.json.
 Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
 proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
 No network: a bar missing from data/bars/ marks that trade no_bars; trades both sides call no_bars are listed
@@ -38,7 +40,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from . import calc, improvements, lab, strategy, years
+from . import calc, improvements, lab, paper, strategy, years
 from . import positions as P
 from .paths import DATA, PROOFS, REPO, RESULTS
 
@@ -548,7 +550,9 @@ def write_proofs(path: Path, a, rdir: Path, ok: bool, summary: dict, reports: di
         rec = {"schema": "audit/2", **run,
                "results_sha256": {k: r["results_sha256"] for k, r in reports.items()}
                | ({"strategy-lab": hashlib.sha256((rdir / "strategy-lab.json").read_bytes()).hexdigest()}
-                  if "strategy-lab" in summary else {}),
+                  if "strategy-lab" in summary else {})
+               | ({"paper/summary": hashlib.sha256((rdir / "paper" / "summary.json").read_bytes()).hexdigest()}
+                  if "paper/summary" in summary else {}),
                "tolerance": {"trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, "
                                       "price and shares)",
                              "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, "
@@ -582,7 +586,8 @@ def main(argv=None) -> int:
     ap.add_argument("--only", action="append", help="course/version, e.g. lpp/v1 (repeatable)")
     a = ap.parse_args(argv)
     rdir, out_dir = Path(a.results_dir), Path(a.out_dir)
-    files = sorted(p for p in rdir.glob("*/*.json") if not a.only or f"{p.parent.name}/{p.stem}" in a.only)
+    files = sorted(p for p in rdir.glob("*/*.json") if p.parent.name != "paper"   # results/paper/: audit.paper
+                   and (not a.only or f"{p.parent.name}/{p.stem}" in a.only))
     if not files:
         print("no results files found", file=sys.stderr)
         return 2
@@ -618,6 +623,15 @@ def main(argv=None) -> int:
             {"unverifiable": len(rep["unverifiable"])}
         print(f"{'strategy-lab':<16} {'PASS' if rep['pass'] else 'FAIL'}  runs checked {rep['runs_checked']:>5}  "
               f"mismatches {rep['mismatches']:>5}  unverifiable {len(rep['unverifiable'])}")
+    paper_file = rdir / "paper" / "summary.json"
+    if paper_file.exists() and not a.only:
+        # results/paper/ (contracts.md section paper, CAP-18): the forward paper test recomputed by audit.paper
+        rep = paper.check(rdir / "paper")
+        (out_dir / "diff-paper.json").write_text(json.dumps(rep, indent=1))
+        summary["paper/summary"] = {k: rep[k] for k in ("pass", "sessions_checked", "trades_checked", "mismatches")} \
+            | {"unverifiable": len(rep["unverifiable"])}
+        print(f"{'paper':<16} {'PASS' if rep['pass'] else 'FAIL'}  sessions checked {rep['sessions_checked']:>4}  "
+              f"trades checked {rep['trades_checked']:>4}  mismatches {rep['mismatches']:>5}")
     ok = all(s["pass"] for s in summary.values())
     if a.proofs:
         write_proofs(Path(a.proofs), a, rdir, ok, summary, reports)
