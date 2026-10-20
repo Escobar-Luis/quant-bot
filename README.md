@@ -208,6 +208,20 @@ uv run pytest -q
 cd web && npm install && npm run dev
 ```
 
+### Forward paper test (daily, by hand)
+
+His two rules (S4 short the run-up, S5 short crypto stocks that open up) are frozen in `app/paper/rules-v1.json` at tag `paper-rules-v1` (`0e79dd8`, 2026-10-20 17:38 ET). Only sessions that open after that count. Fake money only: fills come from Alpaca market data; nothing is sent to any broker.
+
+Once a day after 16:30 ET (safe to run again; it skips days already done and never re-runs past days):
+
+```bash
+cd app
+uv run python -m paper.run     # appends results/paper/ledger.jsonl, updates results/paper/summary.json
+uv run python -m audit.run     # recomputes it independently (and keeps the gate's record current)
+```
+
+Then commit `results/paper/` and `proofs/audit.json`. Missed days are caught up on the next run (at most 200 new 1-minute ticker-days per run). Not scheduled yet: story 33 asks Luis's OK for a standing job.
+
 ## Not financial advice
 
 This is a research tool. It uses fake money and published trades, and says nothing about what anyone should buy. Course content belongs to its creators: the repo holds only derived rules and short citations.

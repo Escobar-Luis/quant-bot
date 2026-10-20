@@ -196,3 +196,9 @@
     CAP-17 follow-up. Story 21 flags hard-to-borrow shorts with Alpaca's easy_to_borrow flag as of today, not the trade date, and picks the "other stocks" from today's asset list, so names delisted since 2025-09-12 are missing (survivorship). 45% of the short-every-open control's trades on the other hot list are hard-to-borrow today.
   invoke_dev_with: >-
     Found by story 21. Find a point-in-time source for borrow availability and fees (or bound it: drop hard-to-borrow names as a variant), and rebuild the universe picker from a dated listing that includes delisted names; log both as new variants in notes/research/strategy-as-code.md. Fold into story 29's cost model if it lands first.
+- id: "33"
+  title: Schedule the daily paper test run
+  description: >-
+    CAP-18 follow-up. Story 30 froze S4 and S5 (tag paper-rules-v1) and built `paper.run`, which adds each completed session to results/paper/; today it runs only when someone types it. Run it every trading day after 16:30 ET, then `audit.run`, and commit results/paper/ and proofs/audit.json on a branch with a PR.
+  invoke_dev_with: >-
+    Needs Luis's OK first: a standing scheduled job (launchd, cron or a scheduled agent) is persistent configuration. Fake money only; use the data lock; a missed day is caught up by the next run. Decide with Luis whether each day's update merges by itself or waits for him, and whether the public app is redeployed (not without his OK).
