@@ -206,7 +206,8 @@ def build(version: str, only: set[str] | None = None, ledger: str = "no_look_ahe
 
 
 SIZING = "His own share counts when he said them; $1,000 per entry when he didn't"
-SIZING_SCALED = "$1,000 first buy; his adds keep the share ratios he had said by then"   # contracts.md rule 13(e)
+SIZING_SCALED = ("His share counts, scaled so his first buy is $1,000; "
+                 "each add uses only what he had said by then")   # contracts.md rule 13(e)
 
 
 def unknown(stats, assumed, priced, total, status) -> list[str]:

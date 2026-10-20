@@ -20,7 +20,8 @@ def test_results_file_matches_contract(path):
     testable = {p["id"] for p in d["portfolios"] if p["testable"]}
     assert d["headline_portfolio"] == "all" and "all" in testable
     if d["course"] == "lpp":
-        assert d["sizing"] == "$1,000 first buy; his adds keep the share ratios he had said by then"   # rule 13(e)
+        assert d["sizing"] == ("His share counts, scaled so his first buy is $1,000; "
+                              "each add uses only what he had said by then")   # rule 13(e)
     need = {"end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy", "won_pct",
             "worst_drop_pct", "word", "sealed"}
     words = {"Yes", "Barely", "No", "Not enough trades"}
