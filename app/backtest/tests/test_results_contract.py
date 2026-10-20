@@ -40,15 +40,16 @@ def test_results_file_matches_contract(path):
     testable = {p["id"] for p in d["portfolios"] if p["testable"]}
     assert d["headline_portfolio"] == "all" and "all" in testable
     if d["course"] == "lpp":
-        assert d["sizing"] == "His share counts, scaled to $1,000 per trade"   # contracts.md rule 6
+        from backtest.lpp import SIZING_SCALED
+        assert d["sizing"] == SIZING_SCALED   # contracts.md rule 13(e)
     need = {"end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy", "won_pct",
             "worst_drop_pct", "word", "outcome", "vs", "sealed"}
     words = {"Yes", "Barely", "No", "Not enough trades"}
-    if d["course"] == "lpp":   # rule 13, provisional: shown beside the as-taught headline
-        nla = d["no_look_ahead"]
-        assert nla["provisional"] is True and nla["rules"]
-        assert [p["id"] for p in nla["portfolios"]] == ["all", "day", "swing"]
-        for p in nla["portfolios"]:
+    if d["course"] == "lpp":   # rule 11, shown beside rule 13's headline (spec-audit story 18)
+        alt = d["as_taught_stitched"]
+        assert alt["rules"] and alt["why_not_headline"] and "no_look_ahead" not in d
+        assert [p["id"] for p in alt["portfolios"]] == ["all", "day", "swing"]
+        for p in alt["portfolios"]:
             assert set(p["by_delay"]) == {str(x) for x in DELAYS_MIN}
             assert all(need <= set(r) and r["word"] in words | {None} for r in p["by_delay"].values())
     for p in d["portfolios"]:

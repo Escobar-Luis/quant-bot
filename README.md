@@ -12,18 +12,19 @@ We copy each course's posted trades with $10,000 of fake money, after trading co
 
 <!-- numbers: update after stories 3,4,9 -->
 
-Computed by today's copy engine at a flat $1,000 per trade (a compounding bankroll model, story 8, is coming), entering 5 minutes after each post, after costs. Source: `portfolios[id=all].by_delay["5"]` in each [`results/`](results/) file.
+Computed by today's copy engine at a flat $1,000 per trade (a compounding bankroll model, story 8, is coming), entering 5 minutes after each post, after costs. LPP uses no look-ahead (contracts.md rule 13, since story 18): he says he closes every day, so a position stays overnight only if he said he'd hold it before 15:55 ET. Source: `portfolios[id=all].by_delay["5"]` in each [`results/`](results/) file.
 
 | Course | Window | Trades copied | $10k became | Just holding | Word | Held-out (sealed) last 3 months |
 |---|---|---|---|---|---|---|
-| Learn Plan Profit ([`lpp/v1`](results/lpp/v1.json)) | 2024-08-15 → 2025-09-12 | 315 | **$9,763.83** (−2.36%) | $11,963.79 SPY (+19.64%) | **No**: lost money, the S&P did better | **No**: −2.16% vs SPY +9.56% (93 trades) |
+| Learn Plan Profit ([`lpp/v1`](results/lpp/v1.json)) | 2024-08-15 → 2025-09-12 | 342 | **$9,735.45** (−2.65%) | $11,963.79 SPY (+19.64%) | **No**: lost money, the S&P did better | **No**: made money (+2.08%) vs SPY +9.56% (103 trades) |
 | Crypto Wizard ([`cryptowizard/v1`](results/cryptowizard/v1.json)) | 2025-10-17 → 2026-10-16 | 122 | **$9,290.30** (−7.10%) | $7,543.43 BTC (−24.57%) | **No**: lost money, less than Bitcoin | **No**: −0.08% vs BTC +26.04% (35 trades) |
 | ZipTrader ([`ziptrader/v1`](results/ziptrader/v1.json)) | 2026-10-01 → 2026-10-16 | 1 | $10,007.02 (+0.07%) | $9,985.61 SPY (−0.14%) | **Not enough trades**: made money, about the same as the S&P | same window |
 
 1. **Crypto Wizard lost money.** It lost 7.1%, less than Bitcoin's 24.6% drop, so it reads "No: lost money, less than Bitcoin" (it read "Yes" before story 4). In the held-out months it trailed Bitcoin by 26 points: No.
 2. **The word** (`contracts.md` rule 9): under 30 trades = Not enough trades; lost money = No; else beat holding by 2+ points = Yes, within 2 = Barely, behind by 2+ = No. Each card says the outcome first, then the comparison, then the held-out months' word.
-3. **Delay doesn't flip it.** LPP is "No" at every delay from 1 to 60 minutes (−0.57% to −2.70%). Crypto Wizard is "No" (lost money, less than Bitcoin) at every delay (−6.46% to −7.62%).
-4. **LPP v2** ([`lpp/v2`](results/lpp/v2.json)) re-extracts only the 30-session PRISM proof set: $10,300.52 vs v1's $10,287.41 on the same sessions (`same_sessions`). It is never compared with the full-year SPY return: its file's `compare_with` is v1 on the same sessions.
+3. **Delay doesn't flip it.** LPP is "No" at every delay from 1 to 60 minutes (−7.69% to +3.26%; at 60 minutes it made money but trailed the S&P). Crypto Wizard is "No" (lost money, less than Bitcoin) at every delay (−6.46% to −7.62%).
+4. **LPP v2** ([`lpp/v2`](results/lpp/v2.json)) re-extracts only the 30-session PRISM proof set: $10,966.20 vs v1's $10,884.58 on the same sessions (`same_sessions`), Barely. It is never compared with the full-year SPY return: its file's `compare_with` is v1 on the same sessions.
+5. **The old reading, for comparison.** Each LPP file keeps `as_taught_stitched` (rule 11): positions stitched across sessions by his later words, all of a trade's buys together $1,000. LPP v1 there: $9,763.83 (−2.36%, 315 trades, No); v2 $10,300.52. Why it isn't the headline: [`notes/sources/lpp-discord-exits.md`](notes/sources/lpp-discord-exits.md).
 
 Held-out (sealed) months: each course's last 3 months, kept apart so a later tweak can't be tuned on them.
 
@@ -85,7 +86,7 @@ Counts from `cd app && uv run python -m audit.counts` (2026-10-20), explained in
 
 | Course | Sources | Pulled how | Read by | Events | Passed every check | In review | Trades priced |
 |---|---|---|---|---|---|---|---|
-| Learn Plan Profit v1 | 247 live-stream links (246 with captions) | Discord links, then yt-dlp **YouTube auto-captions** | Claude Sonnet 5.5 via Nicrron (fallbacks: Sonnet 5, GPT-5.4), one call per session, temperature 0 | 4,196 | 2,883 | 1,313 | 315 |
+| Learn Plan Profit v1 | 247 live-stream links (246 with captions) | Discord links, then yt-dlp **YouTube auto-captions** | Claude Sonnet 5.5 via Nicrron (fallbacks: Sonnet 5, GPT-5.4), one call per session, temperature 0 | 4,196 | 2,883 | 1,313 | 342 |
 | Learn Plan Profit v2 | same captions, new prompt | same | same | 4,128 | 3,773 | 355 | 51 (proof set only) |
 | ZipTrader | 13 (12 briefings + 1 strategy card) | Discord screenshots | vision model, then a second model re-reads each briefing | 86 | 85 | 1 | 1 |
 | Crypto Wizard | 595 posts (440 trade feed, 155 lessons; 42 skipped) | Discord search, read-only | code (regex) reads every number of the post template; Sonnet reads charts and lesson rules | 670 | 598 | 72 | 122 (126 setups; 4 had no price bars) |
@@ -102,8 +103,8 @@ Full rules: [`contracts.md`](_bmad-output/planning-artifacts/spec-day-trader-ai/
 
 1. **When he posts:** the Discord timestamp, or the stream's start plus the second he said it.
 2. **When you get in:** the first 1-minute bar at post time + your delay (1, 3, 5, 10, 15, 30 or 60 min). If he gave a trigger price, only when price reaches it; otherwise no trade.
-3. **When you get out**, first that applies: his own close or trim (+ delay); his stop or target (both in one bar = the stop); his stated horizon; else 15:55 ET for day trades, 5 sessions for swing, 24 hours for crypto. Every assumed exit is counted in the file's `unknown` list (LPP: 137 day trades, 14 swing).
-4. **How much:** $1,000 per trade, keeping his add and trim ratios. A trim with no size sells half. Unused cash earns nothing.
+3. **When you get out**, first that applies: his own close or trim (+ delay); his stop or target (both in one bar = the stop); his stated horizon; else 15:55 ET for day trades, 24 hours for crypto. LPP holds overnight only when he said so before 15:55 ET that day (he says he closes every day). Every assumed exit is counted in the file's `unknown` list (LPP: 187 day trades, 3 swing).
+4. **How much:** $1,000 for a trade's first buy; each add keeps his ratio to that first buy, from the share counts he had said by then. A trim with no size sells half. Unused cash earns nothing.
 5. **Costs per side:** 5 bps stocks, 20 bps stocks under $10, 25 bps crypto.
 6. **Just holding:** $10,000 in SPY or BTC at the window's first minute, sold at the last official daily close.
 7. **Options** are counted, not priced (no free options price history).
@@ -167,8 +168,8 @@ Our 52%/66% and the 53.3%/66.7% in older notes use different denominators.
 <!-- numbers: update after stories 3,4,9 -->
 
 1. **Dividends left out.** SPY is price only; real holders got about 1% a year more, so just holding looks slightly worse than it was. That flatters the courses.
-2. **Exposure vs fully invested.** At $1,000 a trade, LPP had at most $4,730 (of $10,000) invested, at any delay; Crypto Wizard $5,000. Just holding is 100% invested. A same-money benchmark (story 10) and a compounding bankroll (story 8) are coming.
-3. **Look-ahead being removed.** LPP's ledger (rule 11) keeps a position overnight when his *later* words mention it, which a real follower couldn't know. Story 9 replaces it with decisions made only from what was said before.
+2. **Exposure vs fully invested.** At $1,000 a trade, LPP had at most $10,585 invested at any delay (above $10,000 only once gains had grown the cash; a buy that doesn't fit is sized down); Crypto Wizard $5,000. Just holding is 100% invested. A same-money benchmark (story 10) and a compounding bankroll (story 8) are coming.
+3. **Look-ahead removed (LPP).** Since story 18 the headline decides each overnight hold only from what he had said before 15:55 ET (rule 13), as his own chat says he closes every day. His afternoon and after-hours trades off the stream aren't copied (story 24), and one channel where he posted closes is unreadable to Luis's account (story 23).
 4. **Held-out months are before the model's training cutoff.** LPP's held-out months (from 2025-06-12) predate the extraction model's training cutoff, so AGENTS.md's "sealed after the cutoff" rule isn't met. The model only reads captions and prices come from code, but it isn't a clean out-of-sample test.
 5. **The gold set is AI-drafted** (see above).
 6. **27 LPP trading days are missing** (no stream, no captions, or no events).

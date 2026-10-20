@@ -6,8 +6,8 @@
  "source_agent_id": "extract-ziptrader-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:32:06Z",
- "git_sha": "da443ed1b782956b49adfcff618e5e8f01fd73e3",
+ "generated_at": "2026-10-20T19:57:54Z",
+ "git_sha": "fcfea102279d92d70e7c1a5fcddf9a9c63d9757d",
  "window": {
   "start": "2026-10-01",
   "end": "2026-10-16",

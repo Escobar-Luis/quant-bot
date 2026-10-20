@@ -8,10 +8,10 @@ them from cached bars, and neither imports backtest.*. Only the comparison impor
 (backtest.<course>.build), to diff their positions with the audit's.
 
 Two readings to know:
-- LPP's headline follows rule 11 with sizing "trade" (all of a trade's buys together are $1,000): both read his
-  later words. Rule 13 (no look-ahead: overnight only on a horizon said before 15:55 ET, sizing "known" from the
-  counts said by then) is checked on the provisional `no_look_ahead` key. Both sizings are superseded by the
-  bankroll model (spec-audit CAP-9). Rule 6's cash cap is applied per buy as it fills.
+- LPP's headline follows rule 13 (no look-ahead: overnight only on a horizon said before 15:55 ET) with sizing
+  "known" (each add sized from the counts said by then), since spec-audit story 18. Rule 11 with sizing "trade"
+  (sessions stitched by his later words; all of a trade's buys together are $1,000) is checked on the
+  `as_taught_stitched` key. Rule 6's cash cap is applied per buy as it fills.
 - Just holding ends at the official daily close (what a holder gets); the last 1-minute close is reported as an
   alternative (--hold-close minute).
 """

@@ -54,22 +54,23 @@ def sheet(seed: int, n: int, delay: int) -> str:
     picks = random.Random(seed).sample(pool, n)
     lines = [f"# Hand-check: {n} LPP v1 trades at {delay} min (seed {seed})", "",
              "Rules (contracts.md): entry = open of the first 1-minute bar at or after post + delay; his later "
-             "posts fill the same way; an open position leaves at the 15:55 ET bar's open (day) or 15:55 on the "
-             "5th session after entry (swing); costs 5 bps per side (20 under $10).", "",
+             "posts fill the same way; an open position leaves at the 15:55 ET bar's open of its first session, "
+             "unless he said before then that he'd hold it: then at 15:55 ET of the last session of that stated "
+             "hold (swing; rule 13); costs 5 bps per side (20 under $10).", "",
              "P&L = sum over exits of (exit - average entry) x shares (short: entry - exit), minus costs on every "
-             "fill. Sizing is shown both ways (see the audit report): `trade` = all his entries together are "
-             "$1,000 (rule 6 as taught, the headline; reads later adds), `known` = the first buy is $1,000 and "
-             "each add is sized from the counts he had stated by then (rule 13e, provisional).", ""]
+             "fill. Sizing is shown both ways (see the audit report): `known` = the first buy is $1,000 and each "
+             "add is sized from the counts he had stated by then (rule 13e, the headline); `trade` = all his "
+             "entries together are $1,000 (rule 6 as taught, the `as_taught_stitched` key; reads later adds).", ""]
     for i, p in enumerate(picks, 1):
         e = ledger[(p.pid, delay)]
-        tr = calc.simulate(p, delay, "trade")
-        lit = calc.simulate(p, delay, "known")
+        tr = calc.simulate(p, delay, "known")      # rule 13e, the headline
+        lit = calc.simulate(p, delay, "trade")     # rule 6 as taught
         lines += [f"## {i}. {p.pid}: {p.ticker} {p.side}, {p.portfolio} ({p.default_exit})", "",
                   "His posts (action, his share count, post time):", ""]
         for lg in sorted(p.legs, key=lambda lg: lg.posted_ts):
             lines.append(f"- {lg.action} {lg.qty if lg.qty else '(no count)'} at {B.iso(lg.posted_ts)} "
                          f"({et(lg.posted_ts)}); + {delay} min = {B.iso(lg.posted_ts + delay * 60)}")
-        lines += ["", "Fills (audit, `trade` sizing):", "", "| time (UTC) | kind | price | shares | notional | cost |",
+        lines += ["", "Fills (audit, `known` sizing):", "", "| time (UTC) | kind | price | shares | notional | cost |",
                   "|---|---|---|---|---|---|"]
         for f in tr.fills:
             lines.append(f"| {B.iso(f.ts)} | {f.kind} | {f.px} | {f.qty:.4f} | {f.px * f.qty:.2f} | "
@@ -95,7 +96,7 @@ def sheet(seed: int, n: int, delay: int) -> str:
         lines += ["P&L:", ""] + [f"- {x}" for x in parts]
         lines += [f"- gross {tr.pnl + tr.cost:.4f} - costs {tr.cost:.4f} = **{tr.pnl:.2f}**", "",
                   f"Engine ledger P&L: **{e['pnl']:.2f}** (entry {e['fills'][0][1]} at {B.iso(e['fills'][0][0])}). "
-                  f"Audit `trade` (as taught): {tr.pnl:.2f}. Audit `known` (rule 13e): {lit.pnl:.2f}.", "",
+                  f"Audit `known` (rule 13e, the headline): {tr.pnl:.2f}. Audit `trade` (as taught): {lit.pnl:.2f}.", "",
                   "- [ ] Luis: entry bar open matches  - [ ] exit bar open matches  - [ ] P&L redone by hand", ""]
     lines += ["---", "", "Sign off with `cd app && uv run python -m audit.gate --sign Luis` (records this file's sha256 "
               "in proofs/audit.json; any later edit to this sheet reopens the gate).", ""]
