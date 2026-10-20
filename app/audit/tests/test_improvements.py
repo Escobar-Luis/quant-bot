@@ -59,3 +59,21 @@ def test_a_look_ahead_condition_is_flagged(lpp_v1):
     imp = copy.deepcopy(d["improvements"])
     imp["variants"][0]["when"] = {"adds": ["to_loser"]}
     assert any("known only after entry" in m["field"] for m in run(d, mine, imp))
+
+
+def test_definitions_that_differ_from_the_contract_are_flagged(lpp_v1):
+    d, mine = lpp_v1
+    defs = copy.deepcopy(d["strategy_profile"]["definitions"])
+    defs["setups"][0]["words"] = defs["setups"][0]["words"][:1]
+    found = improvements.check(d["improvements"], mine, "v1", d["window"], defs)
+    assert any(m["portfolio"] == "definitions" for m in found)
+
+
+def test_honesty_fields_are_required(lpp_v1):
+    d, mine = lpp_v1
+    imp = copy.deepcopy(d["improvements"])
+    del imp["disclosure"]
+    imp["variants_tried"]["distinct_priced"] = 2
+    imp["kept_all_trail_spy"] = not imp["kept_all_trail_spy"]
+    fields = {m["field"] for m in run(d, mine, imp)}
+    assert {"disclosure", "variants_tried", "kept_all_trail_spy"} <= fields

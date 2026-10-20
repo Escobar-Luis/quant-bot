@@ -12,22 +12,38 @@ import datetime as dt
 from . import bars as B
 from . import calc, years
 from . import positions as P
-from .strategy import _setup
-
 RET_TOL = 0.01
 ENTRY = ("side", "group", "ticker", "time15", "time30", "setup")
+# The audit's own copy of the definitions, from contracts.md section improvements rule 2 (never the results
+# file's): ticker groups by what the company is, and his stated reason's setups (first keyword match wins).
+TICKER_GROUPS = {"big tech": ["TSLA", "NVDA", "AMD", "AVGO", "AMZN", "AAPL", "META", "MSFT", "GOOGL", "GOOG", "NFLX"], "crypto-linked": ["MSTR", "COIN", "HOOD", "MARA", "RIOT", "CLSK"], "hot small and mid caps": ["PLTR", "SOUN", "HIMS", "SOFI", "SMCI", "TEM", "RDDT", "DJT", "OPEN", "GME", "AI", "CVNA", "IONQ", "RKLB", "RGTI", "QBTS", "OKLO", "APP", "UPST", "AFRM"], "index funds": ["SPY", "QQQ", "TQQQ", "SQQQ", "IWM", "SPXS", "SPXL"]}
+OTHER_GROUP = "other"
+SETUPS = [{"id": "short-overbought", "side": "short", "words": ["overbought", "ran up", "run up", "pump", "extended", "rise", "rally", "pop", "rip", "spike", "squeeze"]}, {"id": "short-resistance", "side": "short", "words": ["resistance", "reject", "highs", "high of", "lower high", "double top", "ceiling"]}, {"id": "short-breakdown", "side": "short", "words": ["break", "support", "weak", "downside", "drop", "gap down", "lower", "dump", "bearish", "sell-off"]}, {"id": "buy-the-dip", "side": "long", "words": ["oversold", "dip", "bounce", "support", "recovery", "reversal", "bottom", "flush"]}, {"id": "other-shorts", "side": "short", "words": []}, {"id": "other-longs", "side": "long", "words": []}]
+UNKNOWN_SETUP = "unknown"
 
 
-def _feats(p, events: dict, defs: dict) -> dict:
+def _setup(why: str | None, side: str) -> str:
+    if not why:
+        return UNKNOWN_SETUP
+    w = why.lower()
+    for s in SETUPS:
+        if s["side"] == side and (not s["words"] or any(k in w for k in s["words"])):
+            return s["id"]
+    return "other-longs" if side == "long" else "other-shorts"
+
+
+def _feats(p, events: dict, first_fill: float) -> dict:
+    """Entry-time features; the stated reason only from legs posted at or before the copy's first fill."""
     at = dt.datetime.fromtimestamp(p.legs[0].posted_ts, B.ET)
     hm = (at.hour, at.minute)
-    why = next((events[lg.event_id].get("why") for lg in p.legs if events.get(lg.event_id, {}).get("why")), None)
+    why = next((events[lg.event_id].get("why") for lg in sorted(p.legs, key=lambda lg: lg.posted_ts)
+                if lg.posted_ts <= first_fill and events.get(lg.event_id, {}).get("why")), None)
     return {"side": p.side, "ticker": p.ticker,
-            "group": next((g for g, ts in defs["ticker_groups"].items() if p.ticker in ts), defs["other_group"]),
+            "group": next((g for g, ts in TICKER_GROUPS.items() if p.ticker in ts), OTHER_GROUP),
             "time15": "before 09:30" if hm < (9, 30) else f"{at.hour:02d}:{at.minute // 15 * 15:02d}",
             "time30": "09:30" if hm < (10, 0) else "11:00 or later" if hm >= (11, 0)
             else f"{at.hour:02d}:{at.minute // 30 * 30:02d}",
-            "setup": _setup(why, p.side, defs["setups"])}
+            "setup": _setup(why, p.side)}
 
 
 def _hit(f: dict, when: dict) -> bool:
@@ -94,7 +110,20 @@ def check(imp: dict, mine: dict, version: str, window: dict, defs: dict, market:
     pos = P.build("lpp", version)
     events = {e["event_id"]: e for e in P.rows(P.lpp_events_path(version))}
     base = {p.pid: mine[(p.pid, d)] for p in pos}
-    feats = {p.pid: _feats(p, events, defs) for p in pos}
+    def first_fill(p):
+        t = base[p.pid]
+        if t.status == "priced" and t.entry:
+            return t.entry.ts
+        return min(lg.posted_ts for lg in p.legs if lg.action in ("open", "add")) + d * 60
+
+    feats = {p.pid: _feats(p, events, first_fill(p)) for p in pos}
+    for k, mine_def in (("ticker_groups", TICKER_GROUPS),
+                        ("setups", [{"id": x["id"], "side": x["side"], "words": x["words"]} for x in SETUPS])):
+        theirs = defs.get(k)
+        if k == "setups" and isinstance(theirs, list):
+            theirs = [{"id": x.get("id"), "side": x.get("side"), "words": list(x.get("words") or [])} for x in theirs]
+        if theirs != mine_def:
+            _miss(out, "definitions", k, "differs from contracts.md", "contracts.md improvements rule 2")
     as_is = _split(list(base.values()), sealed_from)
     for part in ("dev", "sealed"):
         _num(out, f"as_is.{part}", "trades", (imp["as_is"].get(part) or {}).get("trades"), as_is[part]["trades"], 0)
@@ -107,6 +136,16 @@ def check(imp: dict, mine: dict, version: str, window: dict, defs: dict, market:
     _num(out, "spy", "sealed_ret_pct", imp["spy"].get("sealed_ret_pct"), spy["sealed"])
     if imp["spy"].get("dev_to") != hv["days"][i]:
         _miss(out, "spy", "dev_to", imp["spy"].get("dev_to"), hv["days"][i])
+    vs = imp.get("variants") or []
+    tried = imp.get("variants_tried") or {}
+    if not isinstance(tried.get("distinct_priced"), int) or tried["distinct_priced"] < len(vs):
+        _miss(out, "file", "variants_tried", tried.get("distinct_priced"), f">= {len(vs)} (every variant priced)")
+    for f in ("disclosure", "kept_label", "luck_test"):
+        if not imp.get(f):
+            _miss(out, "file", f, "missing", "required (contracts.md improvements rule 6)")
+    trail = all(v["dev"]["vs_spy_pts"] < 0 and v["sealed"]["vs_spy_pts"] < 0 for v in vs if v.get("kept"))
+    if imp.get("kept_all_trail_spy") is not trail:
+        _miss(out, "file", "kept_all_trail_spy", imp.get("kept_all_trail_spy"), trail)
     floor = imp.get("min_trades", calc.MIN_TRADES)
     if floor < calc.MIN_TRADES:
         _miss(out, "file", "min_trades", floor, calc.MIN_TRADES)
