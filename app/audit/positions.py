@@ -86,33 +86,32 @@ def lpp_session_key() -> dict[str, str]:
     return {v["video_id"]: k for k, v in json.loads(p.read_text()).items()} if p.exists() else {}
 
 
-def _sessions_end(ticker: str, day: dt.date, n: int) -> float:
-    """15:55 ET on the n-th session after `day` (rule 4's swing exit), from cached bars; weekdays where none."""
-    try:
-        return B.et_time(B.nth_session_after(ticker, day, n), 15, 55)
-    except B.MissingBar:
-        seen = 0
-        while seen < n:                      # ASSUMPTION (grouping only): a weekday is a session when uncached
-            day += dt.timedelta(days=1)
-            seen += day.weekday() < 5
-        return B.et_time(day, 15, 55)
+LEDGER_FAILS = {"open_never_closed", "close_without_open", "qty_exceeds_position"}   # contracts.md rule 11
+CARRY_S = 7 * 86400                                                                   # rule 11: within 7 days
+
+
+def lpp_copyable(e: dict) -> bool:
+    """Rule 11: every check passed, or the only failures are the three ledger checks (resolved by the ledger)."""
+    fails = set(e.get("fail") or [])
+    return e["status"] == "ok" or (bool(fails) and fails <= LEDGER_FAILS)
 
 
 def lpp(version: str, only: set[str] | None = None) -> dict:
-    """LPP trade legs -> round trips, contracts.md rules 1, 4 and 8.
+    """LPP trade legs -> round trips, contracts.md rules 1, 4, 8 and 11 (the LPP ledger).
 
-    - only `trade` events whose every check passed (status "ok"); options are counted, never priced (rule 8);
-    - post time = release + t_s (rule 1), kept to the fraction of a second;
-    - per ticker and side: open/add start or grow a position, trim shrinks it, close ends it;
-    - ASSUMPTION: an exit that names no side belongs to his one open position on that ticker (else dropped);
-    - ASSUMPTION: an `open` starts a new trade: one posted on a later session than his last word on the open
-      position ends that position (it leaves at its default exit) and opens a fresh one; within the same session
-      it adds to the position (a repeated "I'm in");
-    - ASSUMPTION: a position stays open for his later legs until rule 4's swing exit (15:55 on the 5th session
-      after its last leg); a leg after that starts afresh (an add opens a new one, a trim or close is dropped);
+    - rule 11: `trade` events that passed every check, or failed only the ledger checks; options are counted,
+      never priced (rule 8);
+    - rule 1: post time = release + t_s, kept to the fraction of a second;
+    - rule 11: per ticker and side, open/add start or grow a position, trim shrinks it, close ends it; an exit
+      naming no side belongs to his one open position on that ticker, else it is skipped; an exit with no open
+      position is skipped;
+    - rule 11: a position held at the end of a session carries to a later session only when his next word on
+      it, within 7 days of his last one, is an add, trim or close; otherwise it ends (15:55 ET of its session)
+      and the new word starts afresh (an open or add opens a new position; a trim or close is skipped);
     - rule 8: legs in one session = `day` (exit 15:55 ET), legs across sessions = `swing` (5 sessions);
-    - rule 3/4: a stop, targets or horizon on the opening post are kept (none of LPP's ok events state one);
-      ASSUMPTION: LPP's `entry`/`price` are the fills he reports, not trigger levels (level_kind is never set).
+    - rule 3/4: a stop, targets or horizon on the opening post are kept (none of LPP's events state one);
+      ASSUMPTION: LPP's `entry`/`price` are the fills he reports, not trigger levels (level_kind is never set);
+    - ASSUMPTION: legs posted at the same moment keep their event order.
     """
     evs = rows(lpp_events_path(version))
     if only:
@@ -127,7 +126,7 @@ def lpp(version: str, only: set[str] | None = None) -> dict:
 
     trades = []
     for e in evs:
-        if e["type"] != "trade" or e["status"] != "ok" or not e.get("ticker") or not e.get("action"):
+        if e["type"] != "trade" or not lpp_copyable(e) or not e.get("ticker") or not e.get("action"):
             continue
         if any(w in (e.get("instrument") or "").lower() for w in OPTION_WORDS):
             stats["options"] += e["action"] == "open"
@@ -136,13 +135,12 @@ def lpp(version: str, only: set[str] | None = None) -> dict:
     trades.sort(key=lambda x: (x[0], x[1]))
 
     positions: list[Position] = []
-    open_: dict[tuple, dict] = {}            # (ticker, side) -> {"legs", "first", "until"}
+    open_: dict[tuple, dict] = {}            # (ticker, side) -> {"legs", "first"}
 
     def finish(key):
         o = open_.pop(key)
         legs, first = o["legs"], o["first"]
-        days = {B.et_day(lg.posted_ts) for lg in legs}
-        swing = len(days) > 1
+        swing = len({B.et_day(lg.posted_ts) for lg in legs}) > 1
         vid = first["source_id"].split(":", 1)[-1]
         sess = keys.get(vid, f"lpp:{first['session_date']}")[4:]
         positions.append(Position(
@@ -160,20 +158,21 @@ def lpp(version: str, only: set[str] | None = None) -> dict:
                 continue
             side = held[0][1]
         key = (e["ticker"], side)
-        if key in open_ and (ts > open_[key]["until"] or (
-                e["action"] == "open" and B.et_day(ts) != B.et_day(open_[key]["legs"][-1].posted_ts))):
-            finish(key)
+        if key in open_:
+            last = open_[key]["legs"][-1].posted_ts
+            if B.et_day(last) != B.et_day(ts):
+                carries = e["action"] in ("add", "trim", "close") and ts - last <= CARRY_S
+                if not carries:
+                    finish(key)
         leg = Leg(e["event_id"], ts, e["action"], qty=e.get("qty") or None)
         if e["action"] in ("open", "add"):
             if key not in open_:
                 open_[key] = {"legs": [], "first": e}
             open_[key]["legs"].append(leg)
-            open_[key]["until"] = _sessions_end(e["ticker"], B.et_day(ts), 5)
         elif key not in open_:
             stats["exit_without_open"] += 1
         else:
             open_[key]["legs"].append(leg)
-            open_[key]["until"] = _sessions_end(e["ticker"], B.et_day(ts), 5)
             if e["action"] == "close":
                 finish(key)
     for key in sorted(open_, key=lambda k: open_[k]["legs"][0].posted_ts):
@@ -192,7 +191,7 @@ def cryptowizard(version: str = "v1") -> dict:
     - ASSUMPTION: entry wording "Now or as close to" is a market entry (rule 3's open), not a trigger;
     - targets close their stated shares of the start size (`close_pcts`); the last closes the rest;
     - the break-even move is taken from their own words (`be_move` "... TP<n>": stop to entry after TP n);
-    - their linked follow-ups are the course's own exits (rule 4): a close sells the rest, a trim reporting
+    - their linked follow-ups are the course's own exits (rule 4): the first close sells the rest, a trim reporting
       TP n sells TP n's share unless the copier's own TP n order already filled (ASSUMPTION);
     - rule 4: a setup they never close leaves 24 hours after entry (`hours:24`).
     """
@@ -216,6 +215,8 @@ def cryptowizard(version: str = "v1") -> dict:
         for f in sorted(follow.get(c["event_id"], []), key=lambda e: e["wall_utc"]):
             if f["action"] not in ("trim", "close"):
                 continue
+            if legs[-1].action == "close":
+                break                        # a close ends the position; later posts on it have nothing to sell
             tp = (f.get("extra") or {}).get("tp_index")
             legs.append(Leg(f["event_id"], ts_of(f["wall_utc"]), f["action"], tp_index=tp if f["action"] == "trim" else None))
         pcts = x.get("close_pcts") or []
@@ -281,8 +282,10 @@ def _minute(ts: float) -> int:
 
 
 def _same_ts(a: float, b: float) -> bool:
-    """Equal when they name the same second and the same first bar (a fraction can push a fill a minute)."""
-    return abs(a - b) < 1 and _minute(a) == _minute(b)
+    """Equal when they reach the same first bar: rule 3 fills at the first 1-minute bar at or after the post
+    (+ a whole-minute delay), so only a difference that crosses a minute boundary changes a fill. LPP's t_s is
+    stored to 0.1 s, so differences inside a minute are below what the data can tell."""
+    return _minute(a) == _minute(b)
 
 
 def _iso(ts: float) -> str:
