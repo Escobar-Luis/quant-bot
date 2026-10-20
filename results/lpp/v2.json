@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v2",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T18:39:20Z",
- "git_sha": "94d3b0236b9a38b00f8e67dbca5383a3f99279c5",
+ "generated_at": "2026-10-20T18:48:15Z",
+ "git_sha": "69120ff567af3c3ca35c6af56d9fbe29f6b38416",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
