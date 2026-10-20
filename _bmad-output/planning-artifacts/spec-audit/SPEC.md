@@ -81,14 +81,14 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 
 ## Assumptions
 
-- The headline becomes the bankroll run at defaults ($10,000, full window, default share per trade, 5 minutes); today's $1,000-per-trade numbers remain only as an audit column until Luis retires them.
+- Each new trade's first buy is 10% of the account by default (Luis, 2026-10-20), adjustable with a slider.
+- The headline becomes the bankroll run at defaults ($10,000, full window, 10% per trade, 5 minutes); today's $1,000-per-trade numbers remain only as an audit column until Luis retires them.
 - By year means calendar years inside each course window (LPP 2024 and 2025; Crypto Wizard 2025 and 2026; ZipTrader 2026, equal to all time); all time is the full window.
 - A year is a slice of the one all-time run: a trade belongs to its exit year, the year return is realized P&L over equity at the year's start, holding runs from the year's first to last trading day inside the window, and under 30 trades reads "Not enough trades".
 - v2 is compared with v1 on the same sessions (`same_sessions`).
 
 ## Open Questions
 
-- Bankroll sizing: what share of the current account goes into each new trade (proposal: a fixed percent, default 10%, adjustable; adds and trims keep his ratios)?
 - Sentiment for CAP-10: market data only (VIX, trend, sector moves; free), or also news and social sentiment (paid or rate-limited)?
 
 - Human grading sample size per course (default: 30 LPP, 30 Crypto Wizard, all 86 ZipTrader events)?
