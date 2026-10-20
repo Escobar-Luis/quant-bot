@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T20:23:49Z",
- "results_git_sha": "f9fceb742fdf3664a5a201b2f9ff870907089789",
+ "generated_at": "2026-10-20T20:52:45Z",
+ "results_git_sha": "b704fa2512349cd875173d72af13006c7930329b",
  "pass": true,
  "sizing": "known",
  "hold_close": "official",
@@ -46,7 +46,7 @@
  },
  "results_sha256": {
   "cryptowizard/v1": "81b95be017d9829b477a8fb36032b55d2956f3c3175e3fa77d162b64671f29a4",
-  "lpp/v1": "642a36ca2a9240f8626473d9ef81e6c5aaa8019c62526a3be07787375e43c25f",
+  "lpp/v1": "f9c18b8c8dc8991a2e66bf067587002fada182d501bea763df0c95270a714a1d",
   "lpp/v2": "fc710c31528298c970be14ccc060eaafd1f03696ec66aa53b461f47a2ee5499b",
   "ziptrader/v1": "af8624f959e36238f50f99d2cbad2a6d9d551ddd569db92a097b741e52f5fa4d"
  },

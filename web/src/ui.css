@@ -378,4 +378,13 @@ body[data-screen=verdict] .seg,body[data-screen=learn] .seg{display:flex}
 .years td:first-child{padding-left:0;white-space:nowrap}
 .years td small{display:block;font-size:10px;color:var(--ink2)}
 .years tr.all td{font-weight:600}
+.his{display:flex;flex-direction:column}
+.his>li{padding:8px 0;display:grid;gap:3px}
+.his>li+li{border-top:1px solid var(--line)}
+.his .h-text{font-size:14px;line-height:1.35;text-wrap:pretty}
+.his .h-num{font-size:11px;color:var(--ink2)}
+.his .neg{color:var(--no);font-weight:600}.his .pos{color:var(--yes);font-weight:600}
+.his .h-said{font-size:12px;color:#d6d4ce}
+.his .h-said q{font-style:italic;quotes:"\201C" "\201D"}
+.his .h-said .cite{display:block;font-family:var(--mono);font-size:10px;color:var(--ink3)}
 .years .w-Yes{color:var(--yes)}.years .w-No{color:var(--no)}.years .w-Barely{color:var(--barely)}.years .w-few{color:var(--few)}

@@ -134,6 +134,7 @@ Rules for the file:
 | `extract-cryptowizard-v1` | One setup or lesson | `collect-cryptowizard` |
 | `daytrader-verdict-v1`, `daytrader-verdict-v2` | The verdict for one course and results version | story 2 |
 | `daytrader-improver-v1` | One proposed change (later, CAP-9) | story 1 |
+| `daytrader-strategy-v1` | LPP's strategy as rules from the copied trades (spec-audit CAP-14); `conversation_id` `strategy-lpp-<version>` | spec-audit story 19 (`app/backtest/strategy.py`) |
 
 ## Trace and step conventions
 
@@ -200,5 +201,48 @@ Written by `app/backtest` (`extras.by_year`), reconciled by `app/audit`, shown b
              "hold_ret_pct": 10.9, "hold_price_ret_pct": 10.2, "trades": 195, "word": "No"},
     "all":  {"start": 10000, "end": 9763.83, "ret_pct": -2.36, "hold_start": 10000, "hold_end": 12100.2,
              "hold_ret_pct": 21.0, "hold_price_ret_pct": 19.64, "trades": 315, "word": "No"}}}}}
+}
+```
+
+## `strategy_profile` (additive, optional; spec-audit CAP-14, story audit-19-strategy)
+
+LPP v1 only (a proof-set file has none, rule 9). Written by `app/backtest/strategy.py` (`python -m backtest.strategy`; `backtest.run` re-attaches it from the cached model reply in `data/lpp/strategy/`), reconciled by `app/audit` (`audit.strategy`, from the audit's own trades), shown by `web/` as the "His strategy" card; a missing key hides the card. `schema` stays `results/1`.
+
+1. **Trades:** the headline's copied trades (rule 13, portfolio `all`, `delay_min` 5, after the cash cap): the same trades, count and copied P&L as `portfolios[all].by_delay["5"]` (`summary.trades`, `summary.pnl_usd` = `end − 10,000`).
+2. **Features per trade** (what he did; `definitions` holds every list and bucket, so the audit evaluates them without the engine's code): `side`; `group` (`definitions.ticker_groups`, by what the company is, else `other`); `ticker`; `time15` / `time30` (ET time he posted the first leg, bucket start; `before 09:30`; `time30`'s last is `11:00 or later`); `setup` (his stated reason: the first leg's `why` with one, matched to `definitions.setups` in order, first match wins, else `other-longs` / `other-shorts`); `adds` (`none` when the copy has one buy; else `to_loser` when any later buy fills at a worse price than the average of the buys before it, higher for a short, lower for a long; else `to_winner`); `exit` (`assumed` when the copy left by rule 4's default, else `stated`); `hold` (`overnight` for a swing trade, else the copy's minutes from first buy to last sell in `definitions.hold_buckets_min`); `size` (his first buy's share count × the copy's first buy price, `definitions.size_buckets_usd`; `not stated` with no count); `day_trades` (copied trades whose first leg was posted that ET day, `definitions.day_buckets`); `portfolio`. A bucket `[top, label]` holds values below `top` (`null`: the rest).
+3. **Group stats** (every table row, setup, rule and pattern): `trades`, `won_pct` (copied P&L > 0, rounded), `pnl_usd` (sum, cents), `avg_win_usd`, `avg_loss_usd` (P&L ≤ 0; null when none), `share_pct` (of all trades, 0.1 pt).
+4. **Conditions:** `when` / `does` = `{feature: [allowed values]}`; a trade matches when every listed feature's value is in its list; `{}` matches every trade.
+5. **Rules** (≤ 8): the model proposes the wording and the conditions; code keeps a rule only when `situation_trades` (trades matching `when`) ≥ 15, its trades (matching `when` and `does`) ≥ 15 and `follows_pct` = their share of the situation ≥ 60 (0.1 pt). Stats are those of the following trades. `quote`: one of his rule quotes (≤ 12 words) given to the model, with its cite, or null. Rules code dropped are listed in `dropped` with the reason. Also dropped: a `does` that repeats a value of its `when` (`does_repeats_when`) or allows every value its feature takes (`does_covers_every_value`), and a malformed proposal. `text` is the model's wording (`proposed_text`) with its hedge words ("usually", "almost always", "four of every five") replaced by code with the measured `follows_pct`. A quote found not to say what its rule says is null, with `quote_hidden` giving why (spec-audit story 25 checks every pair). A malformed cached reply leaves the key out, with a logged reason.
+6. **Losing patterns** (3): every one-feature condition, and every pair of what he traded (`side`, `group`, `ticker`, `setup`) with another of those or with `time30`, `adds`, `exit`, `hold`, with 15+ trades, ranked by `pnl_usd` (then fewer features); a pattern sharing more than half its trades with one already picked is skipped. `share_of_losses_pct` = its losing trades' dollars / all losing trades' dollars; `label` = the condition in plain words, by code.
+7. **Worst days** (10): ET days of the first leg, by summed P&L; with shorts, adds to losers, assumed exits and the top 3 tickers.
+
+```json
+"strategy_profile": {
+  "agent_id": "daytrader-strategy-v1", "prompt_version": "strategy-v1.1", "model": "anthropic/claude-sonnet-5-5",
+  "trajectory_id": "…", "prism_url": "https://prism.blockconvey.com/trajectories/…",
+  "version": "v1", "portfolio": "all", "delay_min": 5, "basis": "…",
+  "summary": {"trades": 342, "sessions": 187, "pnl_usd": -264.55, "won_pct": 50,
+              "trades_per_session": {"median": 2, "max": 5},
+              "his_size": {"stated_on": 255, "median_shares": 100, "median_usd": 21093, "p90_usd": 58785},
+              "adds": {"his_add_posts": 0, "trades_he_added_to": 0, "copied_with_adds": 226, "to_loser": 133, "to_winner": 93},
+              "trims": {"his_trim_posts": 0, "trades_he_trimmed": 0}},
+  "tables": [{"id": "side", "label": "Long or short", "by": "side",
+              "rows": [{"key": "short", "trades": 274, "share_pct": 80.1, "won_pct": 51, "pnl_usd": -611.0,
+                        "avg_win_usd": 50.1, "avg_loss_usd": -57.2}]}],
+  "setups": [{"when": {"side": ["short"], "group": ["big tech"], "time30": ["09:30"], "setup": ["short-resistance"]},
+              "trades": 22, "won_pct": 55, "pnl_usd": -854.79, "share_pct": 6.4}],
+  "worst_days": [{"day": "2025-04-07", "trades": 3, "pnl_usd": -300.1, "shorts": 3, "adds_to_loser": 2,
+                  "exits_assumed": 2, "tickers": ["TSLA"]}],
+  "rules": [{"id": "S1", "text": "He trades the short side (80% of the time).", "proposed_text": "He mostly trades the short side…", "when": {}, "does": {"side": ["short"]},
+             "situation_trades": 342, "follows_pct": 80.1, "trades": 274, "won_pct": 51, "pnl_usd": -611.0,
+             "share_pct": 80.1, "quote": {"text": "…", "cite": {"source_id": "lpp:2024-08-15", "locator": "t=754s", "label": "…"}}}],
+  "dropped": [{"text": "…", "why": "followed 41.0% of the time (under 60%)"}],
+  "losing_patterns": [{"id": "group:big_tech-adds:to_loser", "when": {"group": ["big tech"], "adds": ["to_loser"]},
+                       "label": "Big tech, added to a loser", "trades": 51, "won_pct": 31, "pnl_usd": -2270.68, "share_of_losses_pct": 32.1}],
+  "definitions": {"ticker_groups": {"big tech": ["TSLA", "NVDA"]}, "other_group": "other",
+                  "setups": [{"id": "short-overbought", "name": "…", "side": "short", "words": ["overbought"]}],
+                  "hold_buckets_min": [[15, "under 15 min"], [null, "3 h or more"]],
+                  "size_buckets_usd": [[10000, "under $10k"]], "day_buckets": [[2, "1"]],
+                  "kept_if": {"min_trades": 15, "min_follows_pct": 60}, "pattern_min_trades": 15}
 }
 ```

@@ -370,6 +370,23 @@ function renderYears(v) {
         <td class="w-${wcls(x.word)}" title="${sentence(x)}">${esc(few(x.word))}${x.vs ? `<small>${esc(x.vs)}</small>` : ''}</td></tr>`;
     }).join('') + '</tbody>';
 }
+// His strategy (spec-audit CAP-14): rules the model worded and code checked, each with how often he follows it,
+// its win rate and P&L; then the three patterns that lost the most. Every number is from strategy_profile. Missing key: hidden.
+const signed = v => (v < 0 ? '−' : v > 0 ? '+' : '') + fmt.money(Math.abs(v));
+const hisNums = r => `${nTrades(r.trades)} · won ${r.won_pct}% · <b class="${r.pnl_usd < 0 ? 'neg' : 'pos'}">${signed(r.pnl_usd)}</b>`;
+function renderHis(v) {
+  const sp = v.r?.strategy_profile;
+  $('#cHis').hidden = !sp;
+  if (!sp) { $('#hisRules').innerHTML = ''; $('#hisLoss').innerHTML = ''; return; }
+  $('#hisMeta').textContent = `${nTrades(sp.summary.trades)} · entered ${sp.delay_min} min late`;
+  $('#hisRules').innerHTML = (sp.rules || []).map(r => `<li>
+      <p class="h-text">${esc(r.text)}</p>
+      <p class="h-num mono num">Does it ${Math.round(r.follows_pct)}% of the time · ${hisNums(r)}</p>
+      ${r.quote ? `<p class="h-said"><q>${esc(r.quote.text)}</q><span class="cite">${esc(r.quote.cite?.label || '')}</span></p>` : ''}</li>`).join('');
+  $('#hisLoss').innerHTML = (sp.losing_patterns || []).map(p => `<li>
+      <p class="h-text">${esc(p.label || p.id)}</p>
+      <p class="h-num mono num">${hisNums(p)} · ${Math.round(p.share_of_losses_pct)}% of the $ lost on losing trades</p></li>`).join('');
+}
 let shownWord = null;
 function renderVerdict(fresh) {
   const c = COURSES[cur], v = vm(c);
@@ -378,7 +395,7 @@ function renderVerdict(fresh) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
     $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = ''; $('#vSealed').hidden = true;
-    ['cChart', 'cYear', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    ['cChart', 'cYear', 'cHis', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
@@ -401,6 +418,7 @@ function renderVerdict(fresh) {
   shownWord = k.word;
   drawMain(v, k);
   renderYears(v);
+  renderHis(v);
   renderStrats(c, v);
   renderBotMix(c);
   const h = sealedSays(v);
