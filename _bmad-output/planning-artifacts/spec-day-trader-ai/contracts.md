@@ -312,3 +312,22 @@ His profitable rules (S4, S5 of `strategy_profile`) run as code, with no post fr
            "slice": {"trades": 50, "ret_pct": 0.4, "spy_ret_pct": 3.1, "word": "No"}}],
  "verdict": {"S4": {"held_up": false, "why": "…"}}}
 ```
+
+## `paper` (`results/paper/`, new folder; spec-audit CAP-18, story audit-30-paper)
+
+The forward paper test: the frozen rules in `app/paper/rules-v1.json` (S4 and S5 of `strategy-lab`, variant `P`, S4 on `his-hot` + `new-hot-raw`, S5 on `his-crypto` + `new-crypto`, the realistic cost model) traded with fake money, one completed session at a time, from the first session that opens after the freeze commit (tag `paper-rules-v1`, `0e79dd8`, 2026-10-20T21:38:43Z). Fills are computed from Alpaca market data; no order goes to any broker (AGENTS.md rule 7). Written only by `app/paper/run.py` (`cd app && uv run python -m paper.run`, run daily by hand); recomputed by `app/audit/paper.py` inside `audit.run`; shown by `web/` as the "Paper test since <date>: N days" card (a missing file hides it). Not a course file: `audit.run`'s course glob skips `results/paper/`.
+
+1. **Rules never change in place.** `rules-v1.json` is hashed (`rules_sha256`); the run refuses a different file, and every ledger line carries the hash. A rule change is `rules-v2.json` with its own freeze and its own ledger; past sessions are never re-simulated.
+2. **`ledger.jsonl`:** append-only, one line per counted session, in order, none skipped: `{day, rules, rules_sha256, spy_factor, rules_out: {S4|S5: {trades, skipped, notional, equity}}}`. `spy_factor` = SPY close(day) / close(previous session), Alpaca daily `adjustment=all` (a one-day ratio, so later dividend back-adjustment can't change it). `trades`: `[{ticker, list, gap, entry_ts, entry, exit_ts, exit, kind: "time" | "stop" | "last", adv_usd, easy_to_borrow: bool | null, pnl: {realistic, x2, base}}]` (times unix seconds, bar open; prices raw); `skipped`: `[{ticker, why: "no_bars"}]`; `notional` and `equity` per cost model (`equity` = the account's end of session, starting at 10000).
+3. **Cost models** (frozen in the rules file): `realistic` per side 50 bps under $5, 30 under $10, else 5, plus 10 when the 20-session average dollar volume is under $50M, plus one day of a 100%-a-year borrow fee (0.4% of notional) on names not flagged easy to borrow (flag read when the session is simulated; unknown pays); `x2` all of that doubled; `base` contracts rule 5, no fee.
+4. **`summary.json`:** `{schema: "paper/1", generated_at, rules_file, rules_version, rules_sha256, freeze: {sha, tag, at}, status: "waiting" | "running", first_session, last_session, days, money_start, per_trade_usd, cost_models, benchmark: {symbol: "SPY", ret_pct, basis}, rules: [{id, label, text, lists, trades, won_pct, stops, skipped_no_bars, sized_down_days, hard_to_borrow_trades, unknown_borrow_trades, costs: {realistic|x2|base: {end, ret_pct, max_drawdown_pct}}, vs_spy_pts, word, vs_random}]}`. `days` = sessions counted; `benchmark.ret_pct` = the product of the ledger's `spy_factor`s. `word` per contracts rule 9 on the realistic return vs SPY. `vs_random` is null under 30 trades, then `{twin_pnl_usd, p2_5, p97_5, pct_rank, draws}` (the daily twin vs 2,000 seeded draws of as many ticker-sessions from the same lists since the freeze). Rewritten only when a session is added.
+5. **Cache (gitignored):** `data/paper/daily/<day>.json` (the daily bars and borrow flags a session used, fetched once) and the shared `data/bars/alpaca_1m/`. The audit reads only these.
+
+```json
+{"schema": "paper/1", "freeze": {"sha": "0e79dd8…", "tag": "paper-rules-v1", "at": "2026-10-20T21:38:43Z"},
+ "status": "running", "first_session": "2026-10-21", "last_session": "2026-10-23", "days": 3,
+ "benchmark": {"symbol": "SPY", "ret_pct": 0.42},
+ "rules": [{"id": "S4", "trades": 4, "won_pct": 75, "stops": 1, "hard_to_borrow_trades": 1,
+            "costs": {"realistic": {"end": 10031.2, "ret_pct": 0.31, "max_drawdown_pct": -0.2}, "x2": {"end": 10012.0, "ret_pct": 0.12, "max_drawdown_pct": -0.3}, "base": {"end": 10045.9, "ret_pct": 0.46, "max_drawdown_pct": -0.1}},
+            "vs_spy_pts": -0.11, "word": "Not enough trades", "vs_random": null}]}
+```
