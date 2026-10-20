@@ -107,7 +107,7 @@ function renderGrade(){
 }
 function go(k){idx=Math.max(0,Math.min(items.length-1,k));reasonOpen=false;try{localStorage.setItem("grade.idx",idx)}catch(e){}render()}
 function nextUn(){for(let k=1;k<=items.length;k++){const j=(idx+k)%items.length;if(!answers.events[items[j].event_id])return go(j)}go(idx)}
-async function setEv(msg){const it=items[idx];if(await post({event_id:it.event_id,...msg})){if(msg.verdict)answers.events[it.event_id]={verdict:msg.verdict,reason:msg.reason||null};else delete answers.events[it.event_id];return true}}
+async function setEv(msg){const it=items[idx];if(!it)return false;if(await post({event_id:it.event_id,...msg})){if(msg.verdict)answers.events[it.event_id]={verdict:msg.verdict,reason:msg.reason||null};else delete answers.events[it.event_id];return true}}
 async function verdict(v){
   if(v==="wrong"){reasonOpen=true;render();return}
   if(await setEv({verdict:v}))nextUn();
@@ -117,8 +117,8 @@ async function reason(r){if(await setEv({verdict:"wrong",reason:r}))nextUn()}
 /* ---------- recall ---------- */
 function rs(){return answers.recall[sessions[sIdx].session]||{missed:[],wrong:[],done:false}}
 async function saveRecall(patch){
-  const s=sessions[sIdx].session,cur={...rs(),...patch};answers.recall[s]=cur;
-  await post({session:s,...patch});
+  const s=sessions[sIdx].session,cur={...rs(),...patch};
+  if(await post({session:s,...patch}))answers.recall[s]=cur;   // UI follows the server, never ahead of it
 }
 function renderRecall(){
   if(!sessions){$("#main").innerHTML="<p>Loading…</p>";return}
@@ -131,11 +131,11 @@ function renderRecall(){
   <p class="help">Read the whole session. Blue rows are the trades the extraction found: mark one wrong if it isn't a real trade. Where he makes a trade with no blue row, press <b>+ missed trade</b> on that chunk (a note is optional). Mark the session done when you've read it all; only done sessions count.</p>
   <div class="actions"><button class="btn ok ${a.done?"sel":""}" id="done">${a.done?"Done ✓ (click to reopen)":"Mark session done"}</button></div>
   <div class="card">${S.chunks.map((c,ci)=>`
-    <div class="chunk"><div class="nav"><span class="ts">${mmss(c.t)}–${mmss(c.t+120)}</span><button class="btn bad" data-add="${c.t}">+ missed trade</button></div>
+    <div class="chunk"><div class="nav"><span class="ts">${mmss(c.t)}–${c.end==null?"end":mmss(c.end)}</span><button class="btn bad" data-add="${c.t}">+ missed trade</button></div>
       ${c.events.map(e=>`<div class="ev ${wrong.has(e.event_id)?"wrong":""}"><span class="ts">${mmss(e.t)}</span>
         <span>${esc([e.fields.action,e.fields.side,e.fields.qty,e.fields.ticker,e.fields.price&&("@ "+e.fields.price)].filter(Boolean).join(" "))}</span>
         <button class="btn" data-wrong="${esc(e.event_id)}">${wrong.has(e.event_id)?"undo wrong":"wrong"}</button></div>`).join("")}
-      ${(a.missed||[]).map((m,mi)=>m.t>=c.t&&m.t<c.t+120?`<div class="miss"><span class="ts">missed</span><input data-note="${mi}" value="${esc(m.note)}" placeholder="optional note (stays in data/)"><button class="btn" data-del="${mi}">remove</button></div>`:"").join("")}
+      ${(a.missed||[]).map((m,mi)=>m.t>=c.t&&(c.end==null||m.t<c.end)?`<div class="miss"><span class="ts">missed</span><input data-note="${mi}" value="${esc(m.note)}" placeholder="optional note (stays in data/)"><button class="btn" data-del="${mi}">remove</button></div>`:"").join("")}
       <div class="ctx">${c.lines.map(l=>`<div class="ln"><span class="ts">${mmss(l.t)}</span>${esc(l.text)}</div>`).join("")}</div>
     </div>`).join("")}</div>`;
   document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{sIdx=+b.dataset.s;render();scrollTo(0,0)});
@@ -147,9 +147,9 @@ function renderRecall(){
 }
 function render(){$("#t-grade").classList.toggle("on",tab==="grade");$("#t-recall").classList.toggle("on",tab==="recall");tab==="grade"?renderGrade():renderRecall()}
 $("#t-grade").onclick=()=>{tab="grade";render()};
-$("#t-recall").onclick=async()=>{tab="recall";render();if(!sessions){sessions=(await (await fetch("/api/recall")).json()).sessions;render()}};
+$("#t-recall").onclick=async()=>{tab="recall";render();if(!sessions){const d=await (await fetch("/api/recall")).json();if(d.error){$("#main").innerHTML=`<p>${esc(d.error)}</p>`;return}sessions=d.sessions;render()}};
 document.addEventListener("keydown",e=>{
-  if(tab!=="grade"||e.target.tagName==="INPUT"||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(tab!=="grade"||!items.length||e.target.tagName==="INPUT"||e.metaKey||e.ctrlKey||e.altKey)return;
   const k=e.key.toLowerCase();
   if(k==="c")verdict("correct");else if(k==="w")verdict("wrong");else if(k==="s")verdict("skip");
   else if(k==="arrowright"||k==="j")go(idx+1);else if(k==="arrowleft"||k==="k")go(idx-1);
@@ -158,6 +158,7 @@ document.addEventListener("keydown",e=>{
 });
 (async()=>{
   const [d,a]=await Promise.all([fetch("/api/items").then(r=>r.json()),fetch("/api/answers").then(r=>r.json())]);
+  if(d.error){$("#main").innerHTML=`<p>${esc(d.error)}</p>`;return}
   items=d.items;reasons=d.reasons;answers=a;
   let saved=null;try{saved=+localStorage.getItem("grade.idx")}catch(e){}
   idx=Number.isFinite(saved)&&saved<items.length?saved:0;
