@@ -11,19 +11,19 @@
   done_checkpoint: true
   invoke_dev_with: >-
     New package app/audit/. Must not import app/backtest/engine.py. Write the full LPP trade ledger (all 315 at 5 min, not the 200-trade sample) to a gitignored file. Tolerance: 1 cent per trade, 1 dollar per headline. Prove it fails on an altered result. Written from contracts.md only; cached bars only, no network. Make the engine emit its full ledger (gitignored) to diff all trades. Record the pass in proofs/audit.json with the results git_sha. Covers every results file, delay and portfolio.
+- id: "9"
+  title: No look-ahead in copy decisions
+  description: >-
+    CAP-12. Overnight holds, sizes and adds are decided only from what was said before each moment.
+  invoke_dev_with: >-
+    Engine change (app/backtest/lpp.py keeps a position overnight when a later statement within CARRY_DAYS=7 mentions it; scaled entry size counts later adds). Amend AGENTS.md contracts 1 and 6 first. Rerun results and app/audit; report every headline that moves.
 - id: "8"
   title: Bankroll simulator
   description: >-
     CAP-9. Publish the full per-trade ledger in results/ and let the user pick amount, start and stop dates; one account copies every trade with no deposits, compounding gains and losses, vs the same money in the benchmark.
   spec_checkpoint: true
   invoke_dev_with: >-
-    Add the ledger shape to contracts.md by PR first. The browser computes from the ledger; story 2's calculator gets the same bankroll rule and must reproduce it. No margin. Do not redeploy.
-- id: "9"
-  title: No look-ahead in copy decisions
-  description: >-
-    CAP-12. Overnight holds, sizes and adds are decided only from what was said before each moment.
-  invoke_dev_with: >-
-    Engine change: rerun results and the story 2 audit; report every headline that moves.
+    First amend AGENTS.md contracts 1 and 6 and add the ledger shape to contracts.md, by PR. Rules: bankroll-rules.md. Extend story 2's calculator with the bankroll rule. The browser computes from the ledger; story 2's calculator gets the same bankroll rule and must reproduce it. No margin. Do not redeploy.
 - id: "3"
   title: Results by year and all time
   description: >-
@@ -48,7 +48,7 @@
     CAP-10. Per course, the best and worst kinds of trades with numbers, and a likely reason from measured market conditions in those months.
   spec_checkpoint: true
   invoke_dev_with: >-
-    The model may word the reason; the numbers and the market measures come from code. Label it "likely reason".
+    The model may word the reason; the numbers and the market measures come from code. Label it "likely reason". Route the model call through Nicrron, traced to PRISM as daytrader-insights-v1; cache market measures with a named source.
 - id: "5"
   title: Luis grades a sample of extracted events
   description: >-
