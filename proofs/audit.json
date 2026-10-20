@@ -1,7 +1,7 @@
 {
  "schema": "audit/2",
- "generated_at": "2026-10-20T21:34:21Z",
- "results_git_sha": "6fdc5c25e64e2e3cdfd622505a3e50f74ea41b53",
+ "generated_at": "2026-10-20T21:46:38Z",
+ "results_git_sha": "e901144c00a0f253a02e776041ccc15b29adaff4",
  "pass": true,
  "sizing": "known",
  "hold_close": "official",
@@ -48,6 +48,13 @@
    "runs_checked": 25,
    "mismatches": 0,
    "unverifiable": 1
+  },
+  "paper/summary": {
+   "pass": true,
+   "sessions_checked": 0,
+   "trades_checked": 0,
+   "mismatches": 0,
+   "unverifiable": 0
   }
  },
  "results_sha256": {
@@ -55,7 +62,8 @@
   "lpp/v1": "ff4a70bbe228673a4bca2f7a39c2e4121e95e217f99e7812273f23f7ca834208",
   "lpp/v2": "fc710c31528298c970be14ccc060eaafd1f03696ec66aa53b461f47a2ee5499b",
   "ziptrader/v1": "af8624f959e36238f50f99d2cbad2a6d9d551ddd569db92a097b741e52f5fa4d",
-  "strategy-lab": "0ec49ca703180c7f2a2779f011771304500c91501dc4ee4d16c27faaf628f18e"
+  "strategy-lab": "0ec49ca703180c7f2a2779f011771304500c91501dc4ee4d16c27faaf628f18e",
+  "paper/summary": "17cedcadbc6edb7bb6773f4204cab5be2877f3d0c185c83eec967eec2d13654a"
  },
  "tolerance": {
   "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",
