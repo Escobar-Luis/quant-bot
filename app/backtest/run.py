@@ -2,12 +2,16 @@
 
   cd app && uv run python -m backtest.run --course lpp --version v1
   cd app && uv run python -m backtest.run --course lpp --version v1 --limit 40   # first 40 positions only (partial)
+  cd app && uv run python -m backtest.run --course lpp --version v1 --ledger-only  # stamp a ledger for the
+      committed results file: reprices, refuses unless every number matches the file, never writes results/
 
 Code only: no model call, nothing to trace. Prints counts, never key values.
 """
 import argparse
 import datetime as dt
+import hashlib
 import json
+import uuid
 from collections import Counter
 from pathlib import Path
 
@@ -96,6 +100,31 @@ def trade_row(results: dict[int, engine.Result]) -> dict:
     return row
 
 
+def write_ledger(a, name: str, results, results_path: Path, run_id: str) -> None:
+    """Every priced trade at every delay, fills included, to gitignored data/audit/ (the audit's second calculator
+    diffs all of them, not just the 200-trade sample in results/). Writes only; changes no number.
+
+    The first line is a stamp, {"_meta": {run_id, git_sha, results_file, results_sha256, ...}}: the sha256 of the
+    results file this run wrote (or, with --ledger-only, matched), so the audit can tell a stale ledger. A --limit
+    run writes no ledger: its partial results file no longer matches the old ledger's stamp."""
+    if a.limit:
+        return
+    path = DATA / "audit" / f"{a.course}-{a.version}{name}-ledger.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    meta = {"run_id": run_id, "generated_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "git_sha": git_sha(), "results_file": f"results/{a.course}/{a.version}.json",
+            "results_sha256": hashlib.sha256(results_path.read_bytes()).hexdigest(),
+            "ledger_only": bool(getattr(a, "ledger_only", False))}
+    with open(path, "w") as f:
+        f.write(json.dumps({"_meta": meta}) + "\n")
+        for r in results:
+            p = r.position
+            f.write(json.dumps({"pid": p.pid, "portfolio": p.portfolio, "delay": r.delay_min, "status": r.status,
+                                "fills": [[x.ts, x.px, x.qty, x.kind] for x in r.fills], "pnl": r.pnl,
+                                "cost": r.cost, "entry_notional": r.entry_notional,
+                                "assumed_exit": r.assumed_exit, "why": r.why}) + "\n")
+
+
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument("--course", required=True)
@@ -104,6 +133,9 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--out", default=None)
     ap.add_argument("--all-sessions", action="store_true",
                     help="lpp v2+: every session extracted so far (default: the 30-session proof set)")
+    ap.add_argument("--ledger-only", action="store_true",
+                    help="reprice and stamp data/audit/ ledgers for the existing results file; refuses on any "
+                         "number that differs; never writes results/")
     ap.add_argument("--literal", action="store_true",
                     help="copy his raw share counts (default: scaled so each trade starts at $1,000)")
     a = ap.parse_args()
@@ -160,25 +192,26 @@ def build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series) ->
     return portfolios
 
 
-def same_sessions_baseline(mod, a, only, dates, hold) -> dict | None:
+def same_sessions_baseline(mod, a, only, dates, hold) -> tuple[dict | None, list]:
     """Step 4, baseline: lpp v2+ only, v1's trades from exactly the same sessions, priced the same way."""
     # the fix vs the failure in money: v1 priced on this version's sessions
     if not (a.course == "lpp" and a.version != "v1" and not a.limit):
-        return None
+        return None, []
     d5 = DEFAULT_DELAY_MIN
     srcs = only or {e["source_id"] for e in mod.load(a.version)}
     base = mod.build("v1", srcs)["positions"]   # v1's events from exactly these sessions, same ledger rules
     for p in base:
         p.scale = a.scale
     prefetch(base)
-    rows = {}
+    rows, ledger = {}, []
     for d in DELAYS_MIN:
         rs = [engine.simulate(p, d) for p in base]
+        ledger += rs
         rows[str(d)] = engine.portfolio_stats(rs, dates, hold, mod.WINDOW["sealed_from"])[0]
     same = {"version": "v1", "sessions": len(srcs), "proof_set": bool(only), "portfolio": "all", "by_delay": rows,
             "note": f"v1's trades from the same {len(srcs)} sessions, priced the same way"}
     print(f"  v1 on the same {len(srcs)} sessions @5m: end {rows[str(d5)]['end']:,.0f}  trades {rows[str(d5)]['trades']}")
-    return same
+    return same, ledger
 
 
 def sample_trades(by_pos) -> list[dict]:
@@ -252,7 +285,7 @@ def add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfo
               f"sealed {c['sealed']['ret_pct']}% vs {c['sealed']['hold_ret_pct']}% ({c['sealed']['trades']} trades) {c['word']}")
 
 
-def write_results(out, a, portfolios) -> None:
+def write_results(out, a, portfolios) -> Path:
     """Step 8, write: results/<course>/<version>.json (or --out), then the headline per delay."""
     path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -263,6 +296,24 @@ def write_results(out, a, portfolios) -> None:
         print(f"  all @{d:>2}m: end {r['end']:>10,.0f}  ret {r['ret_pct']:>7.2f}%  hold {r['hold_ret_pct']:>6.2f}%  "
               f"trades {r['trades']:>4}  won {r['won_pct']}%  {r['word']}")
     print("wrote", path)
+    return path
+
+
+COMPARED = ("portfolios", "same_sessions", "trades")
+
+
+def ledger_only(a, out, ledgers) -> None:
+    """Stamp ledgers for the committed results file, only if this run reproduces its numbers exactly."""
+    path = Path(a.out) if a.out else RESULTS / a.course / f"{a.version}.json"
+    old = json.loads(path.read_text())
+    new = json.loads(public_json(out))
+    bad = [k for k in COMPARED if old.get(k) != new.get(k)]
+    if bad:
+        raise SystemExit(f"--ledger-only: {path} differs from this run in {bad}; no ledger written")
+    run_id = uuid.uuid4().hex
+    for name, rows in ledgers:
+        write_ledger(a, name, rows, path, run_id)
+    print(f"stamped ledgers for {path} (run {run_id})")
 
 
 def main():
@@ -271,12 +322,20 @@ def main():
     built, only, positions = load_positions(mod, a)
     by_pos, status, hold, dates, hold_series = price_positions(mod, positions)
     portfolios = build_portfolios(mod, built, positions, by_pos, dates, hold, hold_series)
-    same = same_sessions_baseline(mod, a, only, dates, hold)
+    same, same_ledger = same_sessions_baseline(mod, a, only, dates, hold)
     trades = sample_trades(by_pos)
     unknown = unknowns(mod, a, built, positions, by_pos, status, portfolios, same, only)
     out = assemble(mod, a, built, positions, status, portfolios, same, trades, unknown)
+    ledgers = [("", [r for rs in by_pos.values() for r in rs.values()])] + \
+        ([("-same_sessions", same_ledger)] if same else [])
+    if a.ledger_only:
+        ledger_only(a, out, ledgers)
+        return
     add_v2_keys(out, mod, a, positions, by_pos, dates, hold, hold_series, portfolios)
-    write_results(out, a, portfolios)
+    path = write_results(out, a, portfolios)
+    run_id = uuid.uuid4().hex
+    for name, rows in ledgers:
+        write_ledger(a, name, rows, path, run_id)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,353 @@
+{
+ "schema": "audit/2",
+ "generated_at": "2026-10-20T17:57:48Z",
+ "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
+ "pass": false,
+ "sizing": "trade",
+ "hold_close": "official",
+ "command": "cd app && uv run python -m audit.run",
+ "files": {
+  "cryptowizard/v1": {
+   "pass": false,
+   "trades_checked": 1736,
+   "mismatches": 2718,
+   "max_abs_diff": 6829.51,
+   "position_differences": 249,
+   "unverifiable": 28,
+   "math_on_loader_positions": 0
+  },
+  "lpp/v1": {
+   "pass": false,
+   "trades_checked": 3605,
+   "mismatches": 620,
+   "max_abs_diff": 4.9,
+   "position_differences": 16,
+   "unverifiable": 0,
+   "math_on_loader_positions": 0
+  },
+  "lpp/v2": {
+   "pass": false,
+   "trades_checked": 1071,
+   "mismatches": 437,
+   "max_abs_diff": 4.82,
+   "position_differences": 9,
+   "unverifiable": 0,
+   "math_on_loader_positions": 0
+  },
+  "ziptrader/v1": {
+   "pass": false,
+   "trades_checked": 14,
+   "mismatches": 156,
+   "max_abs_diff": 78.01,
+   "position_differences": 2,
+   "unverifiable": 0,
+   "math_on_loader_positions": 0
+  }
+ },
+ "results_sha256": {
+  "cryptowizard/v1": "06b912e4edca6547f042bc59fbcc92f01a979898afa477f7eb80bdefed171205",
+  "lpp/v1": "447e54cee043a83036e2ca7f47af438f43f82d28e163dc9e50cf3736fb8da00e",
+  "lpp/v2": "6ffdfac69fd1930ed9b886adbd34819675b075520a02c11382112285bc8aea2b",
+  "ziptrader/v1": "d95fa42d9f6a67f32c5fda6f3c27adb56a190563bda0e0309c7daaca8aef629f"
+ },
+ "tolerance": {
+  "trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, price and shares)",
+  "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, won_pct and word exact)"
+ },
+ "notes": {
+  "sizing": "LPP sizing 'trade' (all of a trade's buys together are $1,000, in his ratios; an entry with no count takes the upper median of his stated counts; a trim sells his stated share of his holding) was inferred from the engine's ledger output, then written into contracts.md rule 6. It is superseded by the bankroll model (spec-audit CAP-9).",
+  "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last 1-minute bar's close is reported as an alternative (--hold-close minute)."
+ },
+ "positions": {
+  "cryptowizard/v1": {
+   "v1": {
+    "loader_positions": 126,
+    "audit_positions": 126,
+    "differences": 249,
+    "positions_differing": 95,
+    "by_field": {
+     "default_exit": 56,
+     "leg": 190,
+     "leg.posted_ts": 3
+    }
+   }
+  },
+  "lpp/v1": {
+   "v1": {
+    "loader_positions": 315,
+    "audit_positions": 315,
+    "differences": 16,
+    "positions_differing": 15,
+    "by_field": {
+     "leg.posted_ts": 16
+    }
+   }
+  },
+  "lpp/v2": {
+   "v2": {
+    "loader_positions": 51,
+    "audit_positions": 51,
+    "differences": 4,
+    "positions_differing": 4,
+    "by_field": {
+     "leg.posted_ts": 4
+    }
+   },
+   "v1-same_sessions": {
+    "loader_positions": 51,
+    "audit_positions": 51,
+    "differences": 5,
+    "positions_differing": 5,
+    "by_field": {
+     "leg.posted_ts": 5
+    }
+   }
+  },
+  "ziptrader/v1": {
+   "v1": {
+    "loader_positions": 1,
+    "audit_positions": 1,
+    "differences": 2,
+    "positions_differing": 1,
+    "by_field": {
+     "portfolio": 1,
+     "default_exit": 1
+    }
+   }
+  }
+ },
+ "unverifiable": {
+  "cryptowizard/v1": [
+   "cw-1437156872678277261@1",
+   "cw-1437156872678277261@10",
+   "cw-1437156872678277261@15",
+   "cw-1437156872678277261@3",
+   "cw-1437156872678277261@30",
+   "cw-1437156872678277261@5",
+   "cw-1437156872678277261@60",
+   "cw-1509940542690164948@1",
+   "cw-1509940542690164948@10",
+   "cw-1509940542690164948@15",
+   "cw-1509940542690164948@3",
+   "cw-1509940542690164948@30",
+   "cw-1509940542690164948@5",
+   "cw-1509940542690164948@60",
+   "cw-1516022984505294978@1",
+   "cw-1516022984505294978@10",
+   "cw-1516022984505294978@15",
+   "cw-1516022984505294978@3",
+   "cw-1516022984505294978@30",
+   "cw-1516022984505294978@5",
+   "cw-1516022984505294978@60",
+   "cw-1522233204826837124@1",
+   "cw-1522233204826837124@10",
+   "cw-1522233204826837124@15",
+   "cw-1522233204826837124@3",
+   "cw-1522233204826837124@30",
+   "cw-1522233204826837124@5",
+   "cw-1522233204826837124@60"
+  ]
+ },
+ "signoff": null,
+ "findings": {
+  "note": "notes/audit/findings-story-2.md",
+  "end_5m_all": [
+   {
+    "file": "lpp/v1",
+    "published_end_5m": 9765.86,
+    "engine_positions_end_5m": 9765.86,
+    "audit_positions_end_5m": 9763.83
+   },
+   {
+    "file": "lpp/v2",
+    "published_end_5m": 10303.25,
+    "engine_positions_end_5m": 10303.25,
+    "audit_positions_end_5m": 10300.52
+   },
+   {
+    "file": "cryptowizard/v1",
+    "published_end_5m": 9221.2,
+    "engine_positions_end_5m": 9221.2,
+    "audit_positions_end_5m": 9290.3
+   },
+   {
+    "file": "ziptrader/v1",
+    "published_end_5m": 10007.02,
+    "engine_positions_end_5m": 10007.02,
+    "audit_positions_end_5m": 10078.01
+   }
+  ],
+  "engine_deviates": [
+   {
+    "id": "posted-time-truncated",
+    "file": "lpp/v1",
+    "legs": 16,
+    "trades_affected_5m": 15,
+    "end_5m": 9763.83,
+    "delta_usd": -2.03
+   },
+   {
+    "id": "posted-time-truncated",
+    "file": "lpp/v2",
+    "legs": 4,
+    "trades_affected_5m": 4,
+    "end_5m": 10300.52,
+    "delta_usd": -2.73
+   },
+   {
+    "id": "posted-time-truncated",
+    "file": "cryptowizard/v1",
+    "legs": 3,
+    "trades_affected_5m": 3,
+    "end_5m": 9221.76,
+    "delta_usd": 0.56
+   },
+   {
+    "id": "cw-24h-default-exit",
+    "file": "cryptowizard/v1",
+    "positions": 56,
+    "trades_affected_5m": 48,
+    "end_5m": 9293.74,
+    "delta_usd": 72.54
+   },
+   {
+    "id": "cw-take-profit-trims-dropped",
+    "file": "cryptowizard/v1",
+    "posts": 190,
+    "trades_affected_5m": 6,
+    "end_5m": 9219.57,
+    "delta_usd": -1.63
+   },
+   {
+    "id": "targets-split-equally",
+    "positions": 0,
+    "delta_usd": 0.0
+   },
+   {
+    "id": "at-exit-before-entry",
+    "positions": 0,
+    "delta_usd": 0.0
+   },
+   {
+    "id": "hundred-dollar-minimum",
+    "positions": 0,
+    "delta_usd": 0.0
+   }
+  ],
+  "contract_silent": [
+   {
+    "id": "zt-horizon-from-quote",
+    "proposal": "Yes: rule 4's 'horizon as written' includes the quote; move it into the extraction's horizon field so code reads one place."
+   },
+   {
+    "id": "b1-ledger-look-ahead",
+    "proposal": "Keep for the as-taught numbers; CAP-12 replaces it with a carry decided only from what was said before 15:55."
+   },
+   {
+    "id": "b2-tp-post-after-own-order",
+    "proposal": "No: skip it; it sells only when the TP order has not filled (what audit.calc does)."
+   },
+   {
+    "id": "b3-gap-trigger",
+    "proposal": "At the gap bar's open (a stop order's fill). Engine and audit agree."
+   },
+   {
+    "id": "b4-moved-stop-same-bar",
+    "proposal": "Yes, at the stop level (not the bar's open). Engine and audit agree."
+   },
+   {
+    "id": "b5-sizing-reference-price",
+    "proposal": "The first fill's price (only price known then); CAP-9's bankroll model supersedes it."
+   },
+   {
+    "id": "b6-unsized-trim",
+    "proposal": "Half the position (engine, audit and bankroll-rules.md agree); write it into rule 6."
+   },
+   {
+    "id": "b7-hold-close",
+    "proposal": "The official daily close; report the last 1-minute close as an alternative."
+   }
+  ],
+  "audit_fixed": [
+   "c1-ok-only",
+   "c2-open-joins",
+   "c3-subsecond-noise",
+   "c4-cw-second-close"
+  ],
+  "counts": {
+   "a": 8,
+   "b": 8,
+   "c": 4
+  }
+ },
+ "alternatives": {
+  "sizing=trade,hold_close=official": {
+   "generated_at": "2026-10-20T17:28:59Z",
+   "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
+   "pass": true,
+   "sizing": "trade",
+   "hold_close": "official",
+   "command": "cd app && uv run python -m audit.run --sizing trade --hold-close official",
+   "files": {
+    "cryptowizard/v1": {
+     "pass": true,
+     "trades_checked": 1736,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "lpp/v1": {
+     "pass": true,
+     "trades_checked": 3605,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "lpp/v2": {
+     "pass": true,
+     "trades_checked": 1071,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "ziptrader/v1": {
+     "pass": true,
+     "trades_checked": 14,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    }
+   }
+  },
+  "sizing=trade,hold_close=minute": {
+   "generated_at": "2026-10-20T17:29:01Z",
+   "results_git_sha": "f7ec70b03d5b2050cf1d59ed986f288c773a55e9",
+   "pass": false,
+   "sizing": "trade",
+   "hold_close": "minute",
+   "command": "cd app && uv run python -m audit.run --sizing trade --hold-close minute",
+   "files": {
+    "cryptowizard/v1": {
+     "pass": true,
+     "trades_checked": 1736,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    },
+    "lpp/v1": {
+     "pass": false,
+     "trades_checked": 3605,
+     "mismatches": 42,
+     "max_abs_diff": 1.64
+    },
+    "lpp/v2": {
+     "pass": false,
+     "trades_checked": 1071,
+     "mismatches": 56,
+     "max_abs_diff": 1.64
+    },
+    "ziptrader/v1": {
+     "pass": true,
+     "trades_checked": 14,
+     "mismatches": 0,
+     "max_abs_diff": 0.0
+    }
+   }
+  }
+ }
+}
