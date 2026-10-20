@@ -6,8 +6,8 @@
  "source_agent_id": "extract-cryptowizard-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:26:42Z",
- "git_sha": "09d4d219f620f0f1e7d4131827a210ec3810daaa",
+ "generated_at": "2026-10-20T19:27:10Z",
+ "git_sha": "e9070be67dcca19d05c48f7b17bb8183657b1dd3",
  "window": {
   "start": "2025-10-17",
   "end": "2026-10-16",
