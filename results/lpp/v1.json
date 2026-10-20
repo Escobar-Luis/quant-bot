@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T20:23:35Z",
- "git_sha": "df1b41744ac972f1827165791f44b7d55abb1d7f",
+ "generated_at": "2026-10-20T20:35:14Z",
+ "git_sha": "7a1b6f09ab73f3231335b2874086b2acf41ba374",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -50826,6 +50826,1502 @@
      }
     }
    }
+  }
+ },
+ "strategy_profile": {
+  "agent_id": "daytrader-strategy-v1",
+  "prompt_version": "strategy-v1.1",
+  "model": "anthropic/claude-sonnet-5-5",
+  "trajectory_id": "678d0b05-4e5a-45d8-9bd7-08e9b22ef604",
+  "prism_url": "https://prism.blockconvey.com/trajectories/678d0b05-4e5a-45d8-9bd7-08e9b22ef604",
+  "version": "v1",
+  "portfolio": "all",
+  "delay_min": 5,
+  "basis": "The headline's copied trades (rule 13, all, after the cash cap); P&L is the copied P&L",
+  "summary": {
+   "trades": 342,
+   "sessions": 187,
+   "pnl_usd": -264.55,
+   "won_pct": 50,
+   "trades_per_session": {
+    "median": 2,
+    "max": 5
+   },
+   "his_size": {
+    "stated_on": 255,
+    "median_shares": 100.0,
+    "median_usd": 21093,
+    "p90_usd": 58785
+   },
+   "adds": {
+    "his_add_posts": 671,
+    "trades_he_added_to": 263,
+    "copied_with_adds": 226,
+    "to_loser": 133,
+    "to_winner": 93
+   },
+   "trims": {
+    "his_trim_posts": 366,
+    "trades_he_trimmed": 177
+   }
+  },
+  "tables": [
+   {
+    "id": "side",
+    "label": "Long or short",
+    "by": "side",
+    "rows": [
+     {
+      "key": "long",
+      "trades": 68,
+      "won_pct": 46,
+      "pnl_usd": 346.3,
+      "avg_win_usd": 48.0,
+      "avg_loss_usd": -30.86,
+      "share_pct": 19.9
+     },
+     {
+      "key": "short",
+      "trades": 274,
+      "won_pct": 51,
+      "pnl_usd": -610.85,
+      "avg_win_usd": 45.96,
+      "avg_loss_usd": -51.85,
+      "share_pct": 80.1
+     }
+    ]
+   },
+   {
+    "id": "group",
+    "label": "What he trades",
+    "by": "group",
+    "rows": [
+     {
+      "key": "big tech",
+      "trades": 141,
+      "won_pct": 44,
+      "pnl_usd": -1975.49,
+      "avg_win_usd": 20.88,
+      "avg_loss_usd": -41.39,
+      "share_pct": 41.2
+     },
+     {
+      "key": "hot small and mid caps",
+      "trades": 126,
+      "won_pct": 54,
+      "pnl_usd": 957.55,
+      "avg_win_usd": 69.34,
+      "avg_loss_usd": -64.78,
+      "share_pct": 36.8
+     },
+     {
+      "key": "crypto-linked",
+      "trades": 61,
+      "won_pct": 52,
+      "pnl_usd": 533.44,
+      "avg_win_usd": 47.43,
+      "avg_loss_usd": -33.94,
+      "share_pct": 17.8
+     },
+     {
+      "key": "other",
+      "trades": 8,
+      "won_pct": 75,
+      "pnl_usd": 338.24,
+      "avg_win_usd": 57.75,
+      "avg_loss_usd": -4.12,
+      "share_pct": 2.3
+     },
+     {
+      "key": "index funds",
+      "trades": 6,
+      "won_pct": 33,
+      "pnl_usd": -118.29,
+      "avg_win_usd": 1.98,
+      "avg_loss_usd": -30.56,
+      "share_pct": 1.8
+     }
+    ]
+   },
+   {
+    "id": "ticker",
+    "label": "Tickers",
+    "by": "ticker",
+    "rows": [
+     {
+      "key": "TSLA",
+      "trades": 83,
+      "won_pct": 42,
+      "pnl_usd": -1929.83,
+      "avg_win_usd": 24.23,
+      "avg_loss_usd": -57.88,
+      "share_pct": 24.3
+     },
+     {
+      "key": "NVDA",
+      "trades": 51,
+      "won_pct": 47,
+      "pnl_usd": 67.08,
+      "avg_win_usd": 17.85,
+      "avg_loss_usd": -13.38,
+      "share_pct": 14.9
+     },
+     {
+      "key": "PLTR",
+      "trades": 35,
+      "won_pct": 46,
+      "pnl_usd": 133.91,
+      "avg_win_usd": 76.95,
+      "avg_loss_usd": -57.75,
+      "share_pct": 10.2
+     },
+     {
+      "key": "MSTR",
+      "trades": 34,
+      "won_pct": 62,
+      "pnl_usd": 868.23,
+      "avg_win_usd": 49.98,
+      "avg_loss_usd": -13.95,
+      "share_pct": 9.9
+     },
+     {
+      "key": "HIMS",
+      "trades": 30,
+      "won_pct": 47,
+      "pnl_usd": -48.53,
+      "avg_win_usd": 66.49,
+      "avg_loss_usd": -61.21,
+      "share_pct": 8.8
+     },
+     {
+      "key": "SOUN",
+      "trades": 23,
+      "won_pct": 65,
+      "pnl_usd": 696.91,
+      "avg_win_usd": 76.22,
+      "avg_loss_usd": -55.79,
+      "share_pct": 6.7
+     },
+     {
+      "key": "HOOD",
+      "trades": 18,
+      "won_pct": 50,
+      "pnl_usd": 121.2,
+      "avg_win_usd": 47.19,
+      "avg_loss_usd": -33.73,
+      "share_pct": 5.3
+     },
+     {
+      "key": "SMCI",
+      "trades": 9,
+      "won_pct": 56,
+      "pnl_usd": 205.79,
+      "avg_win_usd": 79.79,
+      "avg_loss_usd": -48.28,
+      "share_pct": 2.6
+     },
+     {
+      "key": "SOFI",
+      "trades": 9,
+      "won_pct": 56,
+      "pnl_usd": 217.66,
+      "avg_win_usd": 113.07,
+      "avg_loss_usd": -86.92,
+      "share_pct": 2.6
+     },
+     {
+      "key": "COIN",
+      "trades": 8,
+      "won_pct": 12,
+      "pnl_usd": -469.27,
+      "avg_win_usd": 29.96,
+      "avg_loss_usd": -71.32,
+      "share_pct": 2.3
+     },
+     {
+      "key": "TEM",
+      "trades": 5,
+      "won_pct": 40,
+      "pnl_usd": -282.02,
+      "avg_win_usd": 6.65,
+      "avg_loss_usd": -98.44,
+      "share_pct": 1.5
+     },
+     {
+      "key": "UNH",
+      "trades": 5,
+      "won_pct": 60,
+      "pnl_usd": 267.73,
+      "avg_win_usd": 91.99,
+      "avg_loss_usd": -4.12,
+      "share_pct": 1.5
+     },
+     {
+      "key": "other",
+      "keys": 18,
+      "trades": 32,
+      "won_pct": 62,
+      "pnl_usd": -113.41,
+      "avg_win_usd": 26.88,
+      "avg_loss_usd": -54.25,
+      "share_pct": 9.4
+     }
+    ]
+   },
+   {
+    "id": "time15",
+    "label": "When he posts the first leg (ET, 15 min)",
+    "by": "time15",
+    "rows": [
+     {
+      "key": "before 09:30",
+      "trades": 1,
+      "won_pct": 100,
+      "pnl_usd": 45.03,
+      "avg_win_usd": 45.03,
+      "avg_loss_usd": null,
+      "share_pct": 0.3
+     },
+     {
+      "key": "09:30",
+      "trades": 155,
+      "won_pct": 50,
+      "pnl_usd": -109.46,
+      "avg_win_usd": 61.07,
+      "avg_loss_usd": -63.29,
+      "share_pct": 45.3
+     },
+     {
+      "key": "09:45",
+      "trades": 85,
+      "won_pct": 54,
+      "pnl_usd": -270.21,
+      "avg_win_usd": 28.39,
+      "avg_loss_usd": -40.41,
+      "share_pct": 24.9
+     },
+     {
+      "key": "10:00",
+      "trades": 59,
+      "won_pct": 46,
+      "pnl_usd": 414.07,
+      "avg_win_usd": 52.24,
+      "avg_loss_usd": -31.14,
+      "share_pct": 17.3
+     },
+     {
+      "key": "10:15",
+      "trades": 31,
+      "won_pct": 52,
+      "pnl_usd": -94.37,
+      "avg_win_usd": 21.52,
+      "avg_loss_usd": -29.25,
+      "share_pct": 9.1
+     },
+     {
+      "key": "10:30",
+      "trades": 6,
+      "won_pct": 17,
+      "pnl_usd": -128.45,
+      "avg_win_usd": 4.78,
+      "avg_loss_usd": -26.65,
+      "share_pct": 1.8
+     },
+     {
+      "key": "10:45",
+      "trades": 3,
+      "won_pct": 0,
+      "pnl_usd": -72.38,
+      "avg_win_usd": null,
+      "avg_loss_usd": -24.13,
+      "share_pct": 0.9
+     },
+     {
+      "key": "11:15",
+      "trades": 1,
+      "won_pct": 0,
+      "pnl_usd": -51.61,
+      "avg_win_usd": null,
+      "avg_loss_usd": -51.61,
+      "share_pct": 0.3
+     },
+     {
+      "key": "11:30",
+      "trades": 1,
+      "won_pct": 100,
+      "pnl_usd": 2.83,
+      "avg_win_usd": 2.83,
+      "avg_loss_usd": null,
+      "share_pct": 0.3
+     }
+    ]
+   },
+   {
+    "id": "setup",
+    "label": "His stated reason",
+    "by": "setup",
+    "rows": [
+     {
+      "key": "short-overbought",
+      "trades": 97,
+      "won_pct": 52,
+      "pnl_usd": -441.66,
+      "avg_win_usd": 47.63,
+      "avg_loss_usd": -60.06,
+      "share_pct": 28.4
+     },
+     {
+      "key": "other-shorts",
+      "trades": 73,
+      "won_pct": 45,
+      "pnl_usd": 22.61,
+      "avg_win_usd": 52.88,
+      "avg_loss_usd": -43.06,
+      "share_pct": 21.3
+     },
+     {
+      "key": "short-breakdown",
+      "trades": 52,
+      "won_pct": 50,
+      "pnl_usd": 613.99,
+      "avg_win_usd": 54.23,
+      "avg_loss_usd": -30.62,
+      "share_pct": 15.2
+     },
+     {
+      "key": "short-resistance",
+      "trades": 52,
+      "won_pct": 58,
+      "pnl_usd": -805.79,
+      "avg_win_usd": 28.42,
+      "avg_loss_usd": -75.38,
+      "share_pct": 15.2
+     },
+     {
+      "key": "buy-the-dip",
+      "trades": 49,
+      "won_pct": 41,
+      "pnl_usd": -224.01,
+      "avg_win_usd": 36.71,
+      "avg_loss_usd": -33.04,
+      "share_pct": 14.3
+     },
+     {
+      "key": "other-longs",
+      "trades": 19,
+      "won_pct": 58,
+      "pnl_usd": 570.31,
+      "avg_win_usd": 68.53,
+      "avg_loss_usd": -22.94,
+      "share_pct": 5.6
+     }
+    ]
+   },
+   {
+    "id": "adds",
+    "label": "Adding to a position",
+    "by": "adds",
+    "rows": [
+     {
+      "key": "none",
+      "trades": 116,
+      "won_pct": 48,
+      "pnl_usd": -198.24,
+      "avg_win_usd": 17.75,
+      "avg_loss_usd": -19.87,
+      "share_pct": 33.9
+     },
+     {
+      "key": "to_loser",
+      "trades": 133,
+      "won_pct": 43,
+      "pnl_usd": -1479.68,
+      "avg_win_usd": 78.17,
+      "avg_loss_usd": -78.1,
+      "share_pct": 38.9
+     },
+     {
+      "key": "to_winner",
+      "trades": 93,
+      "won_pct": 61,
+      "pnl_usd": 1413.37,
+      "avg_win_usd": 42.59,
+      "avg_loss_usd": -28.17,
+      "share_pct": 27.2
+     }
+    ]
+   },
+   {
+    "id": "exit",
+    "label": "How it ended",
+    "by": "exit",
+    "rows": [
+     {
+      "key": "stated",
+      "trades": 153,
+      "won_pct": 54,
+      "pnl_usd": 1331.11,
+      "avg_win_usd": 26.66,
+      "avg_loss_usd": -12.59,
+      "share_pct": 44.7
+     },
+     {
+      "key": "assumed",
+      "trades": 189,
+      "won_pct": 46,
+      "pnl_usd": -1595.66,
+      "avg_win_usd": 65.11,
+      "avg_loss_usd": -71.18,
+      "share_pct": 55.3
+     }
+    ]
+   },
+   {
+    "id": "hold",
+    "label": "How long the copy held",
+    "by": "hold",
+    "rows": [
+     {
+      "key": "under 15 min",
+      "trades": 92,
+      "won_pct": 47,
+      "pnl_usd": 245.41,
+      "avg_win_usd": 17.02,
+      "avg_loss_usd": -9.93,
+      "share_pct": 26.9
+     },
+     {
+      "key": "15-60 min",
+      "trades": 59,
+      "won_pct": 64,
+      "pnl_usd": 1034.82,
+      "avg_win_usd": 37.63,
+      "avg_loss_usd": -18.81,
+      "share_pct": 17.3
+     },
+     {
+      "key": "1-3 h",
+      "trades": 1,
+      "won_pct": 100,
+      "pnl_usd": 23.0,
+      "avg_win_usd": 23.0,
+      "avg_loss_usd": null,
+      "share_pct": 0.3
+     },
+     {
+      "key": "3 h or more",
+      "trades": 186,
+      "won_pct": 46,
+      "pnl_usd": -1952.81,
+      "avg_win_usd": 61.83,
+      "avg_loss_usd": -71.37,
+      "share_pct": 54.4
+     },
+     {
+      "key": "overnight",
+      "trades": 4,
+      "won_pct": 75,
+      "pnl_usd": 385.03,
+      "avg_win_usd": 145.55,
+      "avg_loss_usd": -51.61,
+      "share_pct": 1.2
+     }
+    ]
+   },
+   {
+    "id": "size",
+    "label": "His size on the first buy",
+    "by": "size",
+    "rows": [
+     {
+      "key": "not stated",
+      "trades": 87,
+      "won_pct": 45,
+      "pnl_usd": -115.85,
+      "avg_win_usd": 27.77,
+      "avg_loss_usd": -24.97,
+      "share_pct": 25.4
+     },
+     {
+      "key": "under $10k",
+      "trades": 32,
+      "won_pct": 66,
+      "pnl_usd": 326.32,
+      "avg_win_usd": 87.5,
+      "avg_loss_usd": -137.39,
+      "share_pct": 9.4
+     },
+     {
+      "key": "$10k-50k",
+      "trades": 190,
+      "won_pct": 52,
+      "pnl_usd": -431.28,
+      "avg_win_usd": 46.34,
+      "avg_loss_usd": -55.15,
+      "share_pct": 55.6
+     },
+     {
+      "key": "$50k or more",
+      "trades": 33,
+      "won_pct": 33,
+      "pnl_usd": -43.74,
+      "avg_win_usd": 33.56,
+      "avg_loss_usd": -18.77,
+      "share_pct": 9.6
+     }
+    ]
+   },
+   {
+    "id": "day_trades",
+    "label": "Trades he opened that day",
+    "by": "day_trades",
+    "rows": [
+     {
+      "key": "1",
+      "trades": 93,
+      "won_pct": 43,
+      "pnl_usd": -967.3,
+      "avg_win_usd": 64.96,
+      "avg_loss_usd": -67.28,
+      "share_pct": 27.2
+     },
+     {
+      "key": "2-3",
+      "trades": 199,
+      "won_pct": 54,
+      "pnl_usd": 501.04,
+      "avg_win_usd": 42.53,
+      "avg_loss_usd": -44.02,
+      "share_pct": 58.2
+     },
+     {
+      "key": "4-5",
+      "trades": 50,
+      "won_pct": 46,
+      "pnl_usd": 201.71,
+      "avg_win_usd": 31.66,
+      "avg_loss_usd": -19.5,
+      "share_pct": 14.6
+     }
+    ]
+   }
+  ],
+  "setups": [
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "hot small and mid caps"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "other-shorts"
+     ]
+    },
+    "trades": 28,
+    "won_pct": 46,
+    "pnl_usd": -201.55,
+    "avg_win_usd": 63.42,
+    "avg_loss_usd": -68.4,
+    "share_pct": 8.2
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "hot small and mid caps"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-overbought"
+     ]
+    },
+    "trades": 28,
+    "won_pct": 57,
+    "pnl_usd": -214.65,
+    "avg_win_usd": 58.84,
+    "avg_loss_usd": -96.34,
+    "share_pct": 8.2
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "big tech"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-overbought"
+     ]
+    },
+    "trades": 25,
+    "won_pct": 40,
+    "pnl_usd": -561.74,
+    "avg_win_usd": 15.07,
+    "avg_loss_usd": -47.5,
+    "share_pct": 7.3
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "big tech"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-resistance"
+     ]
+    },
+    "trades": 22,
+    "won_pct": 55,
+    "pnl_usd": -854.79,
+    "avg_win_usd": 26.66,
+    "avg_loss_usd": -117.47,
+    "share_pct": 6.4
+   },
+   {
+    "when": {
+     "side": [
+      "long"
+     ],
+     "group": [
+      "big tech"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "buy-the-dip"
+     ]
+    },
+    "trades": 20,
+    "won_pct": 40,
+    "pnl_usd": -124.87,
+    "avg_win_usd": 14.02,
+    "avg_loss_usd": -19.75,
+    "share_pct": 5.8
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "big tech"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "other-shorts"
+     ]
+    },
+    "trades": 16,
+    "won_pct": 31,
+    "pnl_usd": -189.56,
+    "avg_win_usd": 35.11,
+    "avg_loss_usd": -33.19,
+    "share_pct": 4.7
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "hot small and mid caps"
+     ],
+     "time30": [
+      "10:00"
+     ],
+     "setup": [
+      "short-overbought"
+     ]
+    },
+    "trades": 14,
+    "won_pct": 57,
+    "pnl_usd": 783.37,
+    "avg_win_usd": 119.27,
+    "avg_loss_usd": -28.47,
+    "share_pct": 4.1
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "hot small and mid caps"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-breakdown"
+     ]
+    },
+    "trades": 12,
+    "won_pct": 50,
+    "pnl_usd": 334.06,
+    "avg_win_usd": 95.99,
+    "avg_loss_usd": -40.31,
+    "share_pct": 3.5
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "hot small and mid caps"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-resistance"
+     ]
+    },
+    "trades": 12,
+    "won_pct": 75,
+    "pnl_usd": 3.16,
+    "avg_win_usd": 27.26,
+    "avg_loss_usd": -80.74,
+    "share_pct": 3.5
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "big tech"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-breakdown"
+     ]
+    },
+    "trades": 11,
+    "won_pct": 45,
+    "pnl_usd": -23.09,
+    "avg_win_usd": 21.27,
+    "avg_loss_usd": -21.57,
+    "share_pct": 3.2
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "crypto-linked"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "other-shorts"
+     ]
+    },
+    "trades": 11,
+    "won_pct": 55,
+    "pnl_usd": 439.71,
+    "avg_win_usd": 94.11,
+    "avg_loss_usd": -24.99,
+    "share_pct": 3.2
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "big tech"
+     ],
+     "time30": [
+      "10:00"
+     ],
+     "setup": [
+      "short-overbought"
+     ]
+    },
+    "trades": 10,
+    "won_pct": 90,
+    "pnl_usd": 138.97,
+    "avg_win_usd": 16.11,
+    "avg_loss_usd": -5.99,
+    "share_pct": 2.9
+   },
+   {
+    "when": {
+     "side": [
+      "short"
+     ],
+     "group": [
+      "crypto-linked"
+     ],
+     "time30": [
+      "09:30"
+     ],
+     "setup": [
+      "short-overbought"
+     ]
+    },
+    "trades": 10,
+    "won_pct": 50,
+    "pnl_usd": -376.2,
+    "avg_win_usd": 29.05,
+    "avg_loss_usd": -104.29,
+    "share_pct": 2.9
+   }
+  ],
+  "worst_days": [
+   {
+    "day": "2025-04-09",
+    "trades": 2,
+    "won_pct": 0,
+    "pnl_usd": -784.4,
+    "avg_win_usd": null,
+    "avg_loss_usd": -392.2,
+    "shorts": 2,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "TSLA",
+     "DJT"
+    ]
+   },
+   {
+    "day": "2025-07-30",
+    "trades": 1,
+    "won_pct": 0,
+    "pnl_usd": -328.85,
+    "avg_win_usd": null,
+    "avg_loss_usd": -328.85,
+    "shorts": 1,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "HIMS"
+    ]
+   },
+   {
+    "day": "2025-06-24",
+    "trades": 2,
+    "won_pct": 50,
+    "pnl_usd": -291.78,
+    "avg_win_usd": 25.4,
+    "avg_loss_usd": -317.18,
+    "shorts": 2,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "HIMS",
+     "COIN"
+    ]
+   },
+   {
+    "day": "2025-08-04",
+    "trades": 1,
+    "won_pct": 0,
+    "pnl_usd": -289.27,
+    "avg_win_usd": null,
+    "avg_loss_usd": -289.27,
+    "shorts": 1,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "SOFI"
+    ]
+   },
+   {
+    "day": "2024-11-19",
+    "trades": 1,
+    "won_pct": 0,
+    "pnl_usd": -266.53,
+    "avg_win_usd": null,
+    "avg_loss_usd": -266.53,
+    "shorts": 1,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "PLTR"
+    ]
+   },
+   {
+    "day": "2025-05-13",
+    "trades": 2,
+    "won_pct": 50,
+    "pnl_usd": -265.45,
+    "avg_win_usd": 7.49,
+    "avg_loss_usd": -272.94,
+    "shorts": 2,
+    "adds_to_loser": 2,
+    "exits_assumed": 1,
+    "tickers": [
+     "TSLA"
+    ]
+   },
+   {
+    "day": "2025-03-10",
+    "trades": 2,
+    "won_pct": 50,
+    "pnl_usd": -225.01,
+    "avg_win_usd": 6.86,
+    "avg_loss_usd": -231.87,
+    "shorts": 1,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "TSLA",
+     "MSTR"
+    ]
+   },
+   {
+    "day": "2025-02-10",
+    "trades": 1,
+    "won_pct": 0,
+    "pnl_usd": -223.03,
+    "avg_win_usd": null,
+    "avg_loss_usd": -223.03,
+    "shorts": 1,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "PLTR"
+    ]
+   },
+   {
+    "day": "2025-09-11",
+    "trades": 1,
+    "won_pct": 0,
+    "pnl_usd": -205.61,
+    "avg_win_usd": null,
+    "avg_loss_usd": -205.61,
+    "shorts": 1,
+    "adds_to_loser": 0,
+    "exits_assumed": 1,
+    "tickers": [
+     "OPEN"
+    ]
+   },
+   {
+    "day": "2025-09-04",
+    "trades": 1,
+    "won_pct": 0,
+    "pnl_usd": -178.71,
+    "avg_win_usd": null,
+    "avg_loss_usd": -178.71,
+    "shorts": 1,
+    "adds_to_loser": 1,
+    "exits_assumed": 1,
+    "tickers": [
+     "HIMS"
+    ]
+   }
+  ],
+  "rules": [
+   {
+    "id": "S1",
+    "text": "He mostly trades the short side, betting stocks will fall, in about four of every five trades.",
+    "when": {},
+    "does": {
+     "side": [
+      "short"
+     ]
+    },
+    "situation_trades": 342,
+    "follows_pct": 80.1,
+    "trades": 274,
+    "won_pct": 51,
+    "pnl_usd": -610.85,
+    "avg_win_usd": 45.96,
+    "avg_loss_usd": -51.85,
+    "share_pct": 80.1,
+    "quote": {
+     "text": "it's just an overbought oversold reversal setup",
+     "cite": {
+      "source_id": "lpp:2024-11-13",
+      "locator": "t=2484s",
+      "label": "Live session, 2024-11-13, 41:24"
+     }
+    }
+   },
+   {
+    "id": "S2",
+    "text": "He opens most trades in the first half hour after the market opens.",
+    "when": {},
+    "does": {
+     "time30": [
+      "09:30"
+     ]
+    },
+    "situation_trades": 342,
+    "follows_pct": 70.5,
+    "trades": 241,
+    "won_pct": 52,
+    "pnl_usd": -334.64,
+    "avg_win_usd": 48.92,
+    "avg_loss_usd": -55.6,
+    "share_pct": 70.5,
+    "quote": {
+     "text": "remember if you enter early watch that position size",
+     "cite": {
+      "source_id": "lpp:2025-02-14",
+      "locator": "t=1378s",
+      "label": "Live session, 2025-02-14, 22:58"
+     }
+    }
+   },
+   {
+    "id": "S3",
+    "text": "When he trades Tesla, he is almost always betting it will fall.",
+    "when": {
+     "ticker": [
+      "TSLA"
+     ]
+    },
+    "does": {
+     "side": [
+      "short"
+     ]
+    },
+    "situation_trades": 83,
+    "follows_pct": 78.3,
+    "trades": 65,
+    "won_pct": 45,
+    "pnl_usd": -1613.39,
+    "avg_win_usd": 27.36,
+    "avg_loss_usd": -66.86,
+    "share_pct": 19.0,
+    "quote": null
+   },
+   {
+    "id": "S4",
+    "text": "He shorts hot small and mid caps after a big run-up, in the first hour of trading.",
+    "when": {
+     "group": [
+      "hot small and mid caps"
+     ],
+     "setup": [
+      "short-overbought"
+     ],
+     "side": [
+      "short"
+     ]
+    },
+    "does": {
+     "time30": [
+      "09:30",
+      "10:00"
+     ]
+    },
+    "situation_trades": 45,
+    "follows_pct": 93.3,
+    "trades": 42,
+    "won_pct": 57,
+    "pnl_usd": 568.72,
+    "avg_win_usd": 78.98,
+    "avg_loss_usd": -73.71,
+    "share_pct": 12.3,
+    "quote": {
+     "text": "I want to wait for those overbought levels",
+     "cite": {
+      "source_id": "lpp:2025-01-21",
+      "locator": "t=250s",
+      "label": "Live session, 2025-01-21, 4:10"
+     }
+    }
+   },
+   {
+    "id": "S5",
+    "text": "His crypto-linked trades, such as Coinbase and MicroStrategy, are mostly shorts.",
+    "when": {
+     "group": [
+      "crypto-linked"
+     ]
+    },
+    "does": {
+     "side": [
+      "short"
+     ]
+    },
+    "situation_trades": 61,
+    "follows_pct": 85.2,
+    "trades": 52,
+    "won_pct": 54,
+    "pnl_usd": 569.49,
+    "avg_win_usd": 52.19,
+    "avg_loss_usd": -37.16,
+    "share_pct": 15.2,
+    "quote": {
+     "text": "he will short coinbase anytime that it's extremely overbought",
+     "cite": {
+      "source_id": "lpp:2024-10-21",
+      "locator": "t=627s",
+      "label": "Live session, 2024-10-21, 10:27"
+     }
+    }
+   },
+   {
+    "id": "S6",
+    "text": "When he buys a dip, he enters in the opening half hour.",
+    "when": {
+     "setup": [
+      "buy-the-dip"
+     ],
+     "side": [
+      "long"
+     ]
+    },
+    "does": {
+     "time30": [
+      "09:30"
+     ]
+    },
+    "situation_trades": 49,
+    "follows_pct": 61.2,
+    "trades": 30,
+    "won_pct": 43,
+    "pnl_usd": 16.85,
+    "avg_win_usd": 41.44,
+    "avg_loss_usd": -30.7,
+    "share_pct": 8.8,
+    "quote": null
+   },
+   {
+    "id": "S7",
+    "text": "When he adds to a losing trade, he usually ends up holding it for three hours or more.",
+    "when": {
+     "adds": [
+      "to_loser"
+     ]
+    },
+    "does": {
+     "hold": [
+      "3 h or more"
+     ]
+    },
+    "situation_trades": 133,
+    "follows_pct": 66.2,
+    "trades": 88,
+    "won_pct": 38,
+    "pnl_usd": -1942.65,
+    "avg_win_usd": 104.39,
+    "avg_loss_usd": -97.96,
+    "share_pct": 25.7,
+    "quote": null
+   },
+   {
+    "id": "S8",
+    "text": "He keeps his first buy under $50,000, usually $10,000 to $50,000.",
+    "when": {},
+    "does": {
+     "size": [
+      "$10k-50k",
+      "under $10k"
+     ]
+    },
+    "situation_trades": 342,
+    "follows_pct": 64.9,
+    "trades": 222,
+    "won_pct": 54,
+    "pnl_usd": -104.96,
+    "avg_win_usd": 53.54,
+    "avg_loss_usd": -64.02,
+    "share_pct": 64.9,
+    "quote": {
+     "text": "just be mindful of your position size",
+     "cite": {
+      "source_id": "lpp:2025-03-07",
+      "locator": "t=750s",
+      "label": "Live session, 2025-03-07, 12:30"
+     }
+    }
+   }
+  ],
+  "dropped": [],
+  "losing_patterns": [
+   {
+    "id": "group:big_tech-adds:to_loser",
+    "when": {
+     "group": [
+      "big tech"
+     ],
+     "adds": [
+      "to_loser"
+     ]
+    },
+    "label": "Big tech, added to a loser",
+    "trades": 51,
+    "won_pct": 31,
+    "pnl_usd": -2270.68,
+    "avg_win_usd": 21.4,
+    "avg_loss_usd": -74.66,
+    "share_pct": 14.9,
+    "share_of_losses_pct": 32.1
+   },
+   {
+    "id": "side:short-hold:3_h_or_more",
+    "when": {
+     "side": [
+      "short"
+     ],
+     "hold": [
+      "3 h or more"
+     ]
+    },
+    "label": "Shorts, held 3 h or more",
+    "trades": 159,
+    "won_pct": 47,
+    "pnl_usd": -2233.42,
+    "avg_win_usd": 56.12,
+    "avg_loss_usd": -76.7,
+    "share_pct": 46.5,
+    "share_of_losses_pct": 79.1
+   },
+   {
+    "id": "group:big_tech-setup:short-resistance",
+    "when": {
+     "group": [
+      "big tech"
+     ],
+     "setup": [
+      "short-resistance"
+     ]
+    },
+    "label": "Big tech, short into resistance",
+    "trades": 27,
+    "won_pct": 52,
+    "pnl_usd": -878.22,
+    "avg_win_usd": 28.67,
+    "avg_loss_usd": -98.43,
+    "share_pct": 7.9,
+    "share_of_losses_pct": 15.7
+   }
+  ],
+  "definitions": {
+   "ticker_groups": {
+    "big tech": [
+     "TSLA",
+     "NVDA",
+     "AMD",
+     "AVGO",
+     "AMZN",
+     "AAPL",
+     "META",
+     "MSFT",
+     "GOOGL",
+     "GOOG",
+     "NFLX"
+    ],
+    "crypto-linked": [
+     "MSTR",
+     "COIN",
+     "HOOD",
+     "MARA",
+     "RIOT",
+     "CLSK"
+    ],
+    "hot small and mid caps": [
+     "PLTR",
+     "SOUN",
+     "HIMS",
+     "SOFI",
+     "SMCI",
+     "TEM",
+     "RDDT",
+     "DJT",
+     "OPEN",
+     "GME",
+     "AI",
+     "CVNA",
+     "IONQ",
+     "RKLB",
+     "RGTI",
+     "QBTS",
+     "OKLO",
+     "APP",
+     "UPST",
+     "AFRM"
+    ],
+    "index funds": [
+     "SPY",
+     "QQQ",
+     "TQQQ",
+     "SQQQ",
+     "IWM",
+     "SPXS",
+     "SPXL"
+    ]
+   },
+   "other_group": "other",
+   "setups": [
+    {
+     "id": "short-overbought",
+     "name": "Short the overbought run",
+     "side": "short",
+     "words": [
+      "overbought",
+      "ran up",
+      "run up",
+      "pump",
+      "extended",
+      "rise",
+      "rally",
+      "pop",
+      "rip",
+      "spike",
+      "squeeze"
+     ]
+    },
+    {
+     "id": "short-resistance",
+     "name": "Short into resistance",
+     "side": "short",
+     "words": [
+      "resistance",
+      "reject",
+      "highs",
+      "high of",
+      "lower high",
+      "double top",
+      "ceiling"
+     ]
+    },
+    {
+     "id": "short-breakdown",
+     "name": "Short the breakdown",
+     "side": "short",
+     "words": [
+      "break",
+      "support",
+      "weak",
+      "downside",
+      "drop",
+      "gap down",
+      "lower",
+      "dump",
+      "bearish",
+      "sell-off"
+     ]
+    },
+    {
+     "id": "buy-the-dip",
+     "name": "Buy the oversold dip",
+     "side": "long",
+     "words": [
+      "oversold",
+      "dip",
+      "bounce",
+      "support",
+      "recovery",
+      "reversal",
+      "bottom",
+      "flush"
+     ]
+    },
+    {
+     "id": "other-shorts",
+     "name": "Other shorts (gut calls)",
+     "side": "short",
+     "words": []
+    },
+    {
+     "id": "other-longs",
+     "name": "Other longs",
+     "side": "long",
+     "words": []
+    }
+   ],
+   "hold_buckets_min": [
+    [
+     15,
+     "under 15 min"
+    ],
+    [
+     60,
+     "15-60 min"
+    ],
+    [
+     180,
+     "1-3 h"
+    ],
+    [
+     null,
+     "3 h or more"
+    ]
+   ],
+   "size_buckets_usd": [
+    [
+     10000,
+     "under $10k"
+    ],
+    [
+     50000,
+     "$10k-50k"
+    ],
+    [
+     null,
+     "$50k or more"
+    ]
+   ],
+   "day_buckets": [
+    [
+     2,
+     "1"
+    ],
+    [
+     4,
+     "2-3"
+    ],
+    [
+     6,
+     "4-5"
+    ],
+    [
+     null,
+     "6 or more"
+    ]
+   ],
+   "features": {
+    "side": "long | short",
+    "group": "the ticker's group (definitions.ticker_groups)",
+    "ticker": "the symbol",
+    "time15": "ET time he posted the first leg, 15-min bucket start (\"before 09:30\", \"09:30\", \"09:45\", ...)",
+    "time30": "the same, 30-min buckets (\"09:30\", \"10:00\", \"10:30\", \"11:00 or later\")",
+    "setup": "his stated reason, by keywords (definitions.setups, first match wins)",
+    "adds": "none | to_loser (any add at a worse price than his average so far) | to_winner (every add better)",
+    "exit": "stated (he said he closed on the stream) | assumed (rule 13: left at 15:55 ET, or his stated hold)",
+    "hold": "copy's minutes from first entry to last exit (definitions.hold_buckets)",
+    "size": "his first buy in dollars: his share count x the entry price (definitions.size_buckets)",
+    "day_trades": "how many of these trades he opened that session (definitions.day_buckets)",
+    "portfolio": "day | swing"
+   },
+   "kept_if": {
+    "min_trades": 15,
+    "min_follows_pct": 60
+   },
+   "pattern_min_trades": 15
   }
  },
  "suggestion": {
