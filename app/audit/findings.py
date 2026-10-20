@@ -60,9 +60,9 @@ def course_items(course: str, version: str, only=None) -> tuple[dict, list, list
     if moved:
         a.append({"id": "posted-time-truncated", "file": head["file"], "legs": moved,
                   "rule": "contracts.md rule 1/3: post time + delay, then the first bar at or after it",
-                  "what": "the loader truncates the post time to the whole second (LPP wall_utc is release + t_s "
-                          "truncated; Discord's milliseconds dropped); when the true time is just past a minute, "
-                          "the fill lands one bar early",
+                  "what": "the loader truncated the post time to the whole second (LPP wall_utc is release + t_s "
+                          "truncated; Discord's milliseconds dropped); when the true time was just past a minute, "
+                          "the fill landed one bar early",
                   **effect(res, theirs, with_posted_times(theirs, ours), base_end, base_trades)})
     if course == "cryptowizard":
         fixed = copy.deepcopy(theirs)
@@ -72,27 +72,31 @@ def course_items(course: str, version: str, only=None) -> tuple[dict, list, list
                 p.default_exit, n = "hours:24", n + 1
         a.append({"id": "cw-24h-default-exit", "file": head["file"], "positions": n,
                   "rule": "contracts.md rule 4: crypto setups leave after 24 hours when never closed",
-                  "what": "the loader extends the default exit to the setup's last linked follow-up "
+                  "what": "the loader extended the default exit to the setup's last linked follow-up "
                           "(up to hours:100)", **effect(res, theirs, fixed, base_end, base_trades)})
         fixed = copy.deepcopy(theirs)
         tp = {p.legs[0].event_id: [lg for lg in p.legs if lg.action == "trim"] for p in ours}
         n = 0
         for p in fixed:
-            extra = tp.get(p.legs[0].event_id, [])
+            have = {lg.event_id for lg in p.legs}
+            extra = [lg for lg in tp.get(p.legs[0].event_id, []) if lg.event_id not in have]
             n += len(extra)
             p.legs = sorted(p.legs + copy.deepcopy(extra), key=lambda lg: lg.posted_ts)
         a.append({"id": "cw-take-profit-trims-dropped", "file": head["file"], "posts": n,
                   "rule": "contracts.md rule 4: the course's own close or trim (+ delay) applies first",
-                  "what": "the loader drops their take-profit posts; with them, a TP post sells that TP's share at "
+                  "what": "the loader dropped their take-profit posts; with them, a TP post sells that TP's share at "
                           "post + delay unless the copier's own TP order already filled (proposal b2)",
                   **effect(res, theirs, fixed, base_end, base_trades)})
     if course == "ziptrader":
-        b.append({"id": "zt-horizon-from-quote", "file": head["file"], "positions": 1,
+        # measured, not typed: the events whose horizon came from the quote, and how each side reads them
+        filled = [e["event_id"] for e in P.rows(P.DATA / "ziptrader" / "events.jsonl") if e.get("horizon_source")]
+        exits = lambda ps: dict(Counter(p.default_exit for p in ps if p.legs[0].event_id in filled))
+        b.append({"id": "zt-horizon-from-quote", "file": head["file"], "positions": len(filled),
                   "question": "Is a horizon said only in the quote ('more than one session') a swing horizon "
                               "when the extracted `horizon` field is empty?",
-                  "engine": "the extraction's horizon field", "audit": "the extraction's horizon field",
-                  "proposal": "Yes (adopted, contracts.md rule 12a): the extraction moves the quote's horizon into "
-                              "its horizon field (app/collect/ziptrader/horizon.py); engine and audit read it.",
+                  "engine": exits(theirs), "audit": exits(ours),
+                  "proposal": "Yes (adopted as contracts.md rule 12a): the extraction moves the quote's horizon into "
+                              "its horizon field (app/collect/ziptrader/horizon.py); engine and audit each read it.",
                   "if_audit_reading": effect(res, theirs, ours, base_end, base_trades)})
     return head, a, b
 
@@ -108,15 +112,15 @@ def zero_effect_items() -> list[dict]:
     return [
         {"id": "targets-split-equally", "positions": no_frac, "delta_usd": 0.0,
          "rule": "contracts.md rule 4: stop or target, whichever trades first, is the exit",
-         "what": "with several targets and no stated shares the engine sells 1/n at each; the contract exits "
+         "what": "with several targets and no stated shares the engine sold 1/n at each; the contract exits "
                  "at the first target that trades (synthetic: 13.99 vs 8.995)"},
         {"id": "at-exit-before-entry", "positions": at, "delta_usd": 0.0,
          "rule": "contracts.md rule 4/6: a horizon that passed before the entry leaves nothing to copy",
-         "what": "the engine opens and closes in the entry bar (costs only, synthetic: -1.00)"},
+         "what": "the engine opened and closed in the entry bar (costs only, synthetic: -1.00)"},
         {"id": "hundred-dollar-minimum", "positions": 0, "delta_usd": 0.0,
          "rule": "contracts.md rule 6: sized down to the cash left, or couldn't-copy",
-         "what": "the engine skips any trade with under $100 of cash; contracts.md names no minimum "
-                 "(bankroll-rules.md's $100 is CAP-9's). sized_down and couldnt_copy match at every delay today"},
+         "what": "the engine skipped any trade with under $100 of cash; contracts.md names no minimum "
+                 "(bankroll-rules.md's $100 is CAP-9's). Now both sides skip at $1 or less"},
     ]
 
 
@@ -175,12 +179,14 @@ def write_note(heads, a, b) -> str:
     for x in b:
         extra = ""
         if "if_audit_reading" in x:
-            extra = f" (audit reading: {money(x['if_audit_reading']['delta_usd'])} on the 5-min end)"
+            extra = (f" (measured on {x['positions']} position(s): engine {x['engine']}, audit {x['audit']}; "
+                     f"audit reading: {money(x['if_audit_reading']['delta_usd'])} on the 5-min end)")
         L.append(f"| {x['id']} | {x['question']} | {x['proposal']}{extra} |")
     L += ["", "## (c) The audit's own errors (fixed)", ""] + [f"- **{x['id']}**: {x['what']}" for x in AUDIT_FIXED]
-    L += ["", "Story audit-2b-engine-fixes applied every (a) fix to the engine and regenerated results/; each "
-          "row's $ effect is what that fix would still change (zero once fixed). A fixed row whose count is 0 "
-          "(posted-time-truncated) drops out of the table.", ""]
+    L += ["", "Story audit-2b-engine-fixes (PR #58) fixed every (a) item in the engine and regenerated results/. "
+          "The (a) rows describe the engine as it was; each row's numbers are measured on the engine as it is "
+          "now, so a fixed item shows a zero $ effect, and a fixed item with nothing left to count "
+          "(posted-time-truncated) has no row.", ""]
     return "\n".join(L)
 
 
