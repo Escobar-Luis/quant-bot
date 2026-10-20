@@ -52341,5 +52341,283 @@
   "picked_on": "dev",
   "generated_at": "2026-10-17T19:05:24Z",
   "kept_reason": "no gain on new (sealed) months"
+ },
+ "improvements": {
+  "agent_id": "daytrader-improver-v2",
+  "prompt_version": "improver-v2",
+  "model": "anthropic/claude-sonnet-5-5",
+  "trajectory_id": "6efa6a02-ea2a-47a2-8d25-5e3d72a7826c",
+  "prism_url": "https://prism.blockconvey.com/trajectories/6efa6a02-ea2a-47a2-8d25-5e3d72a7826c",
+  "version": "v1",
+  "portfolio": "all",
+  "delay_min": 5,
+  "window": {
+   "dev_from": "2024-08-15",
+   "sealed_from": "2025-06-12",
+   "sealed_to": "2025-09-12"
+  },
+  "basis": "The headline's positions (rule 13, all), each re-priced under the change, one full-window run through the cash cap; dev and sealed are its slices by the first buy's day",
+  "picked_on": "dev",
+  "keep_rule": "kept only if it beats the as-is copy on dev, does not lose on sealed, and keeps 30+ trades in each",
+  "min_trades": 30,
+  "kept_label": "held up (not proven)",
+  "variants_tried": {
+   "distinct_priced": 10,
+   "model_priced": 6,
+   "model_rejected": 0,
+   "smoke_tests_run": 6,
+   "smoke_tests_priced": 5,
+   "smoke_tests": [
+    {
+     "rule": "Skip TSLA shorts",
+     "priced": true
+    },
+    {
+     "rule": "No adds against the first buy, big tech",
+     "priced": true,
+     "same_as": "no_add_against big tech"
+    },
+    {
+     "rule": "Leave shorts 60 min after the first buy",
+     "priced": true
+    },
+    {
+     "rule": "2% stop on every trade",
+     "priced": true
+    },
+    {
+     "rule": "Only crypto-linked or hot small and mid caps",
+     "priced": true
+    },
+    {
+     "rule": "Skip trades added to a loser",
+     "priced": false,
+     "why": "look_ahead_or_unknown_feature:adds"
+    }
+   ],
+   "log": "notes/research/backtesting.md, section 6"
+  },
+  "disclosure": [
+   "The engineer ran 6 smoke tests before the model's call and saw their held-out numbers; they count as tried.",
+   "The model saw dev-month tables only, but his rules' wording and the setup definitions came from the strategy profile, built from every month, held-out ones included.",
+   "Kept means it held up on the held-out months, not that it is proven: small gains on about 100 trades can be luck after this many tries (story 27 tests that)."
+  ],
+  "luck_test": {
+   "story": "27",
+   "status": "not run"
+  },
+  "kept_all_trail_spy": true,
+  "as_is": {
+   "dev": {
+    "trades": 239,
+    "ret_pct": -4.73
+   },
+   "sealed": {
+    "trades": 103,
+    "ret_pct": 2.08
+   }
+  },
+  "spy": {
+   "symbol": "SPY",
+   "basis": "total_return",
+   "dev_to": "2025-06-11",
+   "dev_ret_pct": 10.47,
+   "sealed_ret_pct": 9.64
+  },
+  "variants": [
+   {
+    "id": "V1",
+    "text": "In big tech trades, skip adds priced worse than the first buy's fill",
+    "rule": "No adds below the first buy (above it for shorts): big tech",
+    "kind": "no_add_against",
+    "when": {
+     "group": [
+      "big tech"
+     ]
+    },
+    "why": "Big tech trades with adds to losers: 47 trades, 30% won, -$2,142.",
+    "dev": {
+     "trades": 239,
+     "ret_pct": 6.94,
+     "as_is_ret_pct": -4.73,
+     "vs_as_is_pts": 11.67,
+     "spy_ret_pct": 10.47,
+     "vs_spy_pts": -3.53
+    },
+    "sealed": {
+     "trades": 104,
+     "ret_pct": 4.12,
+     "as_is_ret_pct": 2.08,
+     "vs_as_is_pts": 2.04,
+     "spy_ret_pct": 9.64,
+     "vs_spy_pts": -5.52
+    },
+    "kept": true,
+    "kept_reason": "gained on dev and did not lose on the held-out (sealed) months"
+   },
+   {
+    "id": "V2",
+    "text": "Stop out shorts into resistance when price rises 2.5% against the entry",
+    "rule": "Stop at 2.5% against the first buy: short into resistance",
+    "kind": "stop_pct",
+    "when": {
+     "setup": [
+      "short-resistance"
+     ]
+    },
+    "value": 2.5,
+    "why": "Average loss -$85 is far above the average win of $31; -$786 total.",
+    "dev": {
+     "trades": 239,
+     "ret_pct": -2.68,
+     "as_is_ret_pct": -4.73,
+     "vs_as_is_pts": 2.05,
+     "spy_ret_pct": 10.47,
+     "vs_spy_pts": -13.15
+    },
+    "sealed": {
+     "trades": 103,
+     "ret_pct": 2.17,
+     "as_is_ret_pct": 2.08,
+     "vs_as_is_pts": 0.09,
+     "spy_ret_pct": 9.64,
+     "vs_spy_pts": -7.47
+    },
+    "kept": true,
+    "kept_reason": "gained on dev and did not lose on the held-out (sealed) months"
+   },
+   {
+    "id": "V3",
+    "text": "Leave big tech trades 60 minutes after the first buy",
+    "rule": "Leave 60 min after the first buy: big tech",
+    "kind": "max_hold",
+    "when": {
+     "group": [
+      "big tech"
+     ]
+    },
+    "value": 60,
+    "why": "Holds of 3 h or more lost $1,508; 15-60 min holds made money.",
+    "dev": {
+     "trades": 239,
+     "ret_pct": 9.95,
+     "as_is_ret_pct": -4.73,
+     "vs_as_is_pts": 14.68,
+     "spy_ret_pct": 10.47,
+     "vs_spy_pts": -0.52
+    },
+    "sealed": {
+     "trades": 104,
+     "ret_pct": 3.86,
+     "as_is_ret_pct": 2.08,
+     "vs_as_is_pts": 1.78,
+     "spy_ret_pct": 9.64,
+     "vs_spy_pts": -5.78
+    },
+    "kept": true,
+    "kept_reason": "gained on dev and did not lose on the held-out (sealed) months"
+   },
+   {
+    "id": "V4",
+    "text": "Leave long trades 45 minutes after the first buy",
+    "rule": "Leave 45 min after the first buy: longs",
+    "kind": "max_hold",
+    "when": {
+     "side": [
+      "long"
+     ]
+    },
+    "value": 45,
+    "why": "Longs never closed on stream: 26% won, -$336.",
+    "dev": {
+     "trades": 239,
+     "ret_pct": -4.67,
+     "as_is_ret_pct": -4.73,
+     "vs_as_is_pts": 0.06,
+     "spy_ret_pct": 10.47,
+     "vs_spy_pts": -15.14
+    },
+    "sealed": {
+     "trades": 103,
+     "ret_pct": -7.31,
+     "as_is_ret_pct": 2.08,
+     "vs_as_is_pts": -9.39,
+     "spy_ret_pct": 9.64,
+     "vs_spy_pts": -16.95
+    },
+    "kept": false,
+    "kept_reason": "gained on dev, lost on the held-out (sealed) months"
+   },
+   {
+    "id": "V5",
+    "text": "Skip PLTR trades",
+    "rule": "Skip: pltr",
+    "kind": "skip",
+    "when": {
+     "ticker": [
+      "PLTR"
+     ]
+    },
+    "why": "18 trades, 44% won, -$275, average loss larger than average win.",
+    "dev": {
+     "trades": 221,
+     "ret_pct": -1.97,
+     "as_is_ret_pct": -4.73,
+     "vs_as_is_pts": 2.76,
+     "spy_ret_pct": 10.47,
+     "vs_spy_pts": -12.44
+    },
+    "sealed": {
+     "trades": 86,
+     "ret_pct": -1.73,
+     "as_is_ret_pct": 2.08,
+     "vs_as_is_pts": -3.81,
+     "spy_ret_pct": 9.64,
+     "vs_spy_pts": -11.37
+    },
+    "kept": false,
+    "kept_reason": "gained on dev, lost on the held-out (sealed) months"
+   },
+   {
+    "id": "V6",
+    "text": "Skip big tech overbought shorts posted in the 09:30 half hour",
+    "rule": "Skip: big tech, short the overbought run, shorts, posted at 09:30 et",
+    "kind": "skip",
+    "when": {
+     "group": [
+      "big tech"
+     ],
+     "setup": [
+      "short-overbought"
+     ],
+     "side": [
+      "short"
+     ],
+     "time30": [
+      "09:30"
+     ]
+    },
+    "why": "23 trades, 39% won, -$511; average loss is three times the average win.",
+    "dev": {
+     "trades": 216,
+     "ret_pct": 0.48,
+     "as_is_ret_pct": -4.73,
+     "vs_as_is_pts": 5.21,
+     "spy_ret_pct": 10.47,
+     "vs_spy_pts": -9.99
+    },
+    "sealed": {
+     "trades": 102,
+     "ret_pct": 3.46,
+     "as_is_ret_pct": 2.08,
+     "vs_as_is_pts": 1.38,
+     "spy_ret_pct": 9.64,
+     "vs_spy_pts": -6.18
+    },
+    "kept": true,
+    "kept_reason": "gained on dev and did not lose on the held-out (sealed) months"
+   }
+  ],
+  "rejected": []
  }
 }

@@ -61,3 +61,28 @@ Tag: **[R]** = I read the paper text or docs; **[A]** = abstract or search summa
 
 ## Not verified
 - Nicrron model training cutoffs; Alpaca paper crypto fees; Loughran & McDonald 2011 and López de Prado's "10 Reasons ML Funds Fail" (SSRN blocked me); AFML chapter contents (secondary only).
+
+## 6. Version log: improver v2, rule changes from LPP's losses (spec-audit story 20, CAP-15, 2026-10-20)
+
+Every variant tried, with dev and sealed numbers (AGENTS.md rule 4). Code: `app/backtest/improvements.py` (`cd app && uv run python -m backtest.improver --v2`); key `improvements` in `results/lpp/v1.json` (shape: `contracts.md`, section `improvements`); recomputed independently by `app/audit/improvements.py` inside `audit.run` (PASS, 0 mismatches).
+
+1. **Basis:** the headline's 342 copied trades (rule 13, `all`, 5 min, cash cap); each change re-prices every position, one full-window run; dev = first buy before 2025-06-12 (2024-08-15 to 2025-06-11, 239 trades as-is), sealed = 2025-06-12 to 2025-09-12 (103 trades as-is). Return = summed copied P&L / $10,000. SPY = total return (dividends reinvested).
+2. **As-is:** dev −4.73%, sealed +2.08% (the headline's sealed block). SPY: dev +10.47%, sealed +9.64%.
+3. **Model step:** `daytrader-improver-v2` (Claude Sonnet via Nicrron, prompt `improver-v2`), one call, $0.03 of the $3 cap; it saw only the dev-month strategy_profile tables, setups, top 5 dev losing patterns and his rules' wording, never a sealed number. PRISM run: https://prism.blockconvey.com/trajectories/6efa6a02-ea2a-47a2-8d25-5e3d72a7826c (re-run after the PR #68 review, same cached reply; first run 4edf2a7f). Code rejected none of its 6 proposals.
+4. **Keep rule (code, fixed before any run):** beats as-is on dev, does not lose on sealed, 30+ trades in each. Nothing re-tuned after the sealed numbers.
+
+| # | Change (model's words) | Code applied | Dev trades | Dev return (vs as-is, pts) | Dev vs SPY | Sealed trades | Sealed return (vs as-is, pts) | Sealed vs SPY | Decision |
+|---|---|---|---|---|---|---|---|---|---|
+| V1 | In big tech trades, skip adds priced worse than the first buy's fill | `no_add_against` big tech | 239 | +6.94% (+11.67) | −3.53 | 104 | +4.12% (+2.04) | −5.52 | kept |
+| V2 | Stop out shorts into resistance when price rises 2.5% against the entry | `stop_pct` 2.5, short-resistance | 239 | −2.68% (+2.05) | −13.15 | 103 | +2.17% (+0.09) | −7.47 | kept (held up, not proven) |
+| V3 | Leave big tech trades 60 minutes after the first buy | `max_hold` 60, big tech | 239 | +9.95% (+14.68) | −0.52 | 104 | +3.86% (+1.78) | −5.78 | kept |
+| V4 | Leave long trades 45 minutes after the first buy | `max_hold` 45, longs | 239 | −4.67% (+0.06) | −15.14 | 103 | −7.31% (−9.39) | −16.95 | not kept: lost on sealed |
+| V5 | Skip PLTR trades | `skip` PLTR | 221 | −1.97% (+2.76) | −12.44 | 86 | −1.73% (−3.81) | −11.37 | not kept: lost on sealed |
+| V6 | Skip big tech overbought shorts posted in the 09:30 half hour | `skip` short, big tech, short-overbought, 09:30 | 216 | +0.48% (+5.21) | −9.99 | 102 | +3.46% (+1.38) | −6.18 | kept |
+
+**Also tried, by the engineer (smoke test of the machinery before the model ran; not candidates, not in the key, but their sealed numbers were seen):** skip TSLA shorts: dev 180 trades +10.22% (+14.95), sealed 98 +5.11% (+3.03); no adds against the first buy, big tech: same as V1; leave shorts 60 min after the first buy: dev +0.82% (+5.55), sealed −7.36% (−9.44); 2% stop on every trade: dev −9.76% (−5.03), sealed −7.49% (−9.57); only crypto-linked or hot small and mid caps: dev 100 trades +12.13% (+16.86), sealed 88 +5.28% (+3.20); skip `adds: to_loser` (rejected by code: known only after entry). The model's prompt was fixed before these ran and doesn't contain them.
+
+**Read this as:** 10 distinct changes priced in all (the model's 6, 4 of them kept; 4 more by the engineer, whose 5th equals V1). Every kept change still trails just holding SPY on both dev and sealed months. Cutting time in a trade (V3, V4, the engineer's 60-min shorts) swings sealed results by single trades (V4's −9.39 pts is mostly one PLTR long on 2025-08-20 that gained $700 as-is by 15:55). The big tech changes (V1, V3) partly undo rule 13's assumed 15:55 exit, which story 23/24 may revise. Sealed gains of 0.2 to 2 pts on ~100 trades are within luck with 10 variants tried; no multiple-testing correction yet (story 27).
+
+**Review fix (PR #68, same day, same cached proposals, same keep rule):** `setup` used his reason from any leg, so 35 of 343 positions got a reason he stated after the copy's first buy fill (up to 26 min later). Now only legs posted at or before the first fill count, else `unknown` (engine and audit, the audit from its own copy of the definitions). Only V2 moved: dev −2.27% → −2.68% (+2.46 → +2.05 pts vs as-is), sealed +2.29% → +2.17% (+0.21 → +0.09); still kept. The others are unchanged (V1, V3, V4, V5 don't use `setup`; V6's numbers came out the same). Before the fix V2's numbers were seen with the look-ahead setup: counted as the same variant, not a new one. The key now carries `variants_tried` (10 distinct priced), the disclosure, `kept_label` "held up (not proven)" and the luck test (story 27).
+

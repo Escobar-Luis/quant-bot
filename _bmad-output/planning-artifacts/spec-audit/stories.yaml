@@ -154,3 +154,15 @@
   invoke_dev_with: >-
     Found by story 19 (notes/sources/lpp-strategy.md, section 2). Either Luis grades the 8 rule-quote pairs on the local grading page (story 5's), or a second, cheap model check per pair traced under daytrader-strategy-v1 with its own prompt_version; code drops a quote that fails. Rerun backtest.run under the data lock; audit.run must pass. Do not redeploy.
 
+- id: "26"
+  title: Compare his self-reported day totals with our copy
+  description: >-
+    CAP-13 follow-up. In #main-chat the host sometimes says where his day stands (e.g. "currently at 13k for the day"). Comparing those self-reported day totals with the copy's P&L for the same sessions shows how far the copy (5 min late, $1,000 per first buy, assumed 15:55 exits) is from what he says he made, and whether off-stream trades (story 24) explain the gap.
+  invoke_dev_with: >-
+    Found by story 20. Read-only and supervised via Luis's Chrome (memory: discord-chrome-collection); targeted searches of the host's own posts for day-total phrases, not a bulk read. Per day: his stated total (quote of 12 words or fewer, with time), our copied P&L that day scaled to his stated size where he gave one, and the trades on that day's stream. Raw posts stay in data/lpp/discord/; report counts and the gap distribution only. Decide with Luis before any engine change.
+- id: "27"
+  title: How much of the improvement is luck
+  description: >-
+    CAP-15 follow-up. Story 20 priced 10 distinct rule changes (6 from the model, 4 by the engineer) and kept 4 whose held-out gains are 0.2 to 2 points on about 100 trades. Nothing yet says whether gains that small survive having tried 10 variants.
+  invoke_dev_with: >-
+    Found by story 20 (notes/research/backtesting.md, section 6). Bootstrap the sealed trades (resample days) for each kept change vs as-is, and a deflated-Sharpe or White's-reality-check style correction with N = every variant in the log; report it in the improvements key only after a contract change in contracts.md. Reuse the 6 cached proposals (no new model call). Rerun under the data lock; audit.run must pass. Do not redeploy.
