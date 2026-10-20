@@ -246,3 +246,28 @@ LPP v1 only (a proof-set file has none, rule 9). Written by `app/backtest/strate
                   "kept_if": {"min_trades": 15, "min_follows_pct": 60}, "pattern_min_trades": 15}
 }
 ```
+
+## `strategy-lab` (`results/strategy-lab.json`, new file; spec-audit CAP-15, story audit-21-new-stocks)
+
+His profitable rules (S4, S5 of `strategy_profile`) run as code, with no post from him, on prices after his window and on stocks he never traded. Rules, universes, windows, costs and variants: `notes/research/strategy-as-code.md`, committed before the first run (`preregistered_sha`). Written only by `app/backtest/lab.py`; recomputed by `app/audit/lab.py` inside `audit.run`; shown by `web/` as the "His strategy on new data" card (a missing file hides it). Not a course file: `audit.run`'s course glob (`results/*/*.json`) never reads it.
+
+1. **Top level:** `schema` `"strategy-lab/1"`, `generated_at`, `git_sha`, `preregistered_sha`, `spec` (the path), `window` `{from, to, slice_from}`, `money_start` 10000, `per_trade_usd` 1000, `costs` (the three cost models, in words and numbers), `variants_tried` (every run in `runs` plus the picker versions logged in the spec), `fetch` `{minute_ticker_days, runs}`.
+2. **`benchmark`:** `{symbol: "SPY", basis, from_close, to_close, ret_pct, max_drawdown_pct, slice: {ret_pct}}` (total return, Alpaca daily `adjustment=all`).
+3. **`universes`:** `[{id, which: "a" | "b", label, tickers, rule}]`; ids `his-hot`, `his-crypto`, `new-hot`, `new-crypto`.
+4. **`rules`:** `[{id: "S4" | "S5" | "C", label, text, entry_et, universes}]`.
+5. **`variants`:** `[{id: "P" | "no-stop" | "exit-11" | "gap-10", gap_pct, stop_pct (null = none), exit_et}]`.
+6. **`runs`:** one row per rule × variant × universe (C has variant `"control"`): `{rule, variant, universe, primary, trades, won_pct, pnl_usd, end, ret_pct, max_drawdown_pct, longest_losing_streak, worst_day: {day, pnl_usd}, spy_ret_pct, vs_spy_pts, word, outcome, sized_down, skipped: {no_bars}, costs: {x2: {ret_pct, word}, small_cap: {ret_pct, word}}, borrow: {htb_trades, borrow_high_ret_pct}, vs_random: {twin_pnl_usd, p2_5, p97_5, pct_rank, draws} | null, slice: {trades, ret_pct, spy_ret_pct, word}}`. Money in dollars to the cent, percents to 0.01 pt; `word` and `outcome` per contracts rule 9 against SPY.
+7. **`verdict`:** per rule (S4, S5): `{held_up: bool, why}`: held up only when the primary run says `Yes` on both its (a) and (b) universes.
+
+```json
+{"schema": "strategy-lab/1", "preregistered_sha": "abc1234", "window": {"from": "2025-09-15", "to": "2026-10-16", "slice_from": "2026-07-01"},
+ "benchmark": {"symbol": "SPY", "ret_pct": 14.2, "max_drawdown_pct": -8.1, "slice": {"ret_pct": 3.1}},
+ "runs": [{"rule": "S4", "variant": "P", "universe": "new-hot", "primary": true, "trades": 212, "won_pct": 51, "pnl_usd": -123.45,
+           "end": 9876.55, "ret_pct": -1.23, "max_drawdown_pct": -4.5, "longest_losing_streak": 7, "worst_day": {"day": "2026-01-05", "pnl_usd": -210.0},
+           "spy_ret_pct": 14.2, "vs_spy_pts": -15.43, "word": "No", "outcome": "Lost money", "sized_down": 3, "skipped": {"no_bars": 0},
+           "costs": {"x2": {"ret_pct": -1.6, "word": "No"}, "small_cap": {"ret_pct": -2.9, "word": "No"}},
+           "borrow": {"htb_trades": 40, "borrow_high_ret_pct": -1.39},
+           "vs_random": {"twin_pnl_usd": -80.1, "p2_5": -400.2, "p97_5": 310.5, "pct_rank": 41.0, "draws": 2000},
+           "slice": {"trades": 50, "ret_pct": 0.4, "spy_ret_pct": 3.1, "word": "No"}}],
+ "verdict": {"S4": {"held_up": false, "why": "…"}}}
+```

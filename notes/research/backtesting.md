@@ -61,3 +61,8 @@ Tag: **[R]** = I read the paper text or docs; **[A]** = abstract or search summa
 
 ## Not verified
 - Nicrron model training cutoffs; Alpaca paper crypto fees; Loughran & McDonald 2011 and López de Prado's "10 Reasons ML Funds Fail" (SSRN blocked me); AFML chapter contents (secondary only).
+
+## Trial log: his strategy as code (spec-audit story 21, 2026-10-20)
+Pre-registered in `notes/research/strategy-as-code.md` (commit sha in `results/strategy-lab.json` `preregistered_sha`). Every version tried:
+1. Universe picker v1, v2, v3 (pre-window data only; v3 kept): spec section 8.
+2. Rule runs: S4 and S5 × variants `P`, `no-stop`, `exit-11`, `gap-10` × (a) his stocks and (b) other stocks, plus control C on all four universes: 20 runs, all published in `results/strategy-lab.json`. Results: spec section 9 (written after the run).
