@@ -147,3 +147,10 @@
     CAP-13 follow-up. The host trades and closes after the stream ends (about 10:30 ET), in the afternoon and sometimes premarket or after hours; those trades never appear in the captions, so the app never copies them. Measure how often: chat mentions of trades that are not on that day's stream.
   invoke_dev_with: >-
     Found by story 18 (notes/sources/lpp-discord-exits.md, gap 2). Read-only and supervised via Luis's Chrome (memory: discord-chrome-collection); targeted searches of the host's #main-chat posts on a seeded sample of sessions, not a bulk read of his 3,088 posts. Match each chat-mentioned open or close to that day's stream events by ticker and side; report counts (on stream, off stream, unclear) and what share of his trading the app misses. Raw posts stay in data/lpp/discord/. Decide with Luis before any engine change.
+- id: "25"
+  title: Check that each strategy rule's quote says the same thing
+  description: >-
+    CAP-14 follow-up. In strategy_profile (results/lpp/v1.json) the model picks one of his rule quotes per rule, and nothing checks that the quote supports the rule: S1 ("he mostly shorts") carries "it's just an overbought oversold reversal setup". A quote shown under a rule should say the same thing, or the rule shows none.
+  invoke_dev_with: >-
+    Found by story 19 (notes/sources/lpp-strategy.md, section 2). Either Luis grades the 8 rule-quote pairs on the local grading page (story 5's), or a second, cheap model check per pair traced under daytrader-strategy-v1 with its own prompt_version; code drops a quote that fails. Rerun backtest.run under the data lock; audit.run must pass. Do not redeploy.
+

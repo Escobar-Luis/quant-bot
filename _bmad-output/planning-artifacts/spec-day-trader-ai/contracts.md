@@ -213,7 +213,7 @@ LPP v1 only (a proof-set file has none, rule 9). Written by `app/backtest/strate
 3. **Group stats** (every table row, setup, rule and pattern): `trades`, `won_pct` (copied P&L > 0, rounded), `pnl_usd` (sum, cents), `avg_win_usd`, `avg_loss_usd` (P&L ≤ 0; null when none), `share_pct` (of all trades, 0.1 pt).
 4. **Conditions:** `when` / `does` = `{feature: [allowed values]}`; a trade matches when every listed feature's value is in its list; `{}` matches every trade.
 5. **Rules** (≤ 8): the model proposes the wording and the conditions; code keeps a rule only when `situation_trades` (trades matching `when`) ≥ 15, its trades (matching `when` and `does`) ≥ 15 and `follows_pct` = their share of the situation ≥ 60 (0.1 pt). Stats are those of the following trades. `quote`: one of his rule quotes (≤ 12 words) given to the model, with its cite, or null. Rules code dropped are listed in `dropped` with the reason.
-6. **Losing patterns** (3): every one-feature condition, and every pair of what he traded (`side`, `group`, `ticker`, `setup`) with another of those or with `time30`, `adds`, `exit`, `hold`, with 15+ trades, ranked by `pnl_usd` (then fewer features); a pattern sharing more than half its trades with one already picked is skipped. `share_of_losses_pct` = its losing trades' dollars / all losing trades' dollars.
+6. **Losing patterns** (3): every one-feature condition, and every pair of what he traded (`side`, `group`, `ticker`, `setup`) with another of those or with `time30`, `adds`, `exit`, `hold`, with 15+ trades, ranked by `pnl_usd` (then fewer features); a pattern sharing more than half its trades with one already picked is skipped. `share_of_losses_pct` = its losing trades' dollars / all losing trades' dollars; `label` = the condition in plain words, by code.
 7. **Worst days** (10): ET days of the first leg, by summed P&L; with shorts, adds to losers, assumed exits and the top 3 tickers.
 
 ```json
@@ -238,7 +238,7 @@ LPP v1 only (a proof-set file has none, rule 9). Written by `app/backtest/strate
              "share_pct": 80.1, "quote": {"text": "…", "cite": {"source_id": "lpp:2024-08-15", "locator": "t=754s", "label": "…"}}}],
   "dropped": [{"text": "…", "why": "followed 41.0% of the time (under 60%)"}],
   "losing_patterns": [{"id": "group:big_tech-adds:to_loser", "when": {"group": ["big tech"], "adds": ["to_loser"]},
-                       "trades": 51, "won_pct": 31, "pnl_usd": -2270.68, "share_of_losses_pct": 32.1}],
+                       "label": "Big tech, added to a loser", "trades": 51, "won_pct": 31, "pnl_usd": -2270.68, "share_of_losses_pct": 32.1}],
   "definitions": {"ticker_groups": {"big tech": ["TSLA", "NVDA"]}, "other_group": "other",
                   "setups": [{"id": "short-overbought", "name": "…", "side": "short", "words": ["overbought"]}],
                   "hold_buckets_min": [[15, "under 15 min"], [null, "3 h or more"]],
