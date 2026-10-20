@@ -39,6 +39,19 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
   - **intent:** The Oct 21 episode video shows how we know the result is right.
   - **success:** The video has a beat naming the second calculator's result; it is rendered only after CAP-3 passes.
 
+- **CAP-9**
+  - **intent:** The user picks a starting amount, a start date and a stop date, and sees what one account would have become copying every posted trade in that window, with no money added and gains and losses compounding.
+  - **success:** Moving the amount or either date updates the ending balance, the path and the same-money benchmark in the browser; a test fixes the ending balance for a known ledger, start, stop and amount; the second calculator reproduces it.
+- **CAP-10**
+  - **intent:** Each course says which kinds of trades made money, which lost, and the likely reason, from data.
+  - **success:** Per course, the app lists the best and worst setups with their numbers and one plain-words reason tied to measured market conditions in those months, marked "likely reason".
+- **CAP-11**
+  - **intent:** Comparisons are fair: the benchmark at the same money actually invested, the held-out months' own verdict, the S&P with dividends, and the result with and without assumed trades.
+  - **success:** Every course card shows these four numbers; Crypto Wizard's held-out "No" is visible.
+- **CAP-12**
+  - **intent:** Every copy decision uses only what the host said before that moment.
+  - **success:** A test feeds a session where a later statement would change an earlier decision, and the earlier decision does not change.
+
 ## Constraints
 
 - Gate: the LinkedIn post and the video render wait until CAP-3 passes (Luis, 2026-10-20).
@@ -49,13 +62,16 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 - No redeploy of the live app without Luis's explicit OK.
 - The model proposes, the code decides: every number shown comes from `results/`, `proofs/` or the eval output.
 
+- The bankroll simulator runs in the browser from a per-trade ledger published in `results/` (all trades, every delay); no server, no per-user data stored.
+- No margin or borrowing: a trade that doesn't fit the cash left is sized down or skipped, and the app says how many.
+
 ## Non-goals
 
 - Re-extracting every session with a new model or prompt.
 - Pricing options trades.
 - Adding courses or live trading.
 - Human-grading every event.
-- Changing the copy-trade rules, unless CAP-3 exposes a bug.
+- Changing the copy-trade rules beyond the bankroll model (CAP-9) and the look-ahead fix (CAP-12).
 
 ## Success signal
 
@@ -68,6 +84,9 @@ Pain plus mandate. Luis is about to tell LinkedIn that copying Learn Plan Profit
 - v2 is compared with v1 on the same sessions (`same_sessions`).
 
 ## Open Questions
+
+- Bankroll sizing: what share of the current account goes into each new trade (proposal: a fixed percent, default 10%, adjustable; adds and trims keep his ratios)?
+- Sentiment for CAP-10: market data only (VIX, trend, sector moves; free), or also news and social sentiment (paid or rate-limited)?
 
 - Human grading sample size per course (default: 30 LPP, 30 Crypto Wizard, all 86 ZipTrader events)?
 - Should "just holding SPY" include dividends, or stay price-only with the caveat shown?
