@@ -135,3 +135,15 @@
     Story 17 follow-up. The hold-intent pass (app/lpp/hold_intent.py) wrote `horizon` on LPP v1 events only, so results/lpp/v2.json's no_look_ahead still has no hold intent. It also found 3 of the 43 as-taught overnight trades where he said in the stream he would not carry the position overnight (TSLA 2024-10-24, HOOD 2025-07-07, HIMS 2025-05-07), which rule 11's as-taught headline still holds for 5 sessions.
   invoke_dev_with: >-
     Map v2 trade events to the v1 decisions (data/lpp/hold_intent/decisions.jsonl) by session, ticker, side and t_s, or run the pass on v2 positions (about $4 at Nicrron's Sonnet price); trace under extract-lpp-hold-v1 with prompt_version lpp-hold-v1. Raise the 3 stated no-holds with story 18 (Discord exits) before any change to rule 11. Rerun results under the data lock, app/audit must pass.
+- id: "23"
+  title: Find the channel where he posted closes
+  description: >-
+    CAP-13 follow-up. On 2024-10-14 the host says he closed a trade and posted it in a channel that renders as "unknown" to Luis's account, likely one Luis can no longer see. Its close posts were never read, so some LPP exits there may be missing.
+  invoke_dev_with: >-
+    Found by story 18 (notes/sources/lpp-discord-exits.md, gap 1). Luis checks his roles and the server's channel list in his own Chrome, or asks the host's team for read access; never request access on his behalf. Once readable: targeted, read-only searches of the host's close posts for the 14 assumed overnight exits and the 2024-10-14 trade; raw posts to data/lpp/discord/; counts and quotes of 12 words or fewer only in git.
+- id: "24"
+  title: Measure his trades off the stream
+  description: >-
+    CAP-13 follow-up. The host trades and closes after the stream ends (about 10:30 ET), in the afternoon and sometimes premarket or after hours; those trades never appear in the captions, so the app never copies them. Measure how often: chat mentions of trades that are not on that day's stream.
+  invoke_dev_with: >-
+    Found by story 18 (notes/sources/lpp-discord-exits.md, gap 2). Read-only and supervised via Luis's Chrome (memory: discord-chrome-collection); targeted searches of the host's #main-chat posts on a seeded sample of sessions, not a bulk read of his 3,088 posts. Match each chat-mentioned open or close to that day's stream events by ticker and side; report counts (on stream, off stream, unclear) and what share of his trading the app misses. Raw posts stay in data/lpp/discord/. Decide with Luis before any engine change.
