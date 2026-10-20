@@ -196,3 +196,15 @@
     CAP-17 follow-up. Story 21 flags hard-to-borrow shorts with Alpaca's easy_to_borrow flag as of today, not the trade date, and picks the "other stocks" from today's asset list, so names delisted since 2025-09-12 are missing (survivorship). 45% of the short-every-open control's trades on the other hot list are hard-to-borrow today.
   invoke_dev_with: >-
     Found by story 21. Find a point-in-time source for borrow availability and fees (or bound it: drop hard-to-borrow names as a variant), and rebuild the universe picker from a dated listing that includes delisted names; log both as new variants in notes/research/strategy-as-code.md. Fold into story 29's cost model if it lands first.
+- id: "33"
+  title: Cost cases for every number, not only the headline
+  description: >-
+    CAP-17 follow-up. Story 29 publishes each course headline (every portfolio and delay) under simple, realistic and 2x costs in `cost_cases`, but by_year, ranges, strategies, combos, best_stop, the money-curve series, as_taught_stitched, strategy_profile and improvements still use simple costs only, so the card's chart and the cards below it don't move with the cost toggle.
+  invoke_dev_with: >-
+    Found by story 29. Reuse app/backtest/costs.py (engine.reprice and the model argument of fit_to_cash / portfolio_stats); contract first (contracts.md section cost_cases, additive per key); app/audit recomputes each with calc.under_case. Rerun under the data lock; audit.run must pass. Do not redeploy.
+- id: "34"
+  title: Volume-aware crypto costs and real funding rates
+  description: >-
+    CAP-17 follow-up. Story 29's realistic case keeps crypto at a flat 25 bps a side and charges crypto shorts an assumed 10% a year; Crypto Wizard's altcoin scalps can be thin on Binance spot, and its 12 shorts would really pay perpetual funding, which swings by the hour.
+  invoke_dev_with: >-
+    Found by story 29. Add a crypto volume tier from cached Binance 1-minute volume (no new fetch unless the spec says so) and, for shorts, Binance's historical funding rates (public, keyless) cached in data/; contract first (contracts.md rule 5), audit recomputes. Rerun under the data lock; audit.run must pass. Do not redeploy.
