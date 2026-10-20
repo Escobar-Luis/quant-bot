@@ -6,8 +6,8 @@
  "source_agent_id": "extract-lpp-v2",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T20:23:36Z",
- "git_sha": "df1b41744ac972f1827165791f44b7d55abb1d7f",
+ "generated_at": "2026-10-20T21:51:47Z",
+ "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
  "window": {
   "start": "2024-08-15",
   "end": "2025-09-12",
@@ -14252,7 +14252,8 @@
   "Prices are 1-minute market bars, not his own fills.",
   "Costs are estimates: 5 bps per side, 20 under $10.",
   "Just holding SPY leaves out its dividends (about 1% a year).",
-  "Worst drop counts closed trades only, not open ones."
+  "Worst drop counts closed trades only, not open ones.",
+  "Costs are estimates. The headline is shown with realistic costs (spread, slippage, borrow fees on shorts), with simple flat costs and with realistic doubled; the chart, years and the cards below use simple costs. Hard-to-borrow status is as of today, not each trade date."
  ],
  "checks": {
   "sessions": 29,
@@ -14266,6 +14267,1993 @@
   "positions_priced": 51,
   "results_by_status": {
    "priced": 357
+  }
+ },
+ "cost_cases": {
+  "cases": [
+   "simple",
+   "realistic",
+   "x2"
+  ],
+  "default": "realistic",
+  "models": {
+   "simple": "5 bps a side, 20 bps under $10, 25 bps crypto; no borrow fee (contracts rule 5, the original)",
+   "realistic": "spread and slippage a side: 5 bps at $10+, 30 bps from $5 to $10, 50 bps under $5, +10 bps when the 20-session average dollar volume is under $50M; crypto 25 bps. Shorts pay a borrow fee per day held: 0.5% a year easy to borrow, 30% hard or unknown, 10% crypto",
+   "x2": "realistic with every cost and borrow rate doubled"
+  },
+  "bps_per_side": {
+   "simple": {
+    "stocks": 5,
+    "stocks_under_10": 20,
+    "crypto": 25
+   },
+   "realistic": {
+    "stocks_10_up": 5,
+    "stocks_5_to_10": 30,
+    "stocks_under_5": 50,
+    "thin_volume_add": 10,
+    "thin_volume_under_usd": 50000000.0,
+    "crypto": 25
+   },
+   "x2": "realistic x 2"
+  },
+  "borrow": {
+   "source": "Alpaca easy_to_borrow, as of the lookup (today's flag, not the trade date's)",
+   "checked": {
+    "from": "2026-10-20",
+    "to": "2026-10-20"
+   },
+   "rates_pct_per_year": {
+    "easy": 0.5,
+    "hard": 30.0,
+    "unknown": 30.0,
+    "crypto": 10.0
+   },
+   "flags": {
+    "AFRM": "easy",
+    "AMD": "easy",
+    "AVGO": "easy",
+    "DJT": "easy",
+    "HIMS": "easy",
+    "HOOD": "easy",
+    "META": "easy",
+    "MSTR": "easy",
+    "NVDA": "easy",
+    "PLTR": "easy",
+    "RDDT": "easy",
+    "SMCI": "easy",
+    "SOFI": "easy",
+    "SOUN": "easy",
+    "TSLA": "easy"
+   },
+   "shorted_tickers": 15,
+   "hard": 0,
+   "unknown": 0
+  },
+  "portfolios": [
+   {
+    "id": "all",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 10937.39,
+       "ret_pct": 9.37,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 69,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.65,
+       "borrow_usd": 0.0,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 6.9,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 10935.7,
+       "ret_pct": 9.36,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 69,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.25,
+       "borrow_usd": 1.6,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 6.9,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 10780.51,
+       "ret_pct": 7.81,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 63,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 292.03,
+       "borrow_usd": 3.19,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 6.3,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 10858.68,
+       "ret_pct": 8.59,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.4,
+       "borrow_usd": 0.0,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.62,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 10856.98,
+       "ret_pct": 8.57,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 145.99,
+       "borrow_usd": 1.6,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.61,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 10700.98,
+       "ret_pct": 7.01,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 49,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 291.52,
+       "borrow_usd": 3.18,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.01,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 10966.2,
+       "ret_pct": 9.66,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.54,
+       "borrow_usd": 0.0,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.64,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 10964.51,
+       "ret_pct": 9.65,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.14,
+       "borrow_usd": 1.6,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.63,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 10809.65,
+       "ret_pct": 8.1,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 53,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 291.81,
+       "borrow_usd": 3.19,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.04,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 11125.88,
+       "ret_pct": 11.26,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 57,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 145.06,
+       "borrow_usd": 0.0,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.69,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 11124.19,
+       "ret_pct": 11.24,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 57,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.66,
+       "borrow_usd": 1.6,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.68,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 10969.86,
+       "ret_pct": 9.7,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 53,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 292.86,
+       "borrow_usd": 3.2,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 7.1,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 11331.41,
+       "ret_pct": 13.31,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 61,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 144.84,
+       "borrow_usd": 0.0,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 9.77,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 11329.73,
+       "ret_pct": 13.3,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 61,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 146.44,
+       "borrow_usd": 1.6,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 9.76,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 11175.97,
+       "ret_pct": 11.76,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 292.42,
+       "borrow_usd": 3.2,
+       "word": "Barely",
+       "outcome": "Made money",
+       "vs": "about the same as v1",
+       "sealed": {
+        "ret_pct": 9.18,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 11286.03,
+       "ret_pct": 12.86,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 51,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.64,
+       "borrow_usd": 0.0,
+       "word": "Yes",
+       "outcome": "Made money",
+       "vs": "beat v1",
+       "sealed": {
+        "ret_pct": 9.81,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 11284.35,
+       "ret_pct": 12.84,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 51,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.23,
+       "borrow_usd": 1.6,
+       "word": "Yes",
+       "outcome": "Made money",
+       "vs": "beat v1",
+       "sealed": {
+        "ret_pct": 9.81,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 11131.49,
+       "ret_pct": 11.31,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 45,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 292.01,
+       "borrow_usd": 3.2,
+       "word": "Yes",
+       "outcome": "Made money",
+       "vs": "beat v1",
+       "sealed": {
+        "ret_pct": 9.23,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 10702.26,
+       "ret_pct": 7.02,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 41,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 143.88,
+       "borrow_usd": 0.0,
+       "word": "Yes",
+       "outcome": "Made money",
+       "vs": "beat v1",
+       "sealed": {
+        "ret_pct": 6.93,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "realistic": {
+       "end": 10700.61,
+       "ret_pct": 7.01,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 41,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 145.46,
+       "borrow_usd": 1.59,
+       "word": "Yes",
+       "outcome": "Made money",
+       "vs": "beat v1",
+       "sealed": {
+        "ret_pct": 6.93,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      },
+      "x2": {
+       "end": 10549.46,
+       "ret_pct": 5.49,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 39,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 290.47,
+       "borrow_usd": 3.17,
+       "word": "Yes",
+       "outcome": "Made money",
+       "vs": "beat v1",
+       "sealed": {
+        "ret_pct": 6.37,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as v1"
+       }
+      }
+     }
+    }
+   },
+   {
+    "id": "day",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 10937.39,
+       "ret_pct": 9.37,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 69,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.65,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 6.9,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10935.7,
+       "ret_pct": 9.36,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 69,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.25,
+       "borrow_usd": 1.6,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 6.9,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10780.51,
+       "ret_pct": 7.81,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 63,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 292.03,
+       "borrow_usd": 3.19,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 6.3,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 10858.68,
+       "ret_pct": 8.59,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.4,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.62,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10856.98,
+       "ret_pct": 8.57,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 145.99,
+       "borrow_usd": 1.6,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.61,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10700.98,
+       "ret_pct": 7.01,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 49,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 291.52,
+       "borrow_usd": 3.18,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.01,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 10966.2,
+       "ret_pct": 9.66,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.54,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.64,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10964.51,
+       "ret_pct": 9.65,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.14,
+       "borrow_usd": 1.6,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.63,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10809.65,
+       "ret_pct": 8.1,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 53,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 291.81,
+       "borrow_usd": 3.19,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.04,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 11125.88,
+       "ret_pct": 11.26,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 57,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 145.06,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.69,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 11124.19,
+       "ret_pct": 11.24,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 57,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.66,
+       "borrow_usd": 1.6,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.68,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10969.86,
+       "ret_pct": 9.7,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 53,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 292.86,
+       "borrow_usd": 3.2,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 7.1,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 11331.41,
+       "ret_pct": 13.31,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 61,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 144.84,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 9.77,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 11329.73,
+       "ret_pct": 13.3,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 61,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 146.44,
+       "borrow_usd": 1.6,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 9.76,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 11175.97,
+       "ret_pct": 11.76,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 59,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 292.42,
+       "borrow_usd": 3.2,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 9.18,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 11286.03,
+       "ret_pct": 12.86,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 51,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 144.64,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 9.81,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 11284.35,
+       "ret_pct": 12.84,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 51,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 146.23,
+       "borrow_usd": 1.6,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 9.81,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 11131.49,
+       "ret_pct": 11.31,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 45,
+       "sized_down": 4,
+       "couldnt_copy": 0,
+       "costs_usd": 292.01,
+       "borrow_usd": 3.2,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 9.23,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 10702.26,
+       "ret_pct": 7.02,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 41,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 143.88,
+       "borrow_usd": 0.0,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 6.93,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10700.61,
+       "ret_pct": 7.01,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 41,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 145.46,
+       "borrow_usd": 1.59,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 6.93,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10549.46,
+       "ret_pct": 5.49,
+       "hold_ret_pct": 19.64,
+       "trades": 51,
+       "won_pct": 39,
+       "sized_down": 5,
+       "couldnt_copy": 0,
+       "costs_usd": 290.47,
+       "borrow_usd": 3.17,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 6.37,
+        "hold_ret_pct": 9.56,
+        "trades": 15,
+        "word": null,
+        "outcome": "Made money",
+        "vs": null
+       }
+      }
+     }
+    }
+   },
+   {
+    "id": "swing",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": 19.64,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": null,
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": 9.56,
+        "trades": 0,
+        "word": null,
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     }
+    }
+   }
+  ],
+  "same_sessions": {
+   "by_delay": {
+    "1": {
+     "simple": {
+      "end": 10887.66,
+      "ret_pct": 8.88,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 67,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 140.9,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.11,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 10886.02,
+      "ret_pct": 8.86,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 67,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 142.44,
+      "borrow_usd": 1.54,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.1,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 10734.79,
+      "ret_pct": 7.35,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 63,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 284.43,
+      "borrow_usd": 3.08,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 6.54,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    },
+    "3": {
+     "simple": {
+      "end": 10733.38,
+      "ret_pct": 7.33,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 57,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 140.61,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.17,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 10731.74,
+      "ret_pct": 7.32,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 57,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 142.15,
+      "borrow_usd": 1.54,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.16,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 10579.74,
+      "ret_pct": 5.8,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 49,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 283.85,
+      "borrow_usd": 3.08,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 6.6,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    },
+    "5": {
+     "simple": {
+      "end": 10884.58,
+      "ret_pct": 8.85,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 59,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 140.81,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.22,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 10882.94,
+      "ret_pct": 8.83,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 59,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 142.35,
+      "borrow_usd": 1.54,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.22,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 10732.02,
+      "ret_pct": 7.32,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 53,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 284.24,
+      "borrow_usd": 3.08,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 6.66,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    },
+    "10": {
+     "simple": {
+      "end": 11014.15,
+      "ret_pct": 10.14,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 53,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 141.34,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.04,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 11012.52,
+      "ret_pct": 10.13,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 53,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 142.89,
+      "borrow_usd": 1.55,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.04,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 10862.08,
+      "ret_pct": 8.62,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 51,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 285.32,
+      "borrow_usd": 3.1,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 6.49,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    },
+    "15": {
+     "simple": {
+      "end": 11168.48,
+      "ret_pct": 11.68,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 61,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 141.08,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 8.65,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 11166.86,
+      "ret_pct": 11.67,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 61,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 142.63,
+      "borrow_usd": 1.55,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 8.64,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 11017.03,
+      "ret_pct": 10.17,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 59,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 284.8,
+      "borrow_usd": 3.09,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 8.1,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    },
+    "30": {
+     "simple": {
+      "end": 11050.47,
+      "ret_pct": 10.5,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 49,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 140.75,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 8.23,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 11048.86,
+      "ret_pct": 10.49,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 49,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 142.29,
+      "borrow_usd": 1.54,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 8.23,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 10900.03,
+      "ret_pct": 9.0,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 45,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 284.13,
+      "borrow_usd": 3.08,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 7.69,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    },
+    "60": {
+     "simple": {
+      "end": 10452.47,
+      "ret_pct": 4.52,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 45,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 139.99,
+      "borrow_usd": 0.0,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 5.54,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "realistic": {
+      "end": 10450.88,
+      "ret_pct": 4.51,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 45,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 141.52,
+      "borrow_usd": 1.53,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 5.54,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     },
+     "x2": {
+      "end": 10303.75,
+      "ret_pct": 3.04,
+      "hold_ret_pct": 19.64,
+      "trades": 51,
+      "won_pct": 43,
+      "sized_down": 5,
+      "couldnt_copy": 0,
+      "costs_usd": 282.58,
+      "borrow_usd": 3.06,
+      "word": null,
+      "outcome": "Made money",
+      "vs": null,
+      "sealed": {
+       "ret_pct": 5.02,
+       "hold_ret_pct": 9.56,
+       "trades": 16,
+       "word": null,
+       "outcome": "Made money",
+       "vs": null
+      }
+     }
+    }
+   }
   }
  },
  "as_taught_stitched": {

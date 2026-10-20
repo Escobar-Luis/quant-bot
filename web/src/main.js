@@ -104,15 +104,39 @@ function says(row, ret, bench, trades, name) {
     vs: row && 'vs' in row ? row.vs : vsFor(ret, bench, trades, name)
   };
 }
+// contracts.md rule 5 (CAP-17): the headline under three cost cases; the card leads with realistic.
+const COST_CASES = [['realistic', 'Realistic'], ['simple', 'Simple'], ['x2', '2× realistic']];
+const COST_WORDS = { simple: 'Simple', realistic: 'Realistic', x2: '2× realistic' };
+let costCase = COST_CASES.some(([k]) => k === store.get('cost', 'realistic')) ? store.get('cost', 'realistic') : 'realistic';
+function caseRows(r, pid) {
+  const p = (r?.cost_cases?.portfolios || []).find(x => x.id === pid);
+  return p ? p.by_delay?.[dkey(p.by_delay)] || null : null;
+}
 function vm(c) {
   const r = c.r;
   if (!r) return { tested: false, word: 'Not tested yet' };
   const ports = (r.portfolios || []).map(portfolioAt);
   const head = ports.find(p => p.id === r.headline_portfolio && p.at) || ports.find(p => p.at);
   if (!head) return { tested: false, word: 'Not tested yet' };
-  const bench = benchName(r), s = head.at;
-  return { tested: true, r, head, s, ports, start: r.money_start || 10000, hold: holdName(r.hold), bench,
+  const bench = benchName(r), cases = caseRows(r, head.id);
+  // a non-simple case shows only what was computed for it, plus what costs never change (just holding, triggers)
+  const s = cases?.[costCase] && costCase !== 'simple'
+    ? { hold_end: head.at.hold_end, not_triggered: head.at.not_triggered, ...cases[costCase] } : head.at;
+  return { tested: true, r, head, s, ports, cases, costCase: cases?.[costCase] ? costCase : 'simple',
+           start: r.money_start || 10000, hold: holdName(r.hold), bench,
            ...says(s, s.ret_pct, s.hold_ret_pct, s.trades, bench) };
+}
+// The other two cost cases, one line: "Simple $9,735 (No) · 2× $9,102 (No) · borrow fees $13".
+function costLine(v) {
+  if (!v.cases) return '';
+  const bits = COST_CASES.filter(([k]) => k !== v.costCase && v.cases[k]).map(([k]) =>
+    `${COST_WORDS[k]} <b style="color:${WORD_COLOR[wcls(v.cases[k].word)]}">${fmt.money(v.cases[k].end)}</b> (${esc(v.cases[k].word ?? '')})`);
+  const b = v.cases[v.costCase]?.borrow_usd;
+  if (b > 0) bits.push(`borrow fees ${fmt.money(b)}`);
+  if (v.costCase !== 'simple') bits.push('chart: simple costs');
+  const day = v.r.cost_cases?.borrow?.checked?.to;
+  if (v.costCase !== 'simple' && v.r.cost_cases?.borrow?.shorted_tickers && day) bits.push(`hard-to-borrow status as of ${day}, not the trade date`);
+  return bits.join(' · ');
 }
 // One honest fine-print line: sizing, plus trades we couldn't copy or had to shrink.
 function fineLine(r, s) {
@@ -430,7 +454,7 @@ const UNI_SHORT = { 'his-hot': 'His stocks', 'his-crypto': 'His stocks', 'new-ho
 const C_LIST = { 'his-hot': 'His hot', 'his-crypto': 'His crypto', 'new-hot': 'Other hot', 'new-crypto': 'Other crypto',
   'new-hot-raw': 'Other hot, corrected list' };
 // Every row shows its return four ways (base costs, 2x costs, borrow fees, small-cap spreads) and its hard-to-borrow count.
-const fourWays = r => `<b class="${r.ret_pct < 0 ? 'neg' : 'pos'}">${pct(r.ret_pct)}</b> · 2× costs ${pct(r.costs.x2.ret_pct)} · borrow fees ${pct(r.borrow.borrow_high_ret_pct)} · small-cap costs ${pct(r.costs.small_cap.ret_pct)}`;
+const fourWays = r => `<b class="${r.ret_pct < 0 ? 'neg' : 'pos'}">${pct(r.ret_pct)}</b> · 2× simple costs ${pct(r.costs.x2.ret_pct)} · borrow fees ${pct(r.borrow.borrow_high_ret_pct)} · small-cap costs ${pct(r.costs.small_cap.ret_pct)}`;
 const htbLine = r => `${r.borrow.htb_trades.toLocaleString('en-US')} of ${nTrades(r.trades)} hard to borrow`;
 function renderLab(c) {
   const L = LAB, show = !!L && c.key === 'lpp';
@@ -466,6 +490,11 @@ function renderVerdict(fresh) {
   if (range !== 'all' && v.r.ranges && !v.r.ranges[range]) range = 'all';
   const k = cut(v);
   root.style.setProperty('--word', WORD_COLOR[wcls(k.word)]);
+  $('#vCostBox').hidden = !v.cases;
+  if (v.cases) {
+    $('#vCosts').innerHTML = COST_CASES.filter(([id]) => v.cases[id]).map(([id, lab]) => `<button type="button" data-cost="${id}" aria-pressed="${v.costCase === id}">${lab}</button>`).join('');
+    $('#vCostLine').innerHTML = range === 'all' ? costLine(v) : 'Time ranges use simple costs.';
+  }
   $('#vHead').innerHTML = headline(v, k);
   $('#vChip').textContent = k.word;
   $('#vMeta').textContent = k.trades != null ? nTrades(k.trades) : '';
@@ -490,6 +519,7 @@ function renderVerdict(fresh) {
   const h = sealedSays(v);
   $('#live').textContent = `${c.name}: ${k.word}. ${k.vs ? `${k.outcome}, ${k.vs}` : k.outcome}. ${kMoney(v.start)} became ${fmt.money(k.end)}; holding ${v.hold} made ${fmt.money(k.hold_end)}.${h ? ` Held-out months: ${h.word}.` : ''}`;
 }
+$('#vCosts').addEventListener('click', e => { const b = e.target.closest('[data-cost]'); if (!b) return; costCase = b.dataset.cost; store.set('cost', costCase); renderVerdict(false); });
 $('#vRanges').addEventListener('click', e => { const b = e.target.closest('[data-range]'); if (!b || b.disabled) return; range = b.dataset.range; renderVerdict(false); });
 $('#proofBtn').addEventListener('click', () => { openedByUser = true; location.hash = '#proof-' + KEYS[cur]; });
 $('#kindBtn').addEventListener('click', () => { location.hash = '#learn-' + KEYS[cur]; });

@@ -6,8 +6,8 @@
  "source_agent_id": "extract-ziptrader-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:57:54Z",
- "git_sha": "fcfea102279d92d70e7c1a5fcddf9a9c63d9757d",
+ "generated_at": "2026-10-20T21:51:47Z",
+ "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
  "window": {
   "start": "2026-10-01",
   "end": "2026-10-16",
@@ -1200,7 +1200,8 @@
   "$1,000 per call: they never state a size.",
   "Prices are Alpaca 1-minute bars; costs 5 bps per side.",
   "Just holding SPY leaves out its dividends (about 1% a year).",
-  "Worst drop counts closed trades only, not open ones."
+  "Worst drop counts closed trades only, not open ones.",
+  "Costs are estimates. The headline is shown with realistic costs (spread, slippage, borrow fees on shorts), with simple flat costs and with realistic doubled; the chart, years and the cards below use simple costs. Hard-to-borrow status is as of today, not each trade date."
  ],
  "checks": {
   "events_total": 86,
@@ -1213,6 +1214,1494 @@
   "results_by_status": {
    "priced": 7
   }
+ },
+ "cost_cases": {
+  "cases": [
+   "simple",
+   "realistic",
+   "x2"
+  ],
+  "default": "realistic",
+  "models": {
+   "simple": "5 bps a side, 20 bps under $10, 25 bps crypto; no borrow fee (contracts rule 5, the original)",
+   "realistic": "spread and slippage a side: 5 bps at $10+, 30 bps from $5 to $10, 50 bps under $5, +10 bps when the 20-session average dollar volume is under $50M; crypto 25 bps. Shorts pay a borrow fee per day held: 0.5% a year easy to borrow, 30% hard or unknown, 10% crypto",
+   "x2": "realistic with every cost and borrow rate doubled"
+  },
+  "bps_per_side": {
+   "simple": {
+    "stocks": 5,
+    "stocks_under_10": 20,
+    "crypto": 25
+   },
+   "realistic": {
+    "stocks_10_up": 5,
+    "stocks_5_to_10": 30,
+    "stocks_under_5": 50,
+    "thin_volume_add": 10,
+    "thin_volume_under_usd": 50000000.0,
+    "crypto": 25
+   },
+   "x2": "realistic x 2"
+  },
+  "borrow": {
+   "source": "Alpaca easy_to_borrow, as of the lookup (today's flag, not the trade date's)",
+   "checked": null,
+   "rates_pct_per_year": {
+    "easy": 0.5,
+    "hard": 30.0,
+    "unknown": 30.0,
+    "crypto": 10.0
+   },
+   "flags": {},
+   "shorted_tickers": 0,
+   "hard": 0,
+   "unknown": 0
+  },
+  "portfolios": [
+   {
+    "id": "all",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     }
+    }
+   },
+   {
+    "id": "day",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "realistic": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      },
+      "x2": {
+       "end": 10000.0,
+       "ret_pct": 0.0,
+       "hold_ret_pct": -0.14,
+       "trades": 0,
+       "won_pct": 0,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 0,
+       "borrow_usd": 0,
+       "word": "Not enough trades",
+       "outcome": "No trades",
+       "vs": null,
+       "sealed": {
+        "ret_pct": 0.0,
+        "hold_ret_pct": -0.14,
+        "trades": 0,
+        "word": "Not enough trades",
+        "outcome": "No trades",
+        "vs": null
+       }
+      }
+     }
+    }
+   },
+   {
+    "id": "swing",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "realistic": {
+       "end": 10007.02,
+       "ret_pct": 0.07,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1.0,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.07,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      },
+      "x2": {
+       "end": 10006.02,
+       "ret_pct": 0.06,
+       "hold_ret_pct": -0.14,
+       "trades": 1,
+       "won_pct": 100,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 2.01,
+       "borrow_usd": 0.0,
+       "word": "Not enough trades",
+       "outcome": "Made money",
+       "vs": "about the same as the S&P",
+       "sealed": {
+        "ret_pct": 0.06,
+        "hold_ret_pct": -0.14,
+        "trades": 1,
+        "word": "Not enough trades",
+        "outcome": "Made money",
+        "vs": "about the same as the S&P"
+       }
+      }
+     }
+    }
+   }
+  ]
  },
  "best_stop": {
   "by_delay": {

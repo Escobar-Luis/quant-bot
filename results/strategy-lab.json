@@ -1,7 +1,7 @@
 {
  "schema": "strategy-lab/1",
- "generated_at": "2026-10-20T21:32:57Z",
- "git_sha": "5928682fbdcd4844ae52228c95e0f67e6c326238",
+ "generated_at": "2026-10-20T21:51:50Z",
+ "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
  "preregistered_sha": "eb6c3e8",
  "spec": "notes/research/strategy-as-code.md",
  "window": {
@@ -16,6 +16,76 @@
   "x2": "every per-side cost doubled",
   "small_cap": "per side 50 bps under $5, 30 bps under $10, else 5 bps; +10 bps when the 20-session average dollar volume before the session is under $50M",
   "borrow_high": "hard-to-borrow names (Alpaca's flag today) pay one day of a 100%-a-year fee: 0.4% of notional; easy-to-borrow intraday shorts pay none"
+ },
+ "cost_cases": {
+  "cases": [
+   "simple",
+   "realistic",
+   "x2"
+  ],
+  "default": "realistic",
+  "models": {
+   "simple": "5 bps a side, 20 bps under $10, 25 bps crypto; no borrow fee (contracts rule 5, the original)",
+   "realistic": "spread and slippage a side: 5 bps at $10+, 30 bps from $5 to $10, 50 bps under $5, +10 bps when the 20-session average dollar volume is under $50M; crypto 25 bps. Shorts pay a borrow fee per day held: 0.5% a year easy to borrow, 30% hard or unknown, 10% crypto",
+   "x2": "realistic with every cost and borrow rate doubled"
+  },
+  "rates_pct_per_year": {
+   "easy": 0.5,
+   "hard": 30.0,
+   "unknown": 30.0,
+   "crypto": 10.0
+  },
+  "flags": {
+   "AAOI": "easy",
+   "AFRM": "easy",
+   "AI": "easy",
+   "APLD": "easy",
+   "BLSH": "easy",
+   "BMNR": "easy",
+   "BTBT": "hard",
+   "BTDR": "easy",
+   "CIFR": "easy",
+   "COIN": "easy",
+   "CRCL": "easy",
+   "CVNA": "easy",
+   "CWD": "hard",
+   "DJT": "easy",
+   "GLXY": "easy",
+   "GME": "easy",
+   "HIMS": "easy",
+   "HIVE": "hard",
+   "HOOD": "easy",
+   "HUT": "easy",
+   "IPDN": "hard",
+   "IREN": "easy",
+   "KEEL": "easy",
+   "LUNR": "easy",
+   "MARA": "easy",
+   "MSTR": "easy",
+   "NEGG": "hard",
+   "ONDS": "hard",
+   "OPAD": "hard",
+   "OPEN": "easy",
+   "ORBS": "hard",
+   "PGY": "hard",
+   "PL": "easy",
+   "PLTR": "easy",
+   "QS": "easy",
+   "RDDT": "easy",
+   "RUN": "easy",
+   "SBET": "easy",
+   "SEDG": "easy",
+   "SKYD": "easy",
+   "SMCI": "easy",
+   "SMR": "easy",
+   "SOFI": "easy",
+   "SOGP": "hard",
+   "SOUN": "easy",
+   "TEM": "easy",
+   "UUUU": "easy",
+   "WLDS": "hard",
+   "WULF": "easy"
+  }
  },
  "variants_tried": 29,
  "deviations": [
@@ -257,6 +327,29 @@
     "pct_rank": 100.0,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 634.42,
+     "ret_pct": 6.34,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 601.88,
+     "ret_pct": 6.02,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.86
+    },
+    "x2": {
+     "pnl_usd": 475.0,
+     "ret_pct": 4.75,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 1.72
+    }
+   },
    "slice": {
     "trades": 10,
     "ret_pct": 1.04,
@@ -309,6 +402,29 @@
     "p97_5": 540.36,
     "pct_rank": 100.0,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 800.26,
+     "ret_pct": 8.0,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 767.8,
+     "ret_pct": 7.68,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.86
+    },
+    "x2": {
+     "pnl_usd": 641.26,
+     "ret_pct": 6.41,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 1.72
+    }
    },
    "slice": {
     "trades": 10,
@@ -363,6 +479,29 @@
     "pct_rank": 100.0,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 565.96,
+     "ret_pct": 5.66,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 533.24,
+     "ret_pct": 5.33,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.86
+    },
+    "x2": {
+     "pnl_usd": 405.95,
+     "ret_pct": 4.06,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 1.72
+    }
+   },
    "slice": {
     "trades": 10,
     "ret_pct": 0.69,
@@ -415,6 +554,29 @@
     "p97_5": 314.68,
     "pct_rank": 62.8,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -167.91,
+     "ret_pct": -1.68,
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -178.22,
+     "ret_pct": -1.78,
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "borrow_usd": 0.28
+    },
+    "x2": {
+     "pnl_usd": -220.56,
+     "ret_pct": -2.21,
+     "word": "Not enough trades",
+     "outcome": "Lost money",
+     "borrow_usd": 0.56
+    }
    },
    "slice": {
     "trades": 7,
@@ -469,6 +631,29 @@
     "pct_rank": 99.9,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 1100.81,
+     "ret_pct": 11.01,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 219.48,
+     "ret_pct": 2.19,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 113.33
+    },
+    "x2": {
+     "pnl_usd": -1280.87,
+     "ret_pct": -12.81,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 226.31
+    }
+   },
    "slice": {
     "trades": 59,
     "ret_pct": -2.22,
@@ -521,6 +706,29 @@
     "p97_5": 2384.86,
     "pct_rank": 99.9,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 1658.95,
+     "ret_pct": 16.59,
+     "word": "Barely",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 779.71,
+     "ret_pct": 7.8,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 113.33
+    },
+    "x2": {
+     "pnl_usd": -715.03,
+     "ret_pct": -7.15,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 226.66
+    }
    },
    "slice": {
     "trades": 59,
@@ -575,6 +783,29 @@
     "pct_rank": 99.9,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 732.64,
+     "ret_pct": 7.33,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -143.94,
+     "ret_pct": -1.44,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 113.33
+    },
+    "x2": {
+     "pnl_usd": -1645.12,
+     "ret_pct": -16.45,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 225.87
+    }
+   },
    "slice": {
     "trades": 59,
     "ret_pct": -0.35,
@@ -627,6 +858,29 @@
     "p97_5": 983.81,
     "pct_rank": 100.0,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 304.55,
+     "ret_pct": 3.05,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 57.85,
+     "ret_pct": 0.58,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 33.64
+    },
+    "x2": {
+     "pnl_usd": -338.36,
+     "ret_pct": -3.38,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 67.28
+    }
    },
    "slice": {
     "trades": 14,
@@ -681,6 +935,29 @@
     "pct_rank": 99.7,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 1368.12,
+     "ret_pct": 13.68,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 668.97,
+     "ret_pct": 6.69,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 93.52
+    },
+    "x2": {
+     "pnl_usd": -585.27,
+     "ret_pct": -5.85,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 187.04
+    }
+   },
    "slice": {
     "trades": 52,
     "ret_pct": -2.04,
@@ -733,6 +1010,29 @@
     "p97_5": 2136.24,
     "pct_rank": 99.7,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 1346.11,
+     "ret_pct": 13.46,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 649.31,
+     "ret_pct": 6.49,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 93.52
+    },
+    "x2": {
+     "pnl_usd": -600.5,
+     "ret_pct": -6.0,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 187.04
+    }
    },
    "slice": {
     "trades": 52,
@@ -787,6 +1087,29 @@
     "pct_rank": 99.7,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 803.81,
+     "ret_pct": 8.04,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 106.92,
+     "ret_pct": 1.07,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 93.52
+    },
+    "x2": {
+     "pnl_usd": -1151.33,
+     "ret_pct": -11.51,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 186.52
+    }
+   },
    "slice": {
     "trades": 52,
     "ret_pct": 1.42,
@@ -839,6 +1162,29 @@
     "p97_5": 942.59,
     "pct_rank": 99.9,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 472.62,
+     "ret_pct": 4.73,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 263.04,
+     "ret_pct": 2.63,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 28.68
+    },
+    "x2": {
+     "pnl_usd": -83.75,
+     "ret_pct": -0.84,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 57.36
+    }
    },
    "slice": {
     "trades": 11,
@@ -893,6 +1239,29 @@
     "pct_rank": 1.7,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -176.98,
+     "ret_pct": -1.77,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -187.59,
+     "ret_pct": -1.88,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.61
+    },
+    "x2": {
+     "pnl_usd": -257.28,
+     "ret_pct": -2.57,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 1.22
+    }
+   },
    "slice": {
     "trades": 19,
     "ret_pct": -0.59,
@@ -945,6 +1314,29 @@
     "p97_5": 516.69,
     "pct_rank": 1.7,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -529.35,
+     "ret_pct": -5.29,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -540.06,
+     "ret_pct": -5.4,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.61
+    },
+    "x2": {
+     "pnl_usd": -610.17,
+     "ret_pct": -6.1,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 1.22
+    }
    },
    "slice": {
     "trades": 19,
@@ -999,6 +1391,29 @@
     "pct_rank": 1.7,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -281.42,
+     "ret_pct": -2.81,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -292.06,
+     "ret_pct": -2.92,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.61
+    },
+    "x2": {
+     "pnl_usd": -361.87,
+     "ret_pct": -3.62,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 1.22
+    }
+   },
    "slice": {
     "trades": 19,
     "ret_pct": -0.86,
@@ -1051,6 +1466,29 @@
     "p97_5": 98.12,
     "pct_rank": 99.6,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 112.12,
+     "ret_pct": 1.12,
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 110.16,
+     "ret_pct": 1.1,
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "borrow_usd": 0.03
+    },
+    "x2": {
+     "pnl_usd": 103.34,
+     "ret_pct": 1.03,
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "borrow_usd": 0.06
+    }
    },
    "slice": {
     "trades": 0,
@@ -1105,6 +1543,29 @@
     "pct_rank": 19.8,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -16.3,
+     "ret_pct": -0.16,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -448.03,
+     "ret_pct": -4.48,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 30.69
+    },
+    "x2": {
+     "pnl_usd": -1306.94,
+     "ret_pct": -13.07,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 61.22
+    }
+   },
    "slice": {
     "trades": 58,
     "ret_pct": -0.18,
@@ -1157,6 +1618,29 @@
     "p97_5": 1268.74,
     "pct_rank": 19.8,
     "draws": 2000
+   },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -178.73,
+     "ret_pct": -1.79,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -610.23,
+     "ret_pct": -6.1,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 30.68
+    },
+    "x2": {
+     "pnl_usd": -1469.33,
+     "ret_pct": -14.69,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 61.2
+    }
    },
    "slice": {
     "trades": 58,
@@ -1211,6 +1695,29 @@
     "pct_rank": 19.8,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -543.38,
+     "ret_pct": -5.43,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -979.65,
+     "ret_pct": -9.8,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 30.61
+    },
+    "x2": {
+     "pnl_usd": -1850.07,
+     "ret_pct": -18.5,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 61.05
+    }
+   },
    "slice": {
     "trades": 58,
     "ret_pct": -1.84,
@@ -1264,6 +1771,29 @@
     "pct_rank": 13.7,
     "draws": 2000
    },
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 212.87,
+     "ret_pct": 2.13,
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 150.06,
+     "ret_pct": 1.5,
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "borrow_usd": 2.85
+    },
+    "x2": {
+     "pnl_usd": 32.4,
+     "ret_pct": 0.32,
+     "word": "Not enough trades",
+     "outcome": "Made money",
+     "borrow_usd": 5.69
+    }
+   },
    "slice": {
     "trades": 8,
     "ret_pct": -0.18,
@@ -1311,6 +1841,29 @@
     "borrow_high_ret_pct": -6.36
    },
    "vs_random": null,
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -635.64,
+     "ret_pct": -6.36,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -2350.8,
+     "ret_pct": -23.51,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 36.26
+    },
+    "x2": {
+     "pnl_usd": -5991.84,
+     "ret_pct": -59.92,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 62.06
+    }
+   },
    "slice": {
     "trades": 988,
     "ret_pct": -13.61,
@@ -1358,6 +1911,29 @@
     "borrow_high_ret_pct": 5.24
    },
    "vs_random": null,
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 524.44,
+     "ret_pct": 5.24,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": 364.58,
+     "ret_pct": 3.65,
+     "word": "No",
+     "outcome": "Made money",
+     "borrow_usd": 15.28
+    },
+    "x2": {
+     "pnl_usd": -1111.22,
+     "ret_pct": -11.11,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 30.56
+    }
+   },
    "slice": {
     "trades": 304,
     "ret_pct": -3.05,
@@ -1405,6 +1981,29 @@
     "borrow_high_ret_pct": 3.83
    },
    "vs_random": null,
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 5519.72,
+     "ret_pct": 55.2,
+     "word": "Yes",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -2290.27,
+     "ret_pct": -22.9,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 954.71
+    },
+    "x2": {
+     "pnl_usd": -8027.56,
+     "ret_pct": -80.28,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 1190.52
+    }
+   },
    "slice": {
     "trades": 1520,
     "ret_pct": 13.34,
@@ -1452,6 +2051,29 @@
     "borrow_high_ret_pct": -52.52
    },
    "vs_random": null,
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": -4042.7,
+     "ret_pct": -40.43,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -6733.32,
+     "ret_pct": -67.33,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 247.3
+    },
+    "x2": {
+     "pnl_usd": -8959.88,
+     "ret_pct": -89.6,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 337.79
+    }
+   },
    "slice": {
     "trades": 760,
     "ret_pct": 20.47,
@@ -1499,6 +2121,29 @@
     "borrow_high_ret_pct": 7.64
    },
    "vs_random": null,
+   "cost_cases": {
+    "simple": {
+     "pnl_usd": 4728.7,
+     "ret_pct": 47.29,
+     "word": "Yes",
+     "outcome": "Made money",
+     "borrow_usd": 0.0
+    },
+    "realistic": {
+     "pnl_usd": -937.39,
+     "ret_pct": -9.37,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 801.26
+    },
+    "x2": {
+     "pnl_usd": -7077.99,
+     "ret_pct": -70.78,
+     "word": "No",
+     "outcome": "Lost money",
+     "borrow_usd": 1115.41
+    }
+   },
    "slice": {
     "trades": 1520,
     "ret_pct": 4.51,

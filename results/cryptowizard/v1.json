@@ -6,8 +6,8 @@
  "source_agent_id": "extract-cryptowizard-v1",
  "sample": false,
  "partial": false,
- "generated_at": "2026-10-20T19:57:54Z",
- "git_sha": "fcfea102279d92d70e7c1a5fcddf9a9c63d9757d",
+ "generated_at": "2026-10-20T21:51:48Z",
+ "git_sha": "d85f23f0fdf025eed7d9695428c98d427b0d6d46",
  "window": {
   "start": "2025-10-17",
   "end": "2026-10-16",
@@ -18375,7 +18375,8 @@
   "190 take-profit posts sell that target's share, unless the copier's own order already filled.",
   "$1,000 per setup: most of the $10k sits in cash, earning nothing.",
   "Prices are Binance 1-minute bars; costs 25 bps per side.",
-  "Worst drop counts closed trades only, not open ones."
+  "Worst drop counts closed trades only, not open ones.",
+  "Costs are estimates. The headline is shown with realistic costs (spread, slippage, borrow fees on shorts), with simple flat costs and with realistic doubled; the chart, years and the cards below use simple costs. Hard-to-borrow status is as of today, not each trade date."
  ],
  "checks": {
   "events_total": 398,
@@ -18388,6 +18389,1016 @@
    "priced": 854,
    "no_bars": 28
   }
+ },
+ "cost_cases": {
+  "cases": [
+   "simple",
+   "realistic",
+   "x2"
+  ],
+  "default": "realistic",
+  "models": {
+   "simple": "5 bps a side, 20 bps under $10, 25 bps crypto; no borrow fee (contracts rule 5, the original)",
+   "realistic": "spread and slippage a side: 5 bps at $10+, 30 bps from $5 to $10, 50 bps under $5, +10 bps when the 20-session average dollar volume is under $50M; crypto 25 bps. Shorts pay a borrow fee per day held: 0.5% a year easy to borrow, 30% hard or unknown, 10% crypto",
+   "x2": "realistic with every cost and borrow rate doubled"
+  },
+  "bps_per_side": {
+   "simple": {
+    "stocks": 5,
+    "stocks_under_10": 20,
+    "crypto": 25
+   },
+   "realistic": {
+    "stocks_10_up": 5,
+    "stocks_5_to_10": 30,
+    "stocks_under_5": 50,
+    "thin_volume_add": 10,
+    "thin_volume_under_usd": 50000000.0,
+    "crypto": 25
+   },
+   "x2": "realistic x 2"
+  },
+  "borrow": {
+   "source": "crypto shorts: no flag source; margin or funding rate",
+   "checked": null,
+   "rates_pct_per_year": {
+    "easy": 0.5,
+    "hard": 30.0,
+    "unknown": 30.0,
+    "crypto": 10.0
+   },
+   "flags": {
+    "BTCUSDT": "crypto",
+    "ETHUSDT": "crypto"
+   },
+   "shorted_tickers": 2,
+   "hard": 0,
+   "unknown": 0
+  },
+  "portfolios": [
+   {
+    "id": "all",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 9238.1,
+       "ret_pct": -7.62,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.51,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.24,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9234.76,
+       "ret_pct": -7.65,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 612.85,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.25,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8621.92,
+       "ret_pct": -13.78,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 43,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1225.69,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -2.01,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 9253.5,
+       "ret_pct": -7.46,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.55,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.19,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9250.16,
+       "ret_pct": -7.5,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 612.88,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.19,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8637.28,
+       "ret_pct": -13.63,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1225.76,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.95,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 9290.3,
+       "ret_pct": -7.1,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.66,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.08,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9286.96,
+       "ret_pct": -7.13,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 612.99,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.09,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8673.98,
+       "ret_pct": -13.26,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1225.98,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.85,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 9296.69,
+       "ret_pct": -7.03,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 46,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.67,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.16,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9293.36,
+       "ret_pct": -7.07,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 46,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.01,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.17,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8680.35,
+       "ret_pct": -13.2,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.01,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.93,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 9306.96,
+       "ret_pct": -6.93,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.76,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.1,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9303.63,
+       "ret_pct": -6.96,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.09,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.09,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8690.54,
+       "ret_pct": -13.09,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 40,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.18,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.67,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 9353.91,
+       "ret_pct": -6.46,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.89,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.61,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9350.58,
+       "ret_pct": -6.49,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.23,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.61,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8737.35,
+       "ret_pct": -12.63,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 39,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.45,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.16,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 9292.81,
+       "ret_pct": -7.07,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 45,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.79,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.29,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9289.48,
+       "ret_pct": -7.11,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 45,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.13,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.29,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8676.35,
+       "ret_pct": -13.24,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.25,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.47,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     }
+    }
+   },
+   {
+    "id": "crypto",
+    "by_delay": {
+     "1": {
+      "simple": {
+       "end": 9238.1,
+       "ret_pct": -7.62,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.51,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.24,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9234.76,
+       "ret_pct": -7.65,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 612.85,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.25,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8621.92,
+       "ret_pct": -13.78,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 43,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1225.69,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -2.01,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "3": {
+      "simple": {
+       "end": 9253.5,
+       "ret_pct": -7.46,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.55,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.19,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9250.16,
+       "ret_pct": -7.5,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 612.88,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.19,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8637.28,
+       "ret_pct": -13.63,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1225.76,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.95,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "5": {
+      "simple": {
+       "end": 9290.3,
+       "ret_pct": -7.1,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 48,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.66,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.08,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9286.96,
+       "ret_pct": -7.13,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 612.99,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.09,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8673.98,
+       "ret_pct": -13.26,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1225.98,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.85,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "10": {
+      "simple": {
+       "end": 9296.69,
+       "ret_pct": -7.03,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 46,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.67,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.16,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9293.36,
+       "ret_pct": -7.07,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 46,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.01,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -0.17,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8680.35,
+       "ret_pct": -13.2,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.01,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.93,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "15": {
+      "simple": {
+       "end": 9306.96,
+       "ret_pct": -6.93,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.76,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.1,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9303.63,
+       "ret_pct": -6.96,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.09,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.09,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8690.54,
+       "ret_pct": -13.09,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 40,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.18,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.67,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "30": {
+      "simple": {
+       "end": 9353.91,
+       "ret_pct": -6.46,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.89,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.61,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9350.58,
+       "ret_pct": -6.49,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 47,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.23,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.61,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8737.35,
+       "ret_pct": -12.63,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 39,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.45,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.16,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     },
+     "60": {
+      "simple": {
+       "end": 9292.81,
+       "ret_pct": -7.07,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 45,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 609.79,
+       "borrow_usd": 0.0,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.29,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "realistic": {
+       "end": 9289.48,
+       "ret_pct": -7.11,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 45,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 613.13,
+       "borrow_usd": 3.33,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": 0.29,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Made money",
+        "vs": "Bitcoin did better"
+       }
+      },
+      "x2": {
+       "end": 8676.35,
+       "ret_pct": -13.24,
+       "hold_ret_pct": -24.57,
+       "trades": 122,
+       "won_pct": 41,
+       "sized_down": 0,
+       "couldnt_copy": 0,
+       "costs_usd": 1226.25,
+       "borrow_usd": 6.67,
+       "word": "No",
+       "outcome": "Lost money",
+       "vs": "less than Bitcoin",
+       "sealed": {
+        "ret_pct": -1.47,
+        "hold_ret_pct": 26.04,
+        "trades": 35,
+        "word": "No",
+        "outcome": "Lost money",
+        "vs": "Bitcoin did better"
+       }
+      }
+     }
+    }
+   }
+  ]
  },
  "strategies": [
   {
