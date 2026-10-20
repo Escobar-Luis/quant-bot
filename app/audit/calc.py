@@ -287,7 +287,9 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
             for px, lg in ev.get(k, []):
                 do_leg(k, px, lg)
             if held <= 1e-12:
-                break
+                continue                 # contracts.md rule 12(l): flat after his own trim or close is not the
+                                         # end; a later add re-enters (as in the branch without levels); a stop
+                                         # or target that empties the position ends it (below)
             o, h, lo, _ = b
             stop_hit = stop is not None and (lo <= stop if long else h >= stop)
             tg_hit = [i for i in range(hit, len(targets)) if (h >= targets[i] if long else lo <= targets[i])]

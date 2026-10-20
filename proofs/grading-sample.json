@@ -1,11 +1,11 @@
 {
  "seed": 20261021,
  "sample_version": 2,
- "drawn_at": "2026-10-20T19:18:00+00:00",
+ "drawn_at": "2026-10-20T21:11:50+00:00",
  "courses": {
   "lpp": {
    "file": "lpp/events.jsonl",
-   "file_sha256": "876d302cab292a51529b37dfb80df67234e574425fa84511b702fc329fd25741",
+   "file_sha256": "02ffb92dbe0b6a3a22dda748b4bcba7f466d86ddded4a3777c08200f80f7c4d8",
    "n_population": 1581,
    "event_ids": [
     "lpp:4DZcAxpKXik:000",

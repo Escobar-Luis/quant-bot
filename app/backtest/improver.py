@@ -1,6 +1,8 @@
 """daytrader-improver-v1: the model proposes ONE change to one strategy; code tests it and decides (CAP-9).
 
   cd app && uv run python -m backtest.improver --course lpp --version v1 [--dry-run]
+  cd app && uv run python -m backtest.improver --v2 [--estimate] [--no-trace]   # daytrader-improver-v2 (CAP-15):
+      up to 6 rule changes from his losses, as code filters on his trades (backtest/improvements.py)
 
 Honest-backtest rules: the model sees only dev-month numbers (entries before window.sealed_from), never the sealed
 months; code keeps the change only if it beats the parent on dev, then reports both on the sealed months. The change
@@ -120,7 +122,16 @@ def main():
     ap.add_argument("--course", default="lpp")
     ap.add_argument("--version", default="v1")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--v2", action="store_true", help="daytrader-improver-v2: the improvements key (LPP)")
+    ap.add_argument("--estimate", action="store_true", help="v2: dev tables, prompt size and cost; no call")
+    ap.add_argument("--no-trace", action="store_true", help="v2: no PRISM run")
     a = ap.parse_args()
+    if a.v2:
+        from . import improvements
+        if a.course != "lpp":
+            raise SystemExit("--v2 is LPP only (contracts.md section improvements)")
+        improvements.main(a.version, a.estimate, a.no_trace)
+        return
     mod = course_module(a.course)
     built = mod.build(a.version)
     positions = built["positions"]
