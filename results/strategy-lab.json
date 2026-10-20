@@ -1,0 +1,1206 @@
+{
+ "schema": "strategy-lab/1",
+ "generated_at": "2026-10-20T21:24:03Z",
+ "git_sha": "eb6c3e830a73bf419bb20c9d27ab76a566229b42",
+ "preregistered_sha": "eb6c3e8",
+ "spec": "notes/research/strategy-as-code.md",
+ "window": {
+  "from": "2025-09-15",
+  "to": "2026-10-16",
+  "slice_from": "2026-07-01"
+ },
+ "money_start": 10000.0,
+ "per_trade_usd": 1000.0,
+ "costs": {
+  "base": "5 bps per side, 20 bps under $10 (contracts rule 5)",
+  "x2": "every per-side cost doubled",
+  "small_cap": "per side 50 bps under $5, 30 bps under $10, else 5 bps; +10 bps when the 20-session average dollar volume before the session is under $50M",
+  "borrow_high": "hard-to-borrow names (Alpaca's flag today) pay one day of a 100%-a-year fee: 0.4% of notional; easy-to-borrow intraday shorts pay none"
+ },
+ "variants_tried": 23,
+ "fetch": {
+  "minute_ticker_days": 604,
+  "runs": 5,
+  "cap_per_run": 200
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "basis": "total return, dividends reinvested (Alpaca daily, adjustment=all), close of the session before the window to the last close",
+  "from_close": "2025-09-12",
+  "to_close": "2026-10-16",
+  "ret_pct": 17.68,
+  "max_drawdown_pct": -8.88,
+  "slice": {
+   "ret_pct": 2.46
+  }
+ },
+ "universes": [
+  {
+   "id": "his-hot",
+   "which": "a",
+   "label": "His hot small and mid caps",
+   "tickers": [
+    "AFRM",
+    "AI",
+    "CVNA",
+    "DJT",
+    "GME",
+    "HIMS",
+    "OPEN",
+    "PLTR",
+    "RDDT",
+    "SMCI",
+    "SOFI",
+    "SOUN",
+    "TEM"
+   ],
+   "rule": "names in his record that the code's ticker groups call hot small and mid caps"
+  },
+  {
+   "id": "his-crypto",
+   "which": "a",
+   "label": "His crypto stocks",
+   "tickers": [
+    "COIN",
+    "HOOD",
+    "MARA",
+    "MSTR"
+   ],
+   "rule": "names in his record that the code's ticker groups call crypto-linked"
+  },
+  {
+   "id": "new-hot",
+   "which": "b",
+   "label": "Other hot stocks",
+   "tickers": [
+    "SOGP",
+    "IPDN",
+    "ORBS",
+    "OPAD",
+    "NEGG",
+    "CWD",
+    "WLDS",
+    "ONDS",
+    "BMNR",
+    "AAOI",
+    "RUN",
+    "SEDG",
+    "BLSH",
+    "UUUU",
+    "SBET",
+    "APLD",
+    "CRCL",
+    "SMR",
+    "PL",
+    "PGY"
+   ],
+   "rule": "top 20 by average daily range, $100M+ a day traded, $5+, not his, as of 2025-09-12"
+  },
+  {
+   "id": "new-crypto",
+   "which": "b",
+   "label": "Other crypto stocks",
+   "tickers": [
+    "HUT",
+    "KEEL",
+    "HIVE",
+    "BTBT",
+    "BTDR",
+    "IREN",
+    "CIFR",
+    "GLXY",
+    "WULF",
+    "LUNR"
+   ],
+   "rule": "top 10 by one-year correlation with IBIT (0.4+, beta 1+), $20M+ a day traded, not his, as of 2025-09-12"
+  }
+ ],
+ "rules": [
+  {
+   "id": "S4",
+   "label": "Short the run-up",
+   "entry_et": "09:45",
+   "universes": [
+    "his-hot",
+    "new-hot"
+   ],
+   "text": "Short a hot stock at 09:45 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET."
+  },
+  {
+   "id": "S5",
+   "label": "Short crypto stocks that open up",
+   "entry_et": "09:35",
+   "universes": [
+    "his-crypto",
+    "new-crypto"
+   ],
+   "text": "Short a crypto-linked stock at 09:35 ET when it opened 5%+ above yesterday's close; stop 5% above entry; cover at 15:55 ET."
+  },
+  {
+   "id": "C",
+   "label": "Short at the open (control)",
+   "entry_et": "09:30",
+   "universes": [
+    "his-hot",
+    "his-crypto",
+    "new-hot",
+    "new-crypto"
+   ],
+   "text": "Short every stock at every open, cover at the close (daily bars). No signal, no stop."
+  }
+ ],
+ "variants": [
+  {
+   "id": "P",
+   "gap_pct": 5,
+   "stop_pct": 5,
+   "exit_et": "15:55"
+  },
+  {
+   "id": "no-stop",
+   "gap_pct": 5,
+   "stop_pct": null,
+   "exit_et": "15:55"
+  },
+  {
+   "id": "exit-11",
+   "gap_pct": 5,
+   "stop_pct": 5,
+   "exit_et": "11:00"
+  },
+  {
+   "id": "gap-10",
+   "gap_pct": 10,
+   "stop_pct": 5,
+   "exit_et": "15:55"
+  }
+ ],
+ "runs": [
+  {
+   "rule": "S4",
+   "variant": "P",
+   "universe": "his-hot",
+   "primary": true,
+   "trades": 62,
+   "won_pct": 60,
+   "pnl_usd": 634.42,
+   "end": 10634.42,
+   "ret_pct": 6.34,
+   "max_drawdown_pct": -2.48,
+   "longest_losing_streak": 4,
+   "worst_day": {
+    "day": "2026-04-17",
+    "pnl_usd": -57.04
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -11.34,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 5.4,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 6.03,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": 6.34
+   },
+   "vs_random": {
+    "twin_pnl_usd": 1162.09,
+    "p2_5": -546.78,
+    "p97_5": 540.36,
+    "pct_rank": 100.0,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 10,
+    "ret_pct": 1.04,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "no-stop",
+   "universe": "his-hot",
+   "primary": false,
+   "trades": 62,
+   "won_pct": 63,
+   "pnl_usd": 800.26,
+   "end": 10800.26,
+   "ret_pct": 8.0,
+   "max_drawdown_pct": -2.64,
+   "longest_losing_streak": 4,
+   "worst_day": {
+    "day": "2026-08-19",
+    "pnl_usd": -109.87
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -9.68,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 7.06,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 7.69,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": 8.0
+   },
+   "vs_random": {
+    "twin_pnl_usd": 1162.09,
+    "p2_5": -546.78,
+    "p97_5": 540.36,
+    "pct_rank": 100.0,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 10,
+    "ret_pct": 0.64,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "exit-11",
+   "universe": "his-hot",
+   "primary": false,
+   "trades": 62,
+   "won_pct": 74,
+   "pnl_usd": 565.96,
+   "end": 10565.96,
+   "ret_pct": 5.66,
+   "max_drawdown_pct": -0.88,
+   "longest_losing_streak": 4,
+   "worst_day": {
+    "day": "2026-04-17",
+    "pnl_usd": -66.44
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -12.02,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 4.71,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 5.34,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": 5.66
+   },
+   "vs_random": {
+    "twin_pnl_usd": 1162.09,
+    "p2_5": -546.78,
+    "p97_5": 540.36,
+    "pct_rank": 100.0,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 10,
+    "ret_pct": 0.69,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "gap-10",
+   "universe": "his-hot",
+   "primary": false,
+   "trades": 20,
+   "won_pct": 40,
+   "pnl_usd": -167.91,
+   "end": 9832.09,
+   "ret_pct": -1.68,
+   "max_drawdown_pct": -2.72,
+   "longest_losing_streak": 3,
+   "worst_day": {
+    "day": "2026-02-20",
+    "pnl_usd": -54.1
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -19.36,
+   "word": "Not enough trades",
+   "outcome": "Lost money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -2.0,
+     "word": "Not enough trades"
+    },
+    "small_cap": {
+     "ret_pct": -1.78,
+     "word": "Not enough trades"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": -1.68
+   },
+   "vs_random": {
+    "twin_pnl_usd": 59.74,
+    "p2_5": -327.73,
+    "p97_5": 314.68,
+    "pct_rank": 62.8,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 7,
+    "ret_pct": -0.08,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "P",
+   "universe": "new-hot",
+   "primary": true,
+   "trades": 283,
+   "won_pct": 51,
+   "pnl_usd": 1100.81,
+   "end": 11100.81,
+   "ret_pct": 11.01,
+   "max_drawdown_pct": -5.09,
+   "longest_losing_streak": 9,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -449.53
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -6.68,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 14,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 4.82,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 3.33,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 135,
+    "borrow_high_ret_pct": 5.67
+   },
+   "vs_random": {
+    "twin_pnl_usd": 3630.07,
+    "p2_5": -1265.35,
+    "p97_5": 2384.86,
+    "pct_rank": 99.9,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 59,
+    "ret_pct": -2.22,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "no-stop",
+   "universe": "new-hot",
+   "primary": false,
+   "trades": 283,
+   "won_pct": 58,
+   "pnl_usd": 1658.95,
+   "end": 11658.95,
+   "ret_pct": 16.59,
+   "max_drawdown_pct": -9.51,
+   "longest_losing_streak": 9,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -676.86
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -1.09,
+   "word": "Barely",
+   "outcome": "Made money",
+   "sized_down": 14,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 10.43,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 8.93,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 135,
+    "borrow_high_ret_pct": 11.25
+   },
+   "vs_random": {
+    "twin_pnl_usd": 3630.07,
+    "p2_5": -1265.35,
+    "p97_5": 2384.86,
+    "pct_rank": 99.9,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 59,
+    "ret_pct": -0.75,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "exit-11",
+   "universe": "new-hot",
+   "primary": false,
+   "trades": 283,
+   "won_pct": 54,
+   "pnl_usd": 732.64,
+   "end": 10732.64,
+   "ret_pct": 7.33,
+   "max_drawdown_pct": -4.39,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -276.57
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -10.36,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 14,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 1.16,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -0.31,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 135,
+    "borrow_high_ret_pct": 1.98
+   },
+   "vs_random": {
+    "twin_pnl_usd": 3630.07,
+    "p2_5": -1265.35,
+    "p97_5": 2384.86,
+    "pct_rank": 99.9,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 59,
+    "ret_pct": -0.35,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S4",
+   "variant": "gap-10",
+   "universe": "new-hot",
+   "primary": false,
+   "trades": 62,
+   "won_pct": 44,
+   "pnl_usd": 304.55,
+   "end": 10304.55,
+   "ret_pct": 3.05,
+   "max_drawdown_pct": -3.17,
+   "longest_losing_streak": 6,
+   "worst_day": {
+    "day": "2026-06-15",
+    "pnl_usd": -108.2
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -14.64,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 1.55,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 0.91,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 40,
+    "borrow_high_ret_pct": 1.45
+   },
+   "vs_random": {
+    "twin_pnl_usd": 2207.49,
+    "p2_5": -735.65,
+    "p97_5": 983.81,
+    "pct_rank": 100.0,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 14,
+    "ret_pct": -1.3,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "P",
+   "universe": "his-crypto",
+   "primary": true,
+   "trades": 44,
+   "won_pct": 41,
+   "pnl_usd": -176.98,
+   "end": 9823.02,
+   "ret_pct": -1.77,
+   "max_drawdown_pct": -3.08,
+   "longest_losing_streak": 6,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -207.18
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -19.45,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -2.36,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -1.87,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": -1.77
+   },
+   "vs_random": {
+    "twin_pnl_usd": -504.97,
+    "p2_5": -472.94,
+    "p97_5": 516.69,
+    "pct_rank": 1.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 19,
+    "ret_pct": -0.59,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "no-stop",
+   "universe": "his-crypto",
+   "primary": false,
+   "trades": 44,
+   "won_pct": 41,
+   "pnl_usd": -529.35,
+   "end": 9470.65,
+   "ret_pct": -5.29,
+   "max_drawdown_pct": -6.47,
+   "longest_losing_streak": 6,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -360.87
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -22.98,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -5.89,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -5.39,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": -5.29
+   },
+   "vs_random": {
+    "twin_pnl_usd": -504.97,
+    "p2_5": -472.94,
+    "p97_5": 516.69,
+    "pct_rank": 1.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 19,
+    "ret_pct": -1.86,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "exit-11",
+   "universe": "his-crypto",
+   "primary": false,
+   "trades": 44,
+   "won_pct": 45,
+   "pnl_usd": -281.42,
+   "end": 9718.58,
+   "ret_pct": -2.81,
+   "max_drawdown_pct": -3.5,
+   "longest_losing_streak": 6,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -152.86
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -20.5,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -3.41,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -2.91,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": -2.81
+   },
+   "vs_random": {
+    "twin_pnl_usd": -504.97,
+    "p2_5": -472.94,
+    "p97_5": 516.69,
+    "pct_rank": 1.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 19,
+    "ret_pct": -0.86,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "gap-10",
+   "universe": "his-crypto",
+   "primary": false,
+   "trades": 2,
+   "won_pct": 100,
+   "pnl_usd": 112.12,
+   "end": 10112.12,
+   "ret_pct": 1.12,
+   "max_drawdown_pct": 0.0,
+   "longest_losing_streak": 0,
+   "worst_day": {
+    "day": "2026-04-08",
+    "pnl_usd": 54.78
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -16.56,
+   "word": "Not enough trades",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 1.07,
+     "word": "Not enough trades"
+    },
+    "small_cap": {
+     "ret_pct": 1.1,
+     "word": "Not enough trades"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": 1.12
+   },
+   "vs_random": {
+    "twin_pnl_usd": 136.35,
+    "p2_5": -120.29,
+    "p97_5": 98.12,
+    "pct_rank": 99.6,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 0,
+    "ret_pct": 0.0,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "P",
+   "universe": "new-crypto",
+   "primary": true,
+   "trades": 215,
+   "won_pct": 49,
+   "pnl_usd": -16.3,
+   "end": 9983.7,
+   "ret_pct": -0.16,
+   "max_drawdown_pct": -9.77,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -438.17
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -17.85,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 10,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -4.47,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -4.17,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 34,
+    "borrow_high_ret_pct": -1.52
+   },
+   "vs_random": {
+    "twin_pnl_usd": -860.92,
+    "p2_5": -1666.05,
+    "p97_5": 1268.74,
+    "pct_rank": 19.8,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 58,
+    "ret_pct": -0.18,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "no-stop",
+   "universe": "new-crypto",
+   "primary": false,
+   "trades": 215,
+   "won_pct": 52,
+   "pnl_usd": -178.73,
+   "end": 9821.27,
+   "ret_pct": -1.79,
+   "max_drawdown_pct": -14.64,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -783.99
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -19.47,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 10,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -6.09,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -5.79,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 34,
+    "borrow_high_ret_pct": -3.15
+   },
+   "vs_random": {
+    "twin_pnl_usd": -860.92,
+    "p2_5": -1666.05,
+    "p97_5": 1268.74,
+    "pct_rank": 19.8,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 58,
+    "ret_pct": -0.99,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "exit-11",
+   "universe": "new-crypto",
+   "primary": false,
+   "trades": 215,
+   "won_pct": 51,
+   "pnl_usd": -543.38,
+   "end": 9456.62,
+   "ret_pct": -5.43,
+   "max_drawdown_pct": -11.97,
+   "longest_losing_streak": 10,
+   "worst_day": {
+    "day": "2026-07-30",
+    "pnl_usd": -414.35
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -23.12,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 10,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -9.81,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -9.49,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 34,
+    "borrow_high_ret_pct": -6.81
+   },
+   "vs_random": {
+    "twin_pnl_usd": -860.92,
+    "p2_5": -1666.05,
+    "p97_5": 1268.74,
+    "pct_rank": 19.8,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 58,
+    "ret_pct": -1.84,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "S5",
+   "variant": "gap-10",
+   "universe": "new-crypto",
+   "primary": false,
+   "trades": 28,
+   "won_pct": 46,
+   "pnl_usd": 212.87,
+   "end": 10212.87,
+   "ret_pct": 2.13,
+   "max_drawdown_pct": -2.17,
+   "longest_losing_streak": 6,
+   "worst_day": {
+    "day": "2026-07-30",
+    "pnl_usd": -207.18
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -15.56,
+   "word": "Not enough trades",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": 1.58,
+     "word": "Not enough trades"
+    },
+    "small_cap": {
+     "ret_pct": 1.53,
+     "word": "Not enough trades"
+    }
+   },
+   "borrow": {
+    "htb_trades": 3,
+    "borrow_high_ret_pct": 2.01
+   },
+   "vs_random": {
+    "twin_pnl_usd": -321.75,
+    "p2_5": -569.83,
+    "p97_5": 521.09,
+    "pct_rank": 13.7,
+    "draws": 2000
+   },
+   "slice": {
+    "trades": 8,
+    "ret_pct": -0.18,
+    "spy_ret_pct": 2.46,
+    "word": "Not enough trades"
+   }
+  },
+  {
+   "rule": "C",
+   "variant": "control",
+   "universe": "his-hot",
+   "primary": true,
+   "trades": 3575,
+   "won_pct": 51,
+   "pnl_usd": -635.64,
+   "end": 9364.36,
+   "ret_pct": -6.36,
+   "max_drawdown_pct": -39.66,
+   "longest_losing_streak": 16,
+   "worst_day": {
+    "day": "2026-10-15",
+    "pnl_usd": -766.91
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -24.04,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 3575,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -40.62,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -23.19,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": -6.36
+   },
+   "vs_random": null,
+   "slice": {
+    "trades": 988,
+    "ret_pct": -13.61,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "C",
+   "variant": "control",
+   "universe": "his-crypto",
+   "primary": true,
+   "trades": 1100,
+   "won_pct": 54,
+   "pnl_usd": 524.44,
+   "end": 10524.44,
+   "ret_pct": 5.24,
+   "max_drawdown_pct": -25.29,
+   "longest_losing_streak": 12,
+   "worst_day": {
+    "day": "2026-02-06",
+    "pnl_usd": -453.0
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -12.44,
+   "word": "No",
+   "outcome": "Made money",
+   "sized_down": 0,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -7.92,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": 3.8,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 0,
+    "borrow_high_ret_pct": 5.24
+   },
+   "vs_random": null,
+   "slice": {
+    "trades": 304,
+    "ret_pct": -3.05,
+    "spy_ret_pct": 2.46,
+    "word": "No"
+   }
+  },
+  {
+   "rule": "C",
+   "variant": "control",
+   "universe": "new-hot",
+   "primary": true,
+   "trades": 5500,
+   "won_pct": 54,
+   "pnl_usd": 5519.72,
+   "end": 15519.72,
+   "ret_pct": 55.2,
+   "max_drawdown_pct": -18.16,
+   "longest_losing_streak": 23,
+   "worst_day": {
+    "day": "2026-08-03",
+    "pnl_usd": -815.36
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": 37.51,
+   "word": "Yes",
+   "outcome": "Made money",
+   "sized_down": 5500,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -3.48,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -13.1,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 2475,
+    "borrow_high_ret_pct": 3.83
+   },
+   "vs_random": null,
+   "slice": {
+    "trades": 1520,
+    "ret_pct": 13.34,
+    "spy_ret_pct": 2.46,
+    "word": "Yes"
+   }
+  },
+  {
+   "rule": "C",
+   "variant": "control",
+   "universe": "new-crypto",
+   "primary": true,
+   "trades": 2750,
+   "won_pct": 51,
+   "pnl_usd": -4042.7,
+   "end": 5957.3,
+   "ret_pct": -40.43,
+   "max_drawdown_pct": -68.03,
+   "longest_losing_streak": 23,
+   "worst_day": {
+    "day": "2025-11-24",
+    "pnl_usd": -951.03
+   },
+   "spy_ret_pct": 17.68,
+   "vs_spy_pts": -58.11,
+   "word": "No",
+   "outcome": "Lost money",
+   "sized_down": 2700,
+   "skipped": {
+    "no_bars": 0
+   },
+   "costs": {
+    "x2": {
+     "ret_pct": -65.85,
+     "word": "No"
+    },
+    "small_cap": {
+     "ret_pct": -65.69,
+     "word": "No"
+    }
+   },
+   "borrow": {
+    "htb_trades": 550,
+    "borrow_high_ret_pct": -52.52
+   },
+   "vs_random": null,
+   "slice": {
+    "trades": 760,
+    "ret_pct": 20.47,
+    "spy_ret_pct": 2.46,
+    "word": "Yes"
+   }
+  }
+ ],
+ "verdict": {
+  "S4": {
+   "held_up": false,
+   "why": "his-hot: No (+6.34% vs SPY +17.68%, 62 trades); new-hot: No (+11.01% vs SPY +17.68%, 283 trades)"
+  },
+  "S5": {
+   "held_up": false,
+   "why": "his-crypto: No (-1.77% vs SPY +17.68%, 44 trades); new-crypto: No (-0.16% vs SPY +17.68%, 215 trades)"
+  }
+ }
+}

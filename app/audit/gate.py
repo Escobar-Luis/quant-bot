@@ -43,6 +43,7 @@ def results_changes(audited_sha: str | None, recorded: dict, results: Path = RES
     out += [f"changed since {audited_sha[:12]}: {f}" for f in d.stdout.split() if f.endswith(".json")]
     out += [f"untracked: {f}" for f in git("ls-files", "--others", "--exclude-standard", "--", rel).stdout.split()]
     files = {f"{p.parent.name}/{p.stem}": p for p in results.glob("*/*.json")}
+    files |= {p.stem: p for p in results.glob("*.json") if not p.stem.startswith("_")}   # strategy-lab.json
     for k, h in (recorded or {}).items():
         if k not in files:
             out.append(f"missing: results/{k}.json")

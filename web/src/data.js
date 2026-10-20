@@ -44,4 +44,8 @@ export function proofSet(course) {
   return vs ? Object.values(vs).find(isProofSet) || null : null;
 }
 
+// results/strategy-lab.json (spec-audit story 21): his rules as code on new prices and other stocks. Missing: hidden.
+const LABS = import.meta.glob(['../../results/strategy-lab.json', '../results/strategy-lab.json'], { eager: true, import: 'default' });
+export const LAB = Object.values(LABS).find(j => j?.schema === 'strategy-lab/1') || null;
+
 export const PROOF = Object.values(PROOFS)[0] || null;

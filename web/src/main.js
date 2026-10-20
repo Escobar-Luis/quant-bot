@@ -1,5 +1,5 @@
 import './ui.css';
-import { COURSE_META, latest, proofSet, PROOF } from './data.js';
+import { COURSE_META, latest, proofSet, PROOF, LAB } from './data.js';
 import { initAuth, signInWithGoogle, signOut, hasClerk } from './auth.js';
 import { drawTrade, destroy as destroyTrade, etTime } from './tradeChart.js';
 
@@ -387,6 +387,30 @@ function renderHis(v) {
       <p class="h-text">${esc(p.label || p.id)}</p>
       <p class="h-num mono num">${hisNums(p)} · ${Math.round(p.share_of_losses_pct)}% of the $ lost on losing trades</p></li>`).join('');
 }
+// His strategy on new data (spec-audit CAP-15, story 21): S4 and S5 as code, no post from him, on prices after his
+// window, on his stocks (a) and on stocks he never traded (b). Every number from results/strategy-lab.json; LPP only.
+const UNI_SHORT = { 'his-hot': 'His stocks', 'his-crypto': 'His stocks', 'new-hot': 'Other stocks', 'new-crypto': 'Other stocks' };
+function renderLab(c) {
+  const L = LAB, show = !!L && c.key === 'lpp';
+  $('#cLab').hidden = !show;
+  if (!show) return;
+  const spy = L.benchmark.ret_pct, run = (rule, u, vr) => L.runs.find(r => r.rule === rule && r.universe === u && r.variant === vr);
+  const held = Object.entries(L.verdict).filter(([, x]) => x.held_up).map(([k]) => k);
+  $('#labMeta').textContent = `${L.window.from} → ${L.window.to}`;
+  $('#labHead').innerHTML = held.length
+    ? `<b class="pos">${esc(held.join(' and '))} held up</b> on new prices and other stocks.`
+    : `<b class="neg">Neither rule held up</b> on new prices and other stocks. The S&amp;P made ${pct(spy)}.`;
+  const line = r => `<p class="h-num mono num">${esc(UNI_SHORT[r.universe])}: <b class="${r.ret_pct < 0 ? 'neg' : 'pos'}">${pct(r.ret_pct)}</b> · ${esc(r.word === 'Not enough trades' ? 'Too few' : r.word)} · ${nTrades(r.trades)}${r.won_pct != null ? ` · won ${r.won_pct}%` : ''} · worst drop ${pct(r.max_drawdown_pct)}</p>`;
+  $('#labRules').innerHTML = L.rules.map(rule => {
+    const rows = rule.universes.map(u => run(rule.id, u, rule.id === 'C' ? 'control' : 'P')).filter(Boolean);
+    if (rule.id === 'C') {
+      const best = rows.reduce((a, b) => (b.ret_pct > a.ret_pct ? b : a), rows[0]);
+      return `<li><p class="h-text">${esc(rule.label)}</p><p class="h-num mono num">Every day, no signal: best of ${rows.length} lists ${pct(best.ret_pct)} · ${esc(best.word)}</p></li>`;
+    }
+    return `<li><p class="h-text">${esc(rule.id)} · ${esc(rule.text)}</p>${rows.map(line).join('')}</li>`;
+  }).join('');
+  $('#labFine').textContent = `$1,000 a trade from $10,000, after costs. The S&P is fully invested; a rule holds money a few hours a trade. ${L.variants_tried} versions tried, all in the file. Rules fixed before the test (${L.preregistered_sha}).`;
+}
 let shownWord = null;
 function renderVerdict(fresh) {
   const c = COURSES[cur], v = vm(c);
@@ -395,7 +419,7 @@ function renderVerdict(fresh) {
     root.style.setProperty('--word', 'var(--few)');
     $('#vHead').innerHTML = `Not tested yet. <span class="acc">Copying every trade now.</span>`;
     $('#vChip').textContent = 'Pending'; $('#vFine').textContent = ''; $('#vMeta').textContent = ''; $('#vSealed').hidden = true;
-    ['cChart', 'cYear', 'cHis', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
+    ['cChart', 'cYear', 'cHis', 'cLab', 'cStrat', 'cBot', 'cMix', 'vAct'].forEach(id => { $('#' + id).hidden = true; });
     $('#vRanges').innerHTML = ''; return;
   }
   ['cChart', 'vAct'].forEach(id => { $('#' + id).hidden = false; });
@@ -419,6 +443,7 @@ function renderVerdict(fresh) {
   drawMain(v, k);
   renderYears(v);
   renderHis(v);
+  renderLab(c);
   renderStrats(c, v);
   renderBotMix(c);
   const h = sealedSays(v);
