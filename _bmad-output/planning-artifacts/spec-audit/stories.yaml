@@ -86,3 +86,15 @@
     proofs/prism.json predates the audit engine fixes (PR #58): knowledge_base.answer quotes $9,765.86 and its hit snippets say 3000 passed / 1196 in review (now $9,763.83, 2,883 / 1,313); evaluator.money_same_sessions says $10,290.71 / $10,303.25 vs results/lpp/v2.json $10,287.41 / $10,300.52. Refresh the numbers from results/.
   invoke_dev_with: >-
     Owner: app/prism (story 2 lane). No new PRISM runs needed for the numbers; rebuild via prism.proofs from current results. The KB answer text is model output: either rerun the verdict run or mark it as the text of that dated run. Then update the README note in "Architecture".
+- id: "15"
+  title: Audit ledgers per branch, not one shared folder
+  description: >-
+    CAP-3 follow-up. backtest.run writes data/audit/<course>-<version>-ledger.jsonl in the main checkout's shared data/, so parallel branches overwrite each other's ledgers and audit.run (and test_altered_result_exits_non_zero) fail as "stale" on whichever branch ran first. Today a /tmp lock serializes the lanes.
+  invoke_dev_with: >-
+    Key the ledger path by the results file's sha256 (or keep several stamped ledgers side by side) so audit.run picks the one matching its results file; no number changes. Owner: app/backtest/run.py write_ledger and app/audit/run.py read_ledger.
+- id: "16"
+  title: Time-range chips slice the one all-time run
+  description: >-
+    CAP-4 follow-up. extras.ranges (3m/6m/1y) re-runs the cash cap on the trades closed by each cutoff instead of slicing the all-time run, so a range can count trades the headline sized down or skipped differently, and it can disagree with by_year and the money curve on the same date.
+  invoke_dev_with: >-
+    Use the headline's fit_to_cash once, then cut by exit day (as extras.by_year does); add the ranges to app/audit's reconciliation. Writes results/: contract first, rerun app/audit. Do not redeploy.
