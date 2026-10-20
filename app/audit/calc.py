@@ -39,6 +39,7 @@ class Trade:
     entry_notional: float = 0.0
     assumed_exit: bool = False
     why: str | None = None
+    market: str = "us_equities"
 
     @property
     def entry(self) -> Fill | None:
@@ -46,6 +47,7 @@ class Trade:
 
     @property
     def exit(self) -> Fill | None:
+        """The last exit fill, or None (a priced trade always has one; guarded for callers)."""
         return next((f for f in reversed(self.fills) if f.kind != "entry"), None)
 
 
@@ -83,29 +85,36 @@ DEFAULT_SIZING = "trade"   # contracts.md rule 6 (clarified 2026-10-20): all of 
 
 def simulate(p, delay: int, sizing: str = DEFAULT_SIZING) -> Trade:
     """Copy one position at one delay (rules 1-6). A missing bar marks the trade no_bars, naming the bar."""
-    t = Trade(p.pid, p.portfolio, delay, "priced")
+    t = Trade(p.pid, p.portfolio, delay, "priced", market=p.market)
     try:
         return _simulate(p, delay, t, sizing)
     except B.MissingBar as e:
-        return Trade(p.pid, p.portfolio, delay, "no_bars", why=str(e))
+        return Trade(p.pid, p.portfolio, delay, "no_bars", why=str(e), market=p.market)
 
 
-def _first_entry_bar(p, t0: int, until: int | None):
+def _first_entry_bar(p, t0: float, until: float | None):
     """Rule 3: the open of the first bar at or after t0, or, with a trigger, the first bar that trades it."""
     if p.trigger is None:
         k, b = B.first_bar_at_or_after(p.market, p.ticker, t0)
         return k, b[0]
+    last_close = None
     for k, b in B.bars_between(p.market, p.ticker, t0, until):
-        o, h, lo, _ = b
+        o, h, lo, c = b
+        if last_close is not None and (last_close - p.trigger) * (o - p.trigger) < 0:
+            return k, o                  # ASSUMPTION: price crossed the level between bars (a gap): the first
+                                         # trade past it is this bar's open, as a stop order would fill
         if lo <= p.trigger <= h:
             return k, p.trigger          # ASSUMPTION: filled at the trigger level
+        last_close = c
     return None
 
 
 def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     d = delay * 60
     legs = sorted(p.legs, key=lambda lg: lg.posted_ts)
-    first_i = next(i for i, lg in enumerate(legs) if lg.action in ("open", "add"))
+    first_i = next((i for i, lg in enumerate(legs) if lg.action in ("open", "add")), None)
+    if first_i is None:
+        return Trade(p.pid, p.portfolio, delay, "no_bars", why="no entry leg", market=p.market)
     first = legs[first_i]
     t0 = first.posted_ts + d
     if p.trigger is not None:
@@ -118,8 +127,12 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     else:
         e_ts, e_px = _first_entry_bar(p, t0, None)
     hz = horizon_ts(p, e_ts)
+    if p.default_exit == "day_close":
+        # rule 4/8: a day trade exits at 15:55 ET of the session it was posted in; an entry that only fills on a
+        # later session (or after 15:55) can't be copied as a day trade
+        hz = B.et_time(B.et_day(first.posted_ts), *DAY_EXIT)
     if e_ts >= hz:
-        t.status = "too_late"            # rule 6: couldn't copy (entry after the default exit)
+        t.status = "too_late"            # rule 6: couldn't copy (entry at or after the exit time)
         return t
     hz_bar, hz_b = B.first_bar_at_or_after(p.market, p.ticker, hz)
 
@@ -170,7 +183,7 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
     long = p.side == "long"
 
     def do_leg(k, px, lg):
-        nonlocal his
+        nonlocal his, hit, stop
         if lg.action in ("open", "add"):
 
             if whole:
@@ -181,6 +194,17 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
             buy(k, px, q)
         elif lg.action == "close":
             sell(k, px, held, "exit")
+        elif lg.action == "trim" and getattr(lg, "tp_index", None):
+            # their post reports take-profit n: skipped when the copier's own TP n order already filled
+            # (ASSUMPTION), else it sells TP n's share at post time + delay (rule 4: the course's own trim)
+            n = lg.tp_index
+            if n <= hit:
+                return
+            q = held if (n >= len(targets) or not fracs) else fracs[n - 1] * start_qty
+            sell(k, px, q, "exit")
+            hit = n
+            if p.be_after_target and hit >= p.be_after_target:
+                stop = avg
         elif lg.action == "trim":
             if whole:
                 f = min(1.0, lg.qty / his) if (lg.qty and his > 0) else 0.5
@@ -225,9 +249,9 @@ def _simulate(p, delay: int, t: Trade, sizing: str) -> Trade:
                 if held <= 1e-12:
                     break
             if held > 1e-12 and tg_hit and stop is not None and (lo <= stop if long else h >= stop):
-                # ASSUMPTION: a stop moved by this bar's targets can still fill in this bar (rule 4's
-                # "both in one bar = stop", applied to the moved stop)
-                sell(k, min(o, stop) if long else max(o, stop), held, "stop")
+                # ASSUMPTION: a stop moved by this bar's targets can still fill in this bar, at its level: the
+                # bar's open came before the targets that moved it, so it can't be the fill
+                sell(k, stop, held, "stop")
             if held <= 1e-12:
                 break
 
@@ -260,26 +284,39 @@ HOLD_CLOSES = ("official", "minute")
 DEFAULT_HOLD_CLOSE = "official"
 
 
-def hold(market: str, symbol: str, window: dict, close: str = DEFAULT_HOLD_CLOSE) -> dict:
-    """$10,000 bought at the open of the window's first trading minute, sold at the window's last close."""
-    start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
-    day = start
-    while not B.day_bars(market, symbol, day):
+def _first_open(market: str, symbol: str, day: dt.date, last: dt.date) -> float:
+    """The open of the first trading minute on or after `day` (bounded: MissingBar past `last`)."""
+    while day <= last:
+        b = B.day_bars(market, symbol, day)
+        if b:
+            return b[min(b)][0]
         day += dt.timedelta(days=1)
-    first = B.day_bars(market, symbol, day)
-    px0 = first[min(first)][0]
+    raise B.MissingBar(f"{symbol}: no trading minute from {day} to {last}")
+
+
+def hold(market: str, symbol: str, window: dict, close: str = DEFAULT_HOLD_CLOSE) -> dict:
+    """Rule 7: $10,000 bought at the open of the window's first trading minute, sold at the window's last close.
+    `sealed_ret_pct`: the same from the first trading minute on or after `sealed_from` (rule 10's block)."""
+    start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
+    px0 = _first_open(market, symbol, start, end)
     official = B.daily_close(symbol, start, end)
-    try:
-        day = end
-        while not B.day_bars(market, symbol, day):
-            day -= dt.timedelta(days=1)
-        last = B.day_bars(market, symbol, day)
-        minute = last[max(last)][3]
-    except B.MissingBar:
-        minute = None                   # no minute bars for the window's last day (crypto after 2026-09-30)
+    minute = None
+    day = end
+    while day >= start:
+        try:
+            last = B.day_bars(market, symbol, day)
+        except B.MissingBar:
+            break                       # no minute bars for the window's last day (crypto after 2026-09-30)
+        if last:
+            minute = last[max(last)][3]
+            break
+        day -= dt.timedelta(days=1)
     px1 = minute if (close == "minute" and minute is not None) else official
+    sealed = window.get("sealed_from")
+    s0 = _first_open(market, symbol, dt.date.fromisoformat(sealed), end) if sealed else None
     return {"px0": px0, "px1": px1, "official_close": official, "minute_close": minute, "used": close,
-            "end": round(MONEY_START * px1 / px0, 2), "ret_pct": round((px1 / px0 - 1) * 100, 2)}
+            "end": round(MONEY_START * px1 / px0, 2), "ret_pct": round((px1 / px0 - 1) * 100, 2),
+            "sealed_px0": s0, "sealed_ret_pct": round((px1 / s0 - 1) * 100, 2) if s0 else None}
 
 
 def word(trades: int, ret: float, hold_ret: float) -> str:
@@ -289,11 +326,19 @@ def word(trades: int, ret: float, hold_ret: float) -> str:
     return "Yes" if diff >= 2 else "No" if diff <= -2 else "Barely"
 
 
-def portfolio(trades: list[Trade], hold_row: dict) -> dict:
-    """End value, return, trade count and word for one portfolio at one delay."""
-    priced = sorted((t for t in trades if t.status == "priced"), key=lambda t: t.entry.ts)
+def portfolio(trades: list[Trade], hold_row: dict, sealed_from: str | None = None) -> dict:
+    """End value, return, trade count, word and the rest of a by_delay row, for one portfolio at one delay.
+
+    Rule 6's cash cap: trades are copied in entry order; open trades hold their entry money until they exit,
+    when their P&L lands in cash. A trade bigger than the cash left is sized down to it; with no cash left it is
+    couldn't-copy. ASSUMPTION: no minimum size (contracts.md names none; bankroll-rules.md's $100 is CAP-9's).
+    won_pct: copied trades with P&L > 0. worst_drop_pct: the deepest fall of closed-trade money from its high,
+    booked on each exit's day (the contract's `unknown` says the drop counts closed trades only).
+    sealed: the copied trades that entered on or after `sealed_from` (rule 10), P&L as % of $10,000."""
+    priced = sorted((t for t in trades if t.status == "priced" and t.entry and t.exit), key=lambda t: t.entry.ts)
     cash_book, open_, end_pnl = 0.0, [], 0.0     # open_: (exit ts, notional, pnl)
     copied = sized_down = couldnt = 0
+    kept: list[tuple[Trade, float]] = []
     for t in priced:
         now = t.entry.ts
         for x in [o for o in open_ if o[0] <= now]:
@@ -310,9 +355,26 @@ def portfolio(trades: list[Trade], hold_row: dict) -> dict:
         copied += 1
         open_.append((t.exit.ts, t.entry_notional * f, t.pnl * f))
         end_pnl += t.pnl * f
+        kept.append((t, f))
     end = round(MONEY_START + end_pnl, 2)
     ret = round((end / MONEY_START - 1) * 100, 2)
-    return {"end": end, "ret_pct": ret, "hold_end": hold_row["end"], "hold_ret_pct": hold_row["ret_pct"],
-            "trades": copied, "not_triggered": sum(t.status == "not_triggered" for t in trades),
-            "couldnt_copy": couldnt + sum(t.status == "too_late" for t in trades), "sized_down": sized_down,
-            "word": word(copied, ret, hold_row["ret_pct"])}
+    by_day: dict[dt.date, float] = {}
+    for t, f in kept:
+        day = B.day_of(t.market, t.exit.ts)
+        by_day[day] = by_day.get(day, 0.0) + t.pnl * f
+    money, high, worst = MONEY_START, MONEY_START, 0.0
+    for day in sorted(by_day):
+        money += by_day[day]
+        high = max(high, money)
+        worst = min(worst, (money - high) / high * 100)
+    row = {"end": end, "ret_pct": ret, "hold_end": hold_row["end"], "hold_ret_pct": hold_row["ret_pct"],
+           "trades": copied, "not_triggered": sum(t.status == "not_triggered" for t in trades),
+           "couldnt_copy": couldnt + sum(t.status == "too_late" for t in trades), "sized_down": sized_down,
+           "won_pct": round(100 * sum(t.pnl > 0 for t, _ in kept) / len(kept)) if kept else 0,
+           "worst_drop_pct": round(worst, 1),
+           "word": word(copied, ret, hold_row["ret_pct"])}
+    if sealed_from:
+        sk = [(t, f) for t, f in kept if B.day_of(t.market, t.entry.ts).isoformat() >= sealed_from]
+        row["sealed"] = {"ret_pct": round(100 * sum(t.pnl * f for t, f in sk) / MONEY_START, 2),
+                         "hold_ret_pct": hold_row.get("sealed_ret_pct"), "trades": len(sk)}
+    return row

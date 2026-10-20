@@ -1,86 +1,91 @@
-"""Audit the money math: recompute every copied trade and headline, and reconcile them with results/.
+"""Audit the money math: rebuild every position, recompute every copied trade and headline, reconcile with results/.
 
   cd app && uv run python -m audit.run                 # every results/<course>/<version>.json
   cd app && uv run python -m audit.run --only lpp/v1   # one file
 
-For each results file, delay [1, 3, 5, 10, 15, 30, 60] and testable portfolio (plus `same_sessions`), the second
-calculator (audit.calc, written from contracts.md) recomputes:
-  - every trade (entry time and price, exit time and price, P&L), checked against the engine's full ledger
-    (data/audit/<course>-<version>-ledger.jsonl, written by `python -m backtest.run`) and against the trades
-    the results file itself shows: 1 cent at stored precision (prices 4 dp, P&L 2 dp), times exact;
-  - each headline (end value, return, just-holding end and return, trade count, word): within $1.
-Writes data/audit/diff-<course>-<version>.json (every mismatch) and proofs/audit.json (the pass record).
-Exits 0 only when everything reconciles. No network: a bar missing from data/bars/ marks that trade no_bars.
+For each results file:
+  1. positions: the audit builds its own (audit.positions, from the events and contracts.md) and diffs them field
+     by field with the course loaders' (backtest.<course>.build); every difference is a finding;
+  2. the engine's full ledger (data/audit/<course>-<version>-ledger.jsonl, from `python -m backtest.run`) must be
+     stamped with the sha256 of this exact results file, else it is stale and the file fails;
+  3. trades: the audit's own positions go through the second calculator (audit.calc) at every delay; each trade
+     (status, entry and exit time and price, P&L, and every fill) is checked against the ledger, and the trades
+     the results file shows are checked directly: 1 cent at stored precision, times exact;
+  4. headlines, per testable portfolio and delay (plus `same_sessions`): end, return, just-holding end and
+     return, trades, not_triggered, couldnt_copy, sized_down, won_pct, worst_drop_pct, word and the sealed block.
+Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
+proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
+No network: a bar missing from data/bars/ marks that trade no_bars; trades both sides call no_bars are listed
+as `unverifiable`.
 """
 import argparse
 import datetime as dt
+import hashlib
 import json
 import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
 
-from backtest.common import DATA, REPO, RESULTS
-
 from . import calc
+from . import positions as P
+from .paths import DATA, PROOFS, REPO, RESULTS
 
 TRADE_TOL = 0.01      # 1 cent
 HEAD_TOL = 1.0        # $1
 RET_TOL = 0.01        # $1 on $10,000, in points
-HEAD_FIELDS = ("end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "word")
+DROP_TOL = 0.1        # worst_drop_pct is stored to 0.1 pt
+EXACT = ("trades", "word", "not_triggered", "couldnt_copy", "sized_down", "won_pct")
+MONEY = ("end", "hold_end")
+POINTS = ("ret_pct", "hold_ret_pct")
+HEAD_FIELDS = ("end", "ret_pct", "hold_end", "hold_ret_pct", "trades", "not_triggered", "couldnt_copy",
+               "sized_down", "won_pct", "worst_drop_pct", "word", "sealed")
+MARKET = {"lpp": "us_equities", "ziptrader": "us_equities", "cryptowizard": "crypto"}
+HOLD_BARS = {"SPY": "SPY", "BTC": "BTCUSDT"}
+
+NOTES = {
+    "sizing": "LPP sizing 'trade' (all of a trade's buys together are $1,000, in his ratios; an entry with no "
+              "count takes the upper median of his stated counts; a trim sells his stated share of his holding) "
+              "was inferred from the engine's ledger output, then written into contracts.md rule 6. It is "
+              "superseded by the bankroll model (spec-audit CAP-9).",
+    "hold_close": "Just holding ends at the official daily close (what a holder gets: data/bars/daily); the last "
+                  "1-minute bar's close is reported as an alternative (--hold-close minute).",
+}
 
 
-def loader(course: str):
-    if course == "lpp":
-        from backtest import lpp
-        return lpp
-    if course == "cryptowizard":
-        from backtest import cryptowizard
-        return cryptowizard
-    if course == "ziptrader":
-        from backtest import ziptrader
-        return ziptrader
-    raise SystemExit(f"unknown course {course}")
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def unique_ids(positions) -> None:
-    """The ids results/ uses: a second position with the same id gets -2, -3, ... (as backtest.run names them)."""
-    seen = Counter()
-    for p in positions:
-        seen[p.pid] += 1
-        if seen[p.pid] > 1:
-            p.pid = f"{p.pid}-{seen[p.pid]}"
-
-
-def positions_for(mod, d: dict, version: str, sessions: set | None = None) -> list:
-    if sessions is not None:
-        ps = mod.build(version, sessions)["positions"]
-    elif d["course"] == "lpp" and d["checks"].get("proof_set"):
-        ps = mod.build(version, mod.proof_set())["positions"]
-    else:
-        ps = mod.build(version)["positions"]
-    unique_ids(ps)
-    return ps
-
-
-def read_ledger(path: Path) -> dict | None:
+def read_ledger(path: Path) -> tuple[dict | None, dict | None]:
+    """(stamp, {(pid, delay): row}); (None, None) when the file is missing; stamp None when unstamped."""
     if not path.exists():
-        return None
-    out = {}
+        return None, None
+    meta, out = None, {}
     for line in open(path):
+        if not line.strip():
+            continue
         r = json.loads(line)
+        if "_meta" in r:
+            meta = r["_meta"]
+            continue
         out[(r["pid"], r["delay"])] = r
-    return out
+    return meta, out
 
 
 def engine_row(r: dict) -> dict:
     """A ledger row as the trade fields results/ stores (entry = first entry fill, exit = last exit fill)."""
     if r["status"] != "priced":
         return {"status": r["status"]}
-    entry = next(f for f in r["fills"] if f[3] == "entry")
-    exit_ = next(f for f in reversed(r["fills"]) if f[3] != "entry")
+    fills = r.get("fills") or []
+    entry = next((f for f in fills if f[3] == "entry"), None)
+    exit_ = next((f for f in reversed(fills) if f[3] != "entry"), None)
+    if entry is None or exit_ is None:
+        return {"status": "priced:broken", "why": "ledger row has no entry fill" if entry is None
+                else "ledger row has no exit fill"}
     return {"status": "priced", "entry_at": entry[0], "entry": round(entry[1], 4), "exit_at": exit_[0],
-            "exit": round(exit_[1], 4), "pnl": round(r["pnl"], 2)}
+            "exit": round(exit_[1], 4), "pnl": round(r["pnl"], 2),
+            "fills": [[f[0], round(f[1], 6), round(f[2], 8), f[3]] for f in fills]}
 
 
 def stored_row(row: dict) -> dict:
@@ -94,8 +99,27 @@ def stored_row(row: dict) -> dict:
 def audit_row(t: calc.Trade) -> dict:
     if t.status != "priced":
         return {"status": t.status, **({"why": t.why} if t.why else {})}
+    if t.entry is None or t.exit is None:
+        return {"status": "priced:broken", "why": "audit trade has no entry or exit fill"}
     return {"status": "priced", "entry_at": t.entry.ts, "entry": round(t.entry.px, 4), "exit_at": t.exit.ts,
-            "exit": round(t.exit.px, 4), "pnl": round(t.pnl, 2)}
+            "exit": round(t.exit.px, 4), "pnl": round(t.pnl, 2),
+            "fills": [[f.ts, round(f.px, 6), round(f.qty, 8), f.kind] for f in t.fills]}
+
+
+def compare_fills(where: str, pid: str, delay: int, theirs: list, ours: list, out: list) -> None:
+    """Every fill (entries, adds, trims, targets, stops, default exits): same count, time, kind, price, shares."""
+    a, b = sorted(theirs, key=lambda f: (f[0], f[3])), sorted(ours, key=lambda f: (f[0], f[3]))
+    if len(a) != len(b):
+        out.append({"kind": "fill", "against": where, "pid": pid, "delay": delay, "field": "count",
+                    "theirs": len(a), "ours": len(b)})
+        return
+    for i, (x, y) in enumerate(zip(a, b)):
+        bad = [f for f, ok in (("ts", int(x[0]) == int(y[0])), ("kind", x[3] == y[3]),
+                               ("px", abs(x[1] - y[1]) <= 1e-4),
+                               ("qty", abs(x[2] - y[2]) <= 1e-6 * max(1.0, abs(x[2])))) if not ok]
+        if bad:
+            out.append({"kind": "fill", "against": where, "pid": pid, "delay": delay, "field": "+".join(bad),
+                        "fill": i, "theirs": x, "ours": y})
 
 
 def compare_trade(where: str, pid: str, delay: int, theirs: dict, ours: dict, out: list) -> float:
@@ -103,7 +127,9 @@ def compare_trade(where: str, pid: str, delay: int, theirs: dict, ours: dict, ou
     worst = 0.0
     if theirs["status"] != ours["status"]:
         out.append({"kind": "trade", "against": where, "pid": pid, "delay": delay, "field": "status",
-                    "theirs": theirs["status"], "ours": ours["status"], **({"why": ours["why"]} if ours.get("why") else {})})
+                    "theirs": theirs["status"], "ours": ours["status"],
+                    **({"why": ours["why"]} if ours.get("why") else {}),
+                    **({"theirs_why": theirs["why"]} if theirs.get("why") else {})})
         return worst
     if theirs["status"] != "priced":
         return worst
@@ -117,93 +143,167 @@ def compare_trade(where: str, pid: str, delay: int, theirs: dict, ours: dict, ou
         if diff > TRADE_TOL + 1e-9:
             out.append({"kind": "trade", "against": where, "pid": pid, "delay": delay, "field": f,
                         "theirs": theirs[f], "ours": ours[f], "diff": round(diff, 4)})
+    if "fills" in theirs and "fills" in ours:
+        compare_fills(where, pid, delay, theirs["fills"], ours["fills"], out)
     return worst
 
 
 def compare_head(portfolio: str, delay: str, theirs: dict, ours: dict, out: list) -> float:
     worst = 0.0
+
+    def miss(f, a, b, diff=None):
+        out.append({"kind": "headline", "portfolio": portfolio, "delay": int(delay), "field": f, "theirs": a,
+                    "ours": b, **({} if diff is None else {"diff": round(diff, 4)})})
+
     for f in HEAD_FIELDS:
+        if f not in theirs or f not in ours:
+            if f in theirs or f in ours:
+                miss(f, theirs.get(f, "missing"), ours.get(f, "missing"))
+            continue
         a, b = theirs[f], ours[f]
-        if f in ("trades", "word"):
-            bad = a != b
+        if f == "sealed":
+            for g in ("ret_pct", "hold_ret_pct", "trades"):
+                x, y = (a or {}).get(g), (b or {}).get(g)
+                if x is None or y is None:
+                    if x != y:
+                        miss(f"sealed.{g}", x if x is not None else "missing", y if y is not None else "missing")
+                elif g == "trades":
+                    if x != y:
+                        miss(f"sealed.{g}", x, y)
+                elif abs(x - y) > RET_TOL + 1e-9:
+                    miss(f"sealed.{g}", x, y, abs(x - y))
+        elif f in EXACT:
+            if a != b:
+                miss(f, a, b)
         else:
             diff = abs(a - b)
-            worst = max(worst, diff if f in ("end", "hold_end") else 0.0)
-            bad = diff > (RET_TOL if f.endswith("ret_pct") else HEAD_TOL) + 1e-9
-        if bad:
-            out.append({"kind": "headline", "portfolio": portfolio, "delay": int(delay), "field": f,
-                        "theirs": a, "ours": b, **({} if f in ("trades", "word") else {"diff": round(abs(a - b), 4)})})
+            if f in MONEY:
+                worst = max(worst, diff)
+            tol = HEAD_TOL if f in MONEY else DROP_TOL if f == "worst_drop_pct" else RET_TOL
+            if diff > tol + 1e-9:
+                miss(f, a, b, diff)
     return worst
+
+
+def lpp_sources(version: str) -> set[str]:
+    return {e["source_id"] for e in P.rows(P.lpp_events_path(version))}
 
 
 def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
                hold_close: str = calc.DEFAULT_HOLD_CLOSE) -> dict:
     d = json.loads(path.read_text())
     course, version = d["course"], d["version"]
-    mod = loader(course)
-    market = mod.MARKET
-    symbol = getattr(mod, "HOLD_BARS", mod.HOLD["symbol"])
+    market = MARKET[course]
+    symbol = HOLD_BARS.get(d["hold"]["symbol"], d["hold"]["symbol"])
     hold_row = calc.hold(market, symbol, d["window"], hold_close)
+    sealed_from = d["window"].get("sealed_from")
+    file_sha = sha256(path)
     mismatches: list[dict] = []
+    compared: list[dict] = []
+    unverifiable: list[str] = []
+    position_reports: dict[str, dict] = {}
+    loader_math: dict[str, dict] = {}
     worst, checked = 0.0, 0
 
-    def run_set(positions, ledger_name, portfolios):
+    def own_positions(ver, only, label):
+        rep = P.compare(course, ver, only)
+        position_reports[label] = {k: rep[k] for k in ("loader_positions", "audit_positions", "differences",
+                                                       "positions_differing", "by_field")}
+        for x in rep["details"]:
+            mismatches.append({**x, "against": f"loader:{label}"})
+        return P.build(course, ver, only)
+
+    def run_set(positions, ledger_name, portfolios, mm=mismatches, cmp=compared, unv=unverifiable, main=True):
         nonlocal worst, checked
         mine = {(p.pid, dl): calc.simulate(p, dl, sizing) for p in positions for dl in d["delays_min"]}
-        ledger = read_ledger(ledger_dir / f"{course}-{version}{ledger_name}-ledger.jsonl")
+        lpath = ledger_dir / f"{course}-{version}{ledger_name}-ledger.jsonl"
+        meta, ledger = read_ledger(lpath)
         if ledger is None:
-            mismatches.append({"kind": "missing", "field": "ledger",
-                               "theirs": f"data/audit/{course}-{version}{ledger_name}-ledger.jsonl",
-                               "ours": "run: cd app && uv run python -m backtest.run --course "
-                                       f"{course} --version {version}"})
-        else:
+            mm.append({"kind": "missing", "field": "ledger", "theirs": str(lpath),
+                       "ours": f"run: cd app && uv run python -m backtest.run --course {course} "
+                               f"--version {version} --ledger-only"})
+        elif not meta or meta.get("results_sha256") != file_sha:
+            mm.append({"kind": "stale", "field": "ledger", "theirs": (meta or {}).get("results_sha256",
+                       "unstamped"), "ours": file_sha, "ledger": str(lpath),
+                       "fix": f"cd app && uv run python -m backtest.run --course {course} --version "
+                              f"{version} --ledger-only"})
+        if ledger is not None:
             for k in sorted(set(ledger) - set(mine)):
-                mismatches.append({"kind": "trade", "against": "ledger", "pid": k[0], "delay": k[1],
-                                   "field": "presence", "theirs": "in engine ledger", "ours": "absent"})
+                mm.append({"kind": "trade", "against": "ledger", "pid": k[0], "delay": k[1],
+                           "field": "presence", "theirs": "in engine ledger", "ours": "absent"})
             for (pid, dl), t in mine.items():
                 if (pid, dl) not in ledger:
-                    mismatches.append({"kind": "trade", "against": "ledger", "pid": pid, "delay": dl,
-                                       "field": "presence", "theirs": "absent", "ours": "priced by audit"})
+                    mm.append({"kind": "trade", "against": "ledger", "pid": pid, "delay": dl,
+                               "field": "presence", "theirs": "absent", "ours": t.status})
                     continue
-                worst = max(worst, compare_trade("ledger", pid, dl, engine_row(ledger[(pid, dl)]),
-                                                 audit_row(t), mismatches))
-                checked += 1
+                theirs, ours = engine_row(ledger[(pid, dl)]), audit_row(t)
+                n = len(mm)
+                w = compare_trade("ledger", pid, dl, theirs, ours, mm)
+                cmp.append({"against": "ledger" + ledger_name, "pid": pid, "delay": dl,
+                            "ok": len(mm) == n, "theirs": theirs, "ours": ours})
+                if theirs["status"] == ours["status"] == "no_bars":
+                    unv.append(f"{pid}@{dl}{ledger_name}")
+                if main:
+                    worst = max(worst, w)
+                    checked += 1
         for pf_id, rows in portfolios:
             for dl, theirs in rows.items():
                 ts = [t for (pid, x), t in mine.items() if x == int(dl) and (pf_id == "all" or t.portfolio == pf_id)]
-                worst = max(worst, compare_head(pf_id if ledger_name == "" else f"same_sessions:{pf_id}", dl,
-                                                theirs, calc.portfolio(ts, hold_row), mismatches))
+                w = compare_head(pf_id if ledger_name == "" else f"same_sessions:{pf_id}", dl,
+                                 theirs, calc.portfolio(ts, hold_row, sealed_from), mm)
+                if main:
+                    worst = max(worst, w)
         return mine
 
-    positions = positions_for(mod, d, version)
-    pfs = [(p["id"], p["by_delay"]) for p in d["portfolios"] if p["testable"]]
+    def math_only(ver, only, ledger_name, portfolios):
+        """The same reconciliation on the loaders' own positions: what is left is the math alone."""
+        mm, cmp, unv = [], [], []
+        run_set(P.loader_positions(course, ver, only), ledger_name, portfolios, mm, cmp, unv, main=False)
+        loader_math[ledger_name or "main"] = {
+            "trades_compared": len(cmp), "mismatches": len(mm),
+            "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
+                                     for m in mm)), "details": mm}
+
+    only = P.lpp_proof_set() if course == "lpp" and d["checks"].get("proof_set") else None
+    positions = own_positions(version, only, version)
+    pfs = [(p["id"], p["by_delay"]) for p in d["portfolios"] if p.get("testable")]
     mine = run_set(positions, "", pfs)
+    math_only(version, only, "", pfs)
 
     # the trades the results file shows (a sample of up to 200): checked directly, not through the ledger
-    for row in d["trades"]:
+    for row in d.get("trades") or []:
         for dl, r in row["by_delay"].items():
             t = mine.get((row["trade_id"], int(dl)))
             if t is None:
                 mismatches.append({"kind": "trade", "against": "results", "pid": row["trade_id"], "delay": int(dl),
                                    "field": "presence", "theirs": "in results", "ours": "absent"})
                 continue
-            worst = max(worst, compare_trade("results", row["trade_id"], int(dl), stored_row(r), audit_row(t),
-                                             mismatches))
+            theirs, ours = stored_row(r), audit_row(t)
+            n = len(mismatches)
+            worst = max(worst, compare_trade("results", row["trade_id"], int(dl), theirs, ours, mismatches))
+            compared.append({"against": "results", "pid": row["trade_id"], "delay": int(dl),
+                             "ok": len(mismatches) == n, "theirs": theirs, "ours": ours})
             checked += 1
 
     if d.get("same_sessions"):
         same = d["same_sessions"]
-        srcs = mod.proof_set() if same.get("proof_set") else {e["source_id"] for e in mod.load(version)}
-        base = positions_for(mod, d, same["version"], sessions=srcs)
-        run_set(base, "-same_sessions", [(same.get("portfolio", "all"), same["by_delay"])])
+        srcs = P.lpp_proof_set() if same.get("proof_set") else lpp_sources(version)
+        base = own_positions(same["version"], srcs, f"{same['version']}-same_sessions")
+        ss = [(same.get("portfolio", "all"), same["by_delay"])]
+        run_set(base, "-same_sessions", ss)
+        math_only(same["version"], srcs, "-same_sessions", ss)
 
     hold_note = {"symbol": symbol, "first_open": hold_row["px0"], "official_close": hold_row["official_close"],
-                 "minute_close": hold_row["minute_close"], "used": hold_row["used"]}
-    return {"file": f"{course}/{version}", "sizing": sizing, "hold_close": hold_close, "pass": not mismatches, "trades_checked": checked,
-            "mismatches": len(mismatches), "max_abs_diff": round(worst, 4), "hold": hold_note,
+                 "minute_close": hold_row["minute_close"], "used": hold_row["used"],
+                 "sealed_first_open": hold_row["sealed_px0"]}
+    return {"file": f"{course}/{version}", "results_sha256": file_sha, "sizing": sizing, "hold_close": hold_close,
+            "pass": not mismatches, "trades_checked": checked, "mismatches": len(mismatches),
+            "max_abs_diff": round(worst, 4), "hold": hold_note, "positions": position_reports,
+            "unverifiable": sorted(unverifiable),
+            "math_on_loader_positions": loader_math,
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
                                      for m in mismatches)),
-            "details": mismatches}
+            "details": mismatches, "compared": compared}
 
 
 def results_git_sha(results_dir: Path) -> str | None:
@@ -212,9 +312,10 @@ def results_git_sha(results_dir: Path) -> str | None:
     return out or None
 
 
-def write_proofs(path: Path, a, rdir: Path, ok: bool, summary: dict) -> None:
+def write_proofs(path: Path, a, rdir: Path, ok: bool, summary: dict, reports: dict) -> None:
     """proofs/audit.json: the default reading at the top level; a run with other readings (--sizing,
-    --hold-close) is kept under `alternatives`, so both answers sit side by side."""
+    --hold-close) is kept under `alternatives`, so both answers sit side by side. `signoff` stays as Luis left it
+    (null until he signs with `python -m audit.gate --sign`); the gate checks its hand-check hash."""
     default = a.sizing == calc.DEFAULT_SIZING and a.hold_close == calc.DEFAULT_HOLD_CLOSE
     run = {"generated_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "results_git_sha": results_git_sha(rdir), "pass": ok, "sizing": a.sizing, "hold_close": a.hold_close,
@@ -223,13 +324,20 @@ def write_proofs(path: Path, a, rdir: Path, ok: bool, summary: dict) -> None:
            "files": summary}
     old = json.loads(path.read_text()) if path.exists() else {}
     if default:
-        rec = {"schema": "audit/1", **run,
-               "tolerance": {"trade": "1 cent (prices 4 dp, P&L 2 dp; times exact)",
-                             "headline": "$1 (returns 0.01 pts; trades and word exact)"},
+        rec = {"schema": "audit/2", **run,
+               "results_sha256": {k: r["results_sha256"] for k, r in reports.items()},
+               "tolerance": {"trade": "1 cent (prices 4 dp, P&L 2 dp; times exact; every fill's time, kind, "
+                                      "price and shares)",
+                             "headline": "$1 (returns and sealed 0.01 pts; worst drop 0.1 pt; trades, counts, "
+                                         "won_pct and word exact)"},
+               "notes": NOTES,
+               "positions": {k: r["positions"] for k, r in reports.items()},
+               "unverifiable": {k: r["unverifiable"] for k, r in reports.items() if r["unverifiable"]},
+               "signoff": old.get("signoff"),
                "alternatives": {k: v for k, v in old.get("alternatives", {}).items()
                                 if v.get("results_git_sha") == run["results_git_sha"]}}
     else:
-        rec = old or {"schema": "audit/1"}
+        rec = old or {"schema": "audit/2", "signoff": None}
         rec.setdefault("alternatives", {})[f"sizing={a.sizing},hold_close={a.hold_close}"] = run
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=1) + "\n")
@@ -240,10 +348,10 @@ def main(argv=None) -> int:
     ap.add_argument("--results-dir", default=str(RESULTS))
     ap.add_argument("--ledger-dir", default=str(DATA / "audit"))
     ap.add_argument("--out-dir", default=str(DATA / "audit"))
-    ap.add_argument("--proofs", default=str(REPO / "proofs" / "audit.json"), help="'' to skip writing it")
+    ap.add_argument("--proofs", default=str(PROOFS / "audit.json"), help="'' to skip writing it")
     ap.add_argument("--sizing", choices=calc.SIZINGS, default=calc.DEFAULT_SIZING,
-                    help="LPP rule 6 reading: first = first entry is $1,000 (contracts.md literally); "
-                         "trade = all entries together are $1,000 (the engine's reading)")
+                    help="LPP rule 6 reading: trade = all of a trade's buys together are $1,000 (contracts.md "
+                         "rule 6); first = his first entry is $1,000 (the rule's earlier wording)")
     ap.add_argument("--hold-close", choices=calc.HOLD_CLOSES, default=calc.DEFAULT_HOLD_CLOSE,
                     help="rule 7's last price: official = the session close (daily cache); minute = last 1-min bar")
     ap.add_argument("--only", action="append", help="course/version, e.g. lpp/v1 (repeatable)")
@@ -254,21 +362,32 @@ def main(argv=None) -> int:
         print("no results files found", file=sys.stderr)
         return 2
     out_dir.mkdir(parents=True, exist_ok=True)
-    summary = {}
+    summary, reports = {}, {}
     for p in files:
         rep = audit_file(p, Path(a.ledger_dir), a.sizing, a.hold_close)
         alt = "" if (a.sizing, a.hold_close) == (calc.DEFAULT_SIZING, calc.DEFAULT_HOLD_CLOSE) \
             else f"-{a.sizing}-{a.hold_close}"
         (out_dir / f"diff-{p.parent.name}-{p.stem}{alt}.json").write_text(json.dumps(rep, indent=1))
-        summary[rep["file"]] = {k: rep[k] for k in ("pass", "trades_checked", "mismatches", "max_abs_diff")}
+        reports[rep["file"]] = rep
+        summary[rep["file"]] = {k: rep[k] for k in ("pass", "trades_checked", "mismatches", "max_abs_diff")} | \
+            {"position_differences": sum(x["differences"] for x in rep["positions"].values()),
+             "unverifiable": len(rep["unverifiable"]),
+             "math_on_loader_positions": sum(x["mismatches"] for x in rep["math_on_loader_positions"].values())}
         print(f"{rep['file']:<16} {'PASS' if rep['pass'] else 'FAIL'}  trades checked {rep['trades_checked']:>5}  "
-              f"mismatches {rep['mismatches']:>5}  max diff {rep['max_abs_diff']}")
+              f"mismatches {rep['mismatches']:>5}  max diff {rep['max_abs_diff']}  "
+              f"unverifiable {len(rep['unverifiable'])}")
+        for label, pr in rep["positions"].items():
+            print(f"    positions {label}: loader {pr['loader_positions']}, audit {pr['audit_positions']}, "
+                  f"{pr['positions_differing']} differ {pr['by_field']}")
         for cls, n in sorted(rep["by_class"].items(), key=lambda x: -x[1]):
             print(f"    {n:>5}  {cls}")
+        for label, lm in rep["math_on_loader_positions"].items():
+            print(f"    math alone (calc on the loaders' positions, {label}): {lm['trades_compared']} trades, "
+                  f"{lm['mismatches']} mismatches {lm['by_class']}")
     ok = all(s["pass"] for s in summary.values())
     if a.proofs:
-        write_proofs(Path(a.proofs), a, rdir, ok, summary)
-    print("PASS: every trade and headline reconciles" if ok else "FAIL: see data/audit/diff-*.json")
+        write_proofs(Path(a.proofs), a, rdir, ok, summary, reports)
+    print("PASS: every position, trade and headline reconciles" if ok else "FAIL: see data/audit/diff-*.json")
     return 0 if ok else 1
 
 
