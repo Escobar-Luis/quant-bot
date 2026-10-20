@@ -1,8 +1,10 @@
-"""Optional results keys for the v2 answer screen (ui-v2-direction.md): strategies, ranges, best_stop.
+"""Optional results keys for the v2 answer screen (ui-v2-direction.md): strategies, ranges, best_stop; and by_year
+(spec-audit CAP-4, contracts.md section `by_year`).
 
 All code, no model: strategies come from each course module's keyword rules (`STRATEGIES`, `strategy_of`), and
 every number is the same engine output the portfolios use.
 """
+import bisect
 import datetime as dt
 from statistics import median
 
@@ -153,3 +155,78 @@ def combos(mod, positions: list, by_pos: dict, dates: list, hold: dict, hold_ser
              "dev": {"ret_pct": dev_ret, "hold_ret_pct": hold_dev, "trades": dev_n, "pairs_tried": len(pairs)},
              "sealed": {"ret_pct": sealed_ret, "hold_ret_pct": hold["sealed_ret_pct"], "trades": sealed_n},
              "word": engine.word(sealed_n, sealed_ret, hold["sealed_ret_pct"])}]
+
+
+# ---- by_year (spec-audit CAP-4): calendar years and all time, as slices of the one all-time run ----------------
+
+def hold_paths(market: str, symbol: str, window: dict) -> dict:
+    """Just holding as one all-time run (rule 7): $10k bought at the open of the window's first trading minute,
+    valued at each trading day's official close. `price`: without dividends (the headline's basis); `total`: each
+    dividend reinvested at its ex-date's close (an ex-date on the buy day earns nothing). Unrounded."""
+    start, end = dt.date.fromisoformat(window["start"]), dt.date.fromisoformat(window["end"])
+    closes = bars.daily_closes(market, symbol, start, end)
+    dates = list(closes)
+    b = bars.day_bars(market, symbol, dt.date.fromisoformat(dates[0]))
+    shares = MONEY_START / b[min(b)][0]
+    divs = bars.dividends(market, symbol, start, end)
+    pending = sorted((d, v) for d, v in divs.items() if d > dates[0])
+    units, price, total = shares, [], []
+    for day in dates:
+        while pending and pending[0][0] <= day:   # reinvested at the close of the ex-date (or the next close)
+            units *= 1 + pending.pop(0)[1] / closes[day]
+        price.append(shares * closes[day])
+        total.append(units * closes[day])
+    basis = "total_return" if market == "us_equities" else "price"
+    return {"dates": dates, "price": price, "total": total,
+            "meta": {"symbol": symbol, "basis": basis,
+                     "source": bars.DIVIDEND_SOURCE if market == "us_equities" else "No dividends (crypto)",
+                     "dividends": len([d for d in divs if d > dates[0]])}}
+
+
+def by_year(port_results: dict, hold: dict) -> dict:
+    """Per portfolio and delay, each calendar year in the window plus "all" (contracts.md section by_year).
+
+    port_results: {portfolio id: {delay: [Result]}}. The copied trades and their sizes are the headline's own
+    (`engine.fit_to_cash` over every priced trade); each one is booked in the year of its exit day, placed on the
+    date list the same way `portfolio_stats` places it in `series`."""
+    dates, total, price = hold["dates"], hold["total"], hold["price"]
+    years = sorted({d[:4] for d in dates})
+    last = {y: max(i for i, d in enumerate(dates) if d[:4] == y) for y in years}
+    first = {y: min(i for i, d in enumerate(dates) if d[:4] == y) for y in years}
+    periods = [{"id": y, "from": dates[first[y]], "to": dates[last[y]]} for y in years] + \
+        [{"id": "all", "from": dates[0], "to": dates[-1]}]
+
+    def hold_row(i0: int | None, i1: int) -> dict:
+        t0, p0 = (MONEY_START, MONEY_START) if i0 is None else (total[i0], price[i0])
+        return {"hold_start": round(t0, 2), "hold_end": round(total[i1], 2),
+                "hold_ret_pct": round((total[i1] / t0 - 1) * 100, 2),
+                "hold_price_ret_pct": round((price[i1] / p0 - 1) * 100, 2)}
+
+    holds = {y: hold_row(last[years[k - 1]] if k else None, last[y]) for k, y in enumerate(years)}
+    holds["all"] = hold_row(None, len(dates) - 1)
+    out = {}
+    for pid, per_delay in port_results.items():
+        rows = {}
+        for d, results in per_delay.items():
+            kept, *_ = engine.fit_to_cash([r for r in results if r.status == "priced"])
+            pnl, n = {y: 0.0 for y in years}, {y: 0 for y in years}
+            for r, f in kept:
+                day = bars.day_of(r.position.market, r.last_exit.ts).isoformat()
+                y = dates[min(bisect.bisect_left(dates, day), len(dates) - 1)][:4]
+                pnl[y] += r.pnl * f
+                n[y] += 1
+            row, money = {}, MONEY_START
+            for y in years:
+                ret = round(100 * pnl[y] / money, 2)
+                h = holds[y]
+                row[y] = {"start": round(money, 2), "end": round(money + pnl[y], 2), "ret_pct": ret, **h,
+                          "trades": n[y], "word": engine.word(n[y], ret, h["hold_ret_pct"])}
+                money += pnl[y]
+            end = round(MONEY_START + sum(r.pnl * f for r, f in kept), 2)   # the headline's own sum
+            ret = round((end / MONEY_START - 1) * 100, 2)
+            h = holds["all"]
+            row["all"] = {"start": MONEY_START, "end": end, "ret_pct": ret, **h, "trades": len(kept),
+                          "word": engine.word(len(kept), ret, h["hold_ret_pct"])}
+            rows[str(d)] = row
+        out[pid] = {"by_delay": rows}
+    return {"hold": hold["meta"], "periods": periods, "portfolios": out}

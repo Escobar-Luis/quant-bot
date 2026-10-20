@@ -100,3 +100,33 @@ def test_no_private_video_ids_in_results(path):
     assert not re.search(r"yt:[A-Za-z0-9_-]{11}", text)
     assert "youtube.com" not in text and "youtu.be" not in text
     assert not [v for v in private_video_ids() if v in text]
+
+
+@pytest.mark.parametrize("path", FILES, ids=[f"{p.parent.name}/{p.name}" for p in FILES])
+def test_optional_by_year_key(path):
+    """contracts.md section by_year: every testable portfolio and delay; `all` is the headline."""
+    d = json.loads(path.read_text())
+    if "by_year" not in d:
+        return
+    by = d["by_year"]
+    ids = [p["id"] for p in by["periods"]]
+    assert ids[-1] == "all" and ids[:-1] == sorted(ids[:-1]) and all(len(y) == 4 for y in ids[:-1])
+    assert by["periods"][0]["from"] >= d["window"]["start"] and by["periods"][-1]["to"] <= d["window"]["end"]
+    assert by["hold"]["basis"] in {"total_return", "price"}
+    heads = {p["id"]: p for p in d["portfolios"] if p["testable"]}
+    assert set(by["portfolios"]) == set(heads)
+    for pid, pf in by["portfolios"].items():
+        assert set(pf["by_delay"]) == {str(x) for x in DELAYS_MIN}
+        for k, rows in pf["by_delay"].items():
+            assert list(rows) == ids
+            head = heads[pid]["by_delay"][k]
+            assert (rows["all"]["end"], rows["all"]["ret_pct"], rows["all"]["trades"]) == \
+                (head["end"], head["ret_pct"], head["trades"])
+            assert sum(rows[y]["trades"] for y in ids[:-1]) == rows["all"]["trades"]
+            assert rows[ids[-2]]["end"] == pytest.approx(rows["all"]["end"], abs=0.02)
+            for y in ids:
+                r = rows[y]
+                assert r["word"] == engine.word(r["trades"], r["ret_pct"], r["hold_ret_pct"])
+            for a, b in zip(ids[:-2], ids[1:-1]):
+                assert rows[b]["start"] == pytest.approx(rows[a]["end"], abs=0.02)
+                assert rows[b]["hold_start"] == pytest.approx(rows[a]["hold_end"], abs=0.02)
