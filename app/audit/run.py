@@ -16,7 +16,9 @@ For each results file:
      return, trades, not_triggered, couldnt_copy, sized_down, won_pct, worst_drop_pct, word and the sealed block;
   5. by_year (when the file has it): every calendar year and all time, per portfolio and delay, recomputed by
      audit.years from the audit's own trades and the cached daily closes and dividends; `all` must also equal
-     the headline's end, return and trades.
+     the headline's end, return and trades;
+  6. strategy_profile (LPP's full-window file): every table, setup, rule (and its keep rule), losing pattern
+     (and its selection) and worst day, recomputed by audit.strategy from the audit's own trades at 5 min.
 Writes data/audit/diff-<course>-<version>.json (every compared trade and fill, every finding) and
 proofs/audit.json (the pass record; `python -m audit.gate` reads it). Exits 0 only when everything reconciles.
 No network: a bar missing from data/bars/ marks that trade no_bars; trades both sides call no_bars are listed
@@ -31,7 +33,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from . import calc, years
+from . import calc, strategy, years
 from . import positions as P
 from .paths import DATA, PROOFS, REPO, RESULTS
 
@@ -341,6 +343,23 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
                                            "field": f"{f} vs headline", "theirs": a.get(f, "missing"),
                                            "ours": h.get(f, "missing")})
 
+    # strategy_profile (contracts.md section strategy_profile, CAP-14): every number recomputed from this audit's
+    # own trades; LPP's full-window file must carry it, a proof-set file must not (rule 9)
+    sp_note = "absent"
+    if d.get("strategy_profile"):
+        if same:
+            mismatches.append({"kind": "strategy_profile", "portfolio": "file", "field": "present",
+                               "theirs": "strategy_profile", "ours": "none in a proof-set file (rule 9)"})
+        else:
+            head = next(p["by_delay"] for p in d["portfolios"] if p["id"] == d["strategy_profile"]["portfolio"])
+            found = strategy.check(d["strategy_profile"], mine, head[str(d["strategy_profile"]["delay_min"])],
+                                   version)
+            mismatches.extend(found)
+            sp_note = {"rules": len(d["strategy_profile"]["rules"]), "mismatches": len(found)}
+    elif course == "lpp" and not same:
+        mismatches.append({"kind": "missing", "field": "strategy_profile", "theirs": "absent",
+                           "ours": "expected in LPP's full-window file (contracts.md section strategy_profile)"})
+
     # the trades the results file shows (a sample of up to 200): checked directly, not through the ledger
     for row in d.get("trades") or []:
         for dl, r in row["by_delay"].items():
@@ -371,7 +390,8 @@ def audit_file(path: Path, ledger_dir: Path, sizing: str = calc.DEFAULT_SIZING,
                  "sealed_first_open": hold_row["sealed_px0"]}
     return {"file": f"{course}/{version}", "results_sha256": file_sha, "sizing": sizing, "hold_close": hold_close,
             "pass": not mismatches, "trades_checked": checked, "mismatches": len(mismatches),
-            "max_abs_diff": round(worst, 4), "hold": hold_note, "by_year": by_year_note, "positions": position_reports,
+            "max_abs_diff": round(worst, 4), "hold": hold_note, "by_year": by_year_note,
+            "strategy_profile": sp_note, "positions": position_reports,
             "unverifiable": sorted(unverifiable),
             "math_on_loader_positions": loader_math,
             "by_class": dict(Counter(f"{m['kind']}:{m.get('against', m.get('portfolio', ''))}:{m['field']}"
