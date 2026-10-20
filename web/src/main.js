@@ -385,7 +385,7 @@ function renderHis(v) {
       ${r.quote ? `<p class="h-said"><q>${esc(r.quote.text)}</q><span class="cite">${esc(r.quote.cite?.label || '')}</span></p>` : ''}</li>`).join('');
   $('#hisLoss').innerHTML = (sp.losing_patterns || []).map(p => `<li>
       <p class="h-text">${esc(p.label || p.id)}</p>
-      <p class="h-num mono num">${hisNums(p)} · ${Math.round(p.share_of_losses_pct)}% of all losses</p></li>`).join('');
+      <p class="h-num mono num">${hisNums(p)} · ${Math.round(p.share_of_losses_pct)}% of the $ lost on losing trades</p></li>`).join('');
 }
 let shownWord = null;
 function renderVerdict(fresh) {
